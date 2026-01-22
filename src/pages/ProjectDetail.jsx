@@ -178,6 +178,16 @@ export default function ProjectDetail() {
 
   const saveStatusesMutation = useMutation({
     mutationFn: async (statuses) => {
+      // Optimistically update the UI
+      queryClient.setQueryData(['taskStatuses'], (old) => {
+        const filteredOld = old.filter(s => s.project_id !== projectId);
+        const newStatuses = statuses.map((s, i) => ({
+          ...s,
+          id: `temp-${i}`,
+          project_id: projectId
+        }));
+        return [...filteredOld, ...newStatuses];
+      });
       // Get old project statuses
       const oldProjectStatuses = allTaskStatuses.filter(s => s.project_id === projectId);
       
@@ -218,7 +228,6 @@ export default function ProjectDetail() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['taskStatuses'] });
       queryClient.invalidateQueries({ queryKey: ['tasks', projectId] });
-      setStatusManagementOpen(false);
       toast.success('Statuses updated');
     },
   });

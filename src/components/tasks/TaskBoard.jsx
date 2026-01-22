@@ -12,7 +12,34 @@ export default function TaskBoard({ tasks, taskStatuses, onDragEnd, onEditTask, 
   const [creatingInColumn, setCreatingInColumn] = useState(null);
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const queryClient = useQueryClient();
+  const scrollContainerRef = React.useRef(null);
+  const [isDragging, setIsDragging] = React.useState(false);
+  const [startX, setStartX] = React.useState(0);
+  const [scrollLeft, setScrollLeft] = React.useState(0);
   const columns = taskStatuses.sort((a, b) => a.order - b.order);
+
+  const handleMouseDown = (e) => {
+    if (!scrollContainerRef.current) return;
+    setIsDragging(true);
+    setStartX(e.pageX - scrollContainerRef.current.offsetLeft);
+    setScrollLeft(scrollContainerRef.current.scrollLeft);
+  };
+
+  const handleMouseMove = (e) => {
+    if (!isDragging || !scrollContainerRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - scrollContainerRef.current.offsetLeft;
+    const walk = (x - startX) * 2;
+    scrollContainerRef.current.scrollLeft = scrollLeft - walk;
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const handleMouseLeave = () => {
+    setIsDragging(false);
+  };
   
   const getColumnTasks = (statusId) => {
     const filtered = tasks.filter(task => 
@@ -58,7 +85,18 @@ export default function TaskBoard({ tasks, taskStatuses, onDragEnd, onEditTask, 
 
   return (
     <DragDropContext onDragEnd={onDragEnd}>
-      <div className="flex gap-4 overflow-x-auto pb-4">
+      <div 
+        ref={scrollContainerRef}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseLeave}
+        className={cn(
+          "flex gap-4 overflow-x-auto pb-4",
+          isDragging ? "cursor-grabbing" : "cursor-grab"
+        )}
+        style={{ scrollbarWidth: 'thin' }}
+      >
         {columns.map(column => (
           <Droppable key={column.id} droppableId={column.id}>
             {(provided, snapshot) => (

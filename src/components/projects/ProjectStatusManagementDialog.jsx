@@ -36,6 +36,7 @@ export default function ProjectStatusManagementDialog({
   const [statuses, setStatuses] = useState([]);
   const [templateName, setTemplateName] = useState('');
   const [showTemplateSave, setShowTemplateSave] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     if (open) {
@@ -101,7 +102,7 @@ export default function ProjectStatusManagementDialog({
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     // Validate
     const hasEmpty = statuses.some(s => !s.name.trim() || !s.key.trim());
     if (hasEmpty) {
@@ -109,7 +110,10 @@ export default function ProjectStatusManagementDialog({
       return;
     }
 
-    onSave(statuses);
+    setIsSaving(true);
+    onOpenChange(false);
+    await onSave(statuses);
+    setIsSaving(false);
   };
 
   const handleSaveAsTemplate = () => {
@@ -258,15 +262,23 @@ export default function ProjectStatusManagementDialog({
 
           {/* Action Buttons */}
           <div className="flex justify-end gap-3 pt-4 border-t">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSaving}>
               Cancel
             </Button>
             <Button
               type="button"
               onClick={handleSave}
-              className="bg-emerald-600 hover:bg-emerald-700"
+              disabled={isSaving}
+              className="bg-emerald-600 hover:bg-emerald-700 min-w-[120px]"
             >
-              Save Changes
+              {isSaving ? (
+                <span className="flex items-center gap-2">
+                  <span className="animate-spin">⏳</span>
+                  Saving...
+                </span>
+              ) : (
+                'Save Changes'
+              )}
             </Button>
           </div>
         </div>
