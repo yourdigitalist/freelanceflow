@@ -22,8 +22,8 @@ export default function TaskBoard({ tasks, taskStatuses, onDragEnd, onEditTask, 
                 ref={provided.innerRef}
                 {...provided.droppableProps}
                 className={cn(
-                  "rounded-2xl overflow-hidden min-h-[400px] transition-all bg-slate-50",
-                  snapshot.isDraggingOver && "ring-2 ring-emerald-500/20"
+                  "rounded-2xl overflow-hidden min-h-[400px] transition-all",
+                  snapshot.isDraggingOver ? "bg-emerald-50 ring-2 ring-emerald-400" : "bg-slate-50"
                 )}
               >
                 <div 
@@ -37,7 +37,7 @@ export default function TaskBoard({ tasks, taskStatuses, onDragEnd, onEditTask, 
                       {getColumnTasks(column.id).length}
                     </span>
                   </div>
-                <div className="space-y-3">
+                <div className="space-y-3 min-h-[300px]">
                   {getColumnTasks(column.id).map((task, index) => (
                     <Draggable key={task.id} draggableId={task.id} index={index}>
                       {(provided, snapshot) => (
@@ -45,6 +45,7 @@ export default function TaskBoard({ tasks, taskStatuses, onDragEnd, onEditTask, 
                           ref={provided.innerRef}
                           {...provided.draggableProps}
                           {...provided.dragHandleProps}
+                          className={cn(snapshot.isDragging && "opacity-70")}
                         >
                           <TaskItem
                             task={task}
@@ -58,6 +59,7 @@ export default function TaskBoard({ tasks, taskStatuses, onDragEnd, onEditTask, 
                     </Draggable>
                   ))}
                   {provided.placeholder}
+                  </div>
                   <Button
                     variant="ghost"
                     size="sm"
@@ -67,7 +69,6 @@ export default function TaskBoard({ tasks, taskStatuses, onDragEnd, onEditTask, 
                     <Plus className="w-4 h-4 mr-2" />
                     Add task
                   </Button>
-                  </div>
                 </div>
               </div>
             )}

@@ -17,9 +17,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Pencil, Trash2, MessageSquare, Plus } from 'lucide-react';
+import { Pencil, Trash2, MessageSquare, Plus, GripVertical, ArrowUpDown } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import { base44 } from '@/api/base44Client';
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+import { useQueryClient } from '@tanstack/react-query';
 
 const priorityColors = {
   low: "bg-slate-100 text-slate-700",
@@ -33,10 +35,51 @@ const priorityLabels = {
   high: "High",
 };
 
-export default function TaskListView({ tasks, taskStatuses, onEditTask, onDeleteTask, onAddTask }) {
+export default function TaskListView({ tasks, taskStatuses, onEditTask, onDeleteTask, onAddTask, projectId }) {
   const [editingCell, setEditingCell] = useState(null);
   const [editValue, setEditValue] = useState('');
-  const topLevelTasks = tasks.filter(t => !t.parent_task_id);
+  const [creatingTask, setCreatingTask] = useState(false);
+  const [newTaskTitle, setNewTaskTitle] = useState('');
+  const [sortBy, setSortBy] = useState('order');
+  const [sortOrder, setSortOrder] = useState('asc');
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [filterPriority, setFilterPriority] = useState('all');
+  const queryClient = useQueryClient();
+
+  let topLevelTasks = tasks.filter(t => !t.parent_task_id);
+
+  // Apply filters
+  if (filterStatus !== 'all') {
+    topLevelTasks = topLevelTasks.filter(t => t.status_id === filterStatus);
+  }
+  if (filterPriority !== 'all') {
+    topLevelTasks = topLevelTasks.filter(t => t.priority === filterPriority);
+  }
+
+  // Apply sorting
+  if (sortBy !== 'order') {
+    topLevelTasks = [...topLevelTasks].sort((a, b) => {
+      let aVal = a[sortBy];
+      let bVal = b[sortBy];
+      
+      if (sortBy === 'due_date') {
+        aVal = aVal ? new Date(aVal).getTime() : Infinity;
+        bVal = bVal ? new Date(bVal).getTime() : Infinity;
+      } else if (sortBy === 'title') {
+        aVal = (aVal || '').toLowerCase();
+        bVal = (bVal || '').toLowerCase();
+      }
+      
+      if (sortOrder === 'asc') {
+        return aVal > bVal ? 1 : -1;
+      } else {
+        return aVal < bVal ? 1 : -1;
+      }
+    });
+  } else {
+    // Sort by order field
+    topLevelTasks = [...topLevelTasks].sort((a, b) => (a.order || 0) - (b.order || 0));
+  }
 
   const getStatusName = (statusId) => {
     const status = taskStatuses.find(s => s.id === statusId);
@@ -65,179 +108,312 @@ export default function TaskListView({ tasks, taskStatuses, onEditTask, onDelete
 
   const handleStatusChange = async (task, newStatusId) => {
     await base44.entities.Task.update(task.id, { status_id: newStatusId });
+    queryClient.invalidateQueries({ queryKey: ['tasks', projectId] });
   };
 
   const handlePriorityChange = async (task, newPriority) => {
     await base44.entities.Task.update(task.id, { priority: newPriority });
+    queryClient.invalidateQueries({ queryKey: ['tasks', projectId] });
+  };
+
+  const handleCreateTask = async () => {
+    if (!newTaskTitle.trim()) return;
+    await base44.entities.Task.create({
+      title: newTaskTitle.trim(),
+      project_id: projectId,
+      status_id: taskStatuses[0]?.id,
+      priority: 'medium',
+    });
+    queryClient.invalidateQueries({ queryKey: ['tasks', projectId] });
+    setCreatingTask(false);
+    setNewTaskTitle('');
+  };
+
+  const handleDragEnd = async (result) => {
+    if (!result.destination) return;
+    
+    const sourceIndex = result.source.index;
+    const destIndex = result.destination.index;
+    
+    if (sourceIndex === destIndex) return;
+    
+    const reordered = Array.from(topLevelTasks);
+    const [moved] = reordered.splice(sourceIndex, 1);
+    reordered.splice(destIndex, 0, moved);
+    
+    // Update order for all affected tasks
+    const updates = reordered.map((task, index) => 
+      base44.entities.Task.update(task.id, { order: index })
+    );
+    await Promise.all(updates);
+    queryClient.invalidateQueries({ queryKey: ['tasks', projectId] });
+  };
+
+  const toggleSort = (field) => {
+    if (sortBy === field) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(field);
+      setSortOrder('asc');
+    }
   };
 
   return (
     <div className="space-y-3">
-      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-[35%]">Title</TableHead>
-              <TableHead className="w-[15%]">Status</TableHead>
-              <TableHead className="w-[12%]">Priority</TableHead>
-              <TableHead className="w-[12%]">Est. Hours</TableHead>
-              <TableHead className="w-[14%]">Due Date</TableHead>
-              <TableHead className="w-[12%] text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-        <TableBody>
-          {topLevelTasks.length === 0 ? (
-            <TableRow>
-              <TableCell colSpan={6} className="text-center text-slate-500 py-8">
-                No tasks yet. Create your first task to get started.
-              </TableCell>
-            </TableRow>
-          ) : (
-            topLevelTasks.map((task) => (
-              <TableRow key={task.id} className={cn(
-                "group transition-colors",
-                editingCell?.taskId === task.id ? "bg-emerald-50/30" : "hover:bg-slate-50"
-              )}>
-                <TableCell 
-                  className="font-medium cursor-text hover:bg-slate-100/50 transition-colors"
-                  onClick={() => handleCellEdit(task.id, 'title', task.title)}
-                >
-                  {editingCell?.taskId === task.id && editingCell?.field === 'title' ? (
-                    <Input
-                      value={editValue}
-                      onChange={(e) => setEditValue(e.target.value)}
-                      onBlur={() => handleSaveCell(task, 'title')}
-                      onKeyPress={(e) => e.key === 'Enter' && handleSaveCell(task, 'title')}
-                      autoFocus
-                      className="h-8 -my-1"
-                    />
-                  ) : (
-                    <span className="block py-1">{task.title}</span>
-                  )}
-                </TableCell>
-                <TableCell className="w-[15%]">
-                  <Select
-                    value={task.status_id}
-                    onValueChange={(value) => handleStatusChange(task, value)}
+      {/* Filters */}
+      <div className="flex gap-3 items-center">
+        <Select value={filterStatus} onValueChange={setFilterStatus}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="All Statuses" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Statuses</SelectItem>
+            {taskStatuses.map(status => (
+              <SelectItem key={status.id} value={status.id}>{status.name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={filterPriority} onValueChange={setFilterPriority}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="All Priorities" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Priorities</SelectItem>
+            <SelectItem value="low">Low</SelectItem>
+            <SelectItem value="medium">Medium</SelectItem>
+            <SelectItem value="high">High</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <DragDropContext onDragEnd={handleDragEnd}>
+        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[40px]"></TableHead>
+                <TableHead className="w-[35%]">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 -ml-3 font-semibold hover:bg-transparent"
+                    onClick={() => toggleSort('title')}
                   >
-                    <SelectTrigger className="h-8 w-full border-0 hover:bg-slate-100/50">
-                      <div className="flex items-center gap-2">
-                        <div 
-                          className="w-2 h-2 rounded-full flex-shrink-0"
-                          style={{ backgroundColor: getStatusColor(task.status_id) }}
-                        />
-                        <span className="truncate">{getStatusName(task.status_id)}</span>
-                      </div>
-                    </SelectTrigger>
-                    <SelectContent>
-                      {taskStatuses.map(status => (
-                        <SelectItem key={status.id} value={status.id}>
-                          <div className="flex items-center gap-2">
-                            <div 
-                              className="w-2 h-2 rounded-full"
-                              style={{ backgroundColor: status.color }}
-                            />
-                            {status.name}
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </TableCell>
-                <TableCell className="w-[12%]">
-                  <Select
-                    value={task.priority || 'medium'}
-                    onValueChange={(value) => handlePriorityChange(task, value)}
+                    Title
+                    {sortBy === 'title' && <ArrowUpDown className="ml-2 h-4 w-4" />}
+                  </Button>
+                </TableHead>
+                <TableHead className="w-[15%]">Status</TableHead>
+                <TableHead className="w-[12%]">Priority</TableHead>
+                <TableHead className="w-[12%]">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 -ml-3 font-semibold hover:bg-transparent"
+                    onClick={() => toggleSort('estimated_hours')}
                   >
-                    <SelectTrigger className="h-8 w-full border-0 hover:bg-slate-100/50">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="low">Low</SelectItem>
-                      <SelectItem value="medium">Medium</SelectItem>
-                      <SelectItem value="high">High</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </TableCell>
-                <TableCell 
-                  className="w-[12%] cursor-text hover:bg-slate-100/50 transition-colors"
-                  onClick={() => handleCellEdit(task.id, 'estimated_hours', task.estimated_hours)}
-                >
-                  {editingCell?.taskId === task.id && editingCell?.field === 'estimated_hours' ? (
-                    <Input
-                      type="number"
-                      min="0"
-                      step="0.5"
-                      value={editValue}
-                      onChange={(e) => setEditValue(e.target.value)}
-                      onBlur={() => handleSaveCell(task, 'estimated_hours')}
-                      onKeyPress={(e) => e.key === 'Enter' && handleSaveCell(task, 'estimated_hours')}
-                      autoFocus
-                      className="h-8 -my-1"
-                    />
-                  ) : (
-                    <span className="block py-1">{task.estimated_hours ? `${task.estimated_hours}h` : '—'}</span>
-                  )}
-                </TableCell>
-                <TableCell 
-                  className="w-[14%] cursor-text hover:bg-slate-100/50 transition-colors"
-                  onClick={() => handleCellEdit(task.id, 'due_date', task.due_date)}
-                >
-                  {editingCell?.taskId === task.id && editingCell?.field === 'due_date' ? (
-                    <Input
-                      type="date"
-                      value={editValue}
-                      onChange={(e) => setEditValue(e.target.value)}
-                      onBlur={() => handleSaveCell(task, 'due_date')}
-                      onKeyPress={(e) => e.key === 'Enter' && handleSaveCell(task, 'due_date')}
-                      autoFocus
-                      className="h-8 -my-1"
-                    />
-                  ) : (
-                    <span className="block py-1">{task.due_date || '—'}</span>
-                  )}
-                </TableCell>
-                <TableCell className="text-right">
-                  <div className="flex gap-2 justify-end items-center">
-                    {task.comments && task.comments.length > 0 && (
-                      <span className="flex items-center gap-1 text-xs text-slate-500">
-                        <MessageSquare className="w-3.5 h-3.5" />
-                        {task.comments.length}
-                      </span>
-                    )}
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => onEditTask(task)}
-                    >
-                      <Pencil className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => onDeleteTask(task)}
-                      className="text-red-600 hover:text-red-700"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </TableCell>
+                    Est. Hours
+                    {sortBy === 'estimated_hours' && <ArrowUpDown className="ml-2 h-4 w-4" />}
+                  </Button>
+                </TableHead>
+                <TableHead className="w-[14%]">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 -ml-3 font-semibold hover:bg-transparent"
+                    onClick={() => toggleSort('due_date')}
+                  >
+                    Due Date
+                    {sortBy === 'due_date' && <ArrowUpDown className="ml-2 h-4 w-4" />}
+                  </Button>
+                </TableHead>
+                <TableHead className="w-[12%] text-right">Actions</TableHead>
               </TableRow>
-            ))
-          )}
-        </TableBody>
-      </Table>
-    </div>
+            </TableHeader>
+          <Droppable droppableId="task-list">
+            {(provided) => (
+              <TableBody ref={provided.innerRef} {...provided.droppableProps}>
+                {topLevelTasks.length === 0 && !creatingTask ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center text-slate-500 py-8">
+                      No tasks yet. Create your first task to get started.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  <>
+                    {topLevelTasks.map((task, index) => (
+                      <Draggable key={task.id} draggableId={task.id} index={index} isDragDisabled={sortBy !== 'order'}>
+                        {(provided, snapshot) => (
+                          <TableRow
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            className={cn(
+                              "group transition-colors",
+                              snapshot.isDragging && "opacity-50 bg-slate-100",
+                              editingCell?.taskId === task.id ? "bg-emerald-50/30" : "hover:bg-slate-50"
+                            )}
+                          >
+                            <TableCell {...provided.dragHandleProps} className="cursor-grab active:cursor-grabbing">
+                              {sortBy === 'order' && <GripVertical className="w-4 h-4 text-slate-400" />}
+                            </TableCell>
+                            <TableCell 
+                              className="font-medium cursor-text hover:bg-slate-100/50 transition-colors"
+                              onClick={() => handleCellEdit(task.id, 'title', task.title)}
+                            >
+                              {editingCell?.taskId === task.id && editingCell?.field === 'title' ? (
+                                <Input
+                                  value={editValue}
+                                  onChange={(e) => setEditValue(e.target.value)}
+                                  onBlur={() => handleSaveCell(task, 'title')}
+                                  onKeyPress={(e) => e.key === 'Enter' && handleSaveCell(task, 'title')}
+                                  autoFocus
+                                  className="h-8 -my-1"
+                                />
+                              ) : (
+                                <span className="block py-1">{task.title}</span>
+                              )}
+                            </TableCell>
+                            <TableCell className="w-[15%]">
+                              <Select
+                                value={task.status_id}
+                                onValueChange={(value) => handleStatusChange(task, value)}
+                              >
+                                <SelectTrigger className="h-8 w-full border-0 hover:bg-slate-100/50">
+                                  <div className="flex items-center gap-2">
+                                    <div 
+                                      className="w-2 h-2 rounded-full flex-shrink-0"
+                                      style={{ backgroundColor: getStatusColor(task.status_id) }}
+                                    />
+                                    <span className="truncate">{getStatusName(task.status_id)}</span>
+                                  </div>
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {taskStatuses.map(status => (
+                                    <SelectItem key={status.id} value={status.id}>
+                                      <div className="flex items-center gap-2">
+                                        <div 
+                                          className="w-2 h-2 rounded-full"
+                                          style={{ backgroundColor: status.color }}
+                                        />
+                                        {status.name}
+                                      </div>
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </TableCell>
+                            <TableCell className="w-[12%]">
+                              <Badge className={cn("font-normal", priorityColors[task.priority || 'medium'])}>
+                                {priorityLabels[task.priority || 'medium']}
+                              </Badge>
+                            </TableCell>
+                            <TableCell 
+                              className="w-[12%] cursor-text hover:bg-slate-100/50 transition-colors"
+                              onClick={() => handleCellEdit(task.id, 'estimated_hours', task.estimated_hours)}
+                            >
+                              {editingCell?.taskId === task.id && editingCell?.field === 'estimated_hours' ? (
+                                <Input
+                                  type="number"
+                                  min="0"
+                                  step="0.5"
+                                  value={editValue}
+                                  onChange={(e) => setEditValue(e.target.value)}
+                                  onBlur={() => handleSaveCell(task, 'estimated_hours')}
+                                  onKeyPress={(e) => e.key === 'Enter' && handleSaveCell(task, 'estimated_hours')}
+                                  autoFocus
+                                  className="h-8 -my-1"
+                                />
+                              ) : (
+                                <span className="block py-1">{task.estimated_hours ? `${task.estimated_hours}h` : '—'}</span>
+                              )}
+                            </TableCell>
+                            <TableCell 
+                              className="w-[14%] cursor-text hover:bg-slate-100/50 transition-colors"
+                              onClick={() => handleCellEdit(task.id, 'due_date', task.due_date)}
+                            >
+                              {editingCell?.taskId === task.id && editingCell?.field === 'due_date' ? (
+                                <Input
+                                  type="date"
+                                  value={editValue}
+                                  onChange={(e) => setEditValue(e.target.value)}
+                                  onBlur={() => handleSaveCell(task, 'due_date')}
+                                  onKeyPress={(e) => e.key === 'Enter' && handleSaveCell(task, 'due_date')}
+                                  autoFocus
+                                  className="h-8 -my-1"
+                                />
+                              ) : (
+                                <span className="block py-1">{task.due_date || '—'}</span>
+                              )}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <div className="flex gap-2 justify-end items-center">
+                                {task.comments && task.comments.length > 0 && (
+                                  <span className="flex items-center gap-1 text-xs text-slate-500">
+                                    <MessageSquare className="w-3.5 h-3.5" />
+                                    {task.comments.length}
+                                  </span>
+                                )}
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => onEditTask(task)}
+                                >
+                                  <Pencil className="w-4 h-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => onDeleteTask(task)}
+                                  className="text-red-600 hover:text-red-700"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </Draggable>
+                    ))}
+                    {creatingTask && (
+                      <TableRow className="bg-emerald-50/30">
+                        <TableCell></TableCell>
+                        <TableCell colSpan={6}>
+                          <Input
+                            value={newTaskTitle}
+                            onChange={(e) => setNewTaskTitle(e.target.value)}
+                            onBlur={handleCreateTask}
+                            onKeyPress={(e) => {
+                              if (e.key === 'Enter') handleCreateTask();
+                              if (e.key === 'Escape') { setCreatingTask(false); setNewTaskTitle(''); }
+                            }}
+                            placeholder="Task title..."
+                            autoFocus
+                            className="h-8"
+                          />
+                        </TableCell>
+                      </TableRow>
+                    )}
+                    {provided.placeholder}
+                  </>
+                )}
+              </TableBody>
+            )}
+          </Droppable>
+        </Table>
+      </div>
+    </DragDropContext>
     
-    <Button
-      variant="ghost"
-      size="sm"
-      onClick={() => onAddTask && onAddTask(taskStatuses[0]?.id)}
-      className="w-full justify-start text-slate-500 hover:text-slate-700 hover:bg-white border border-dashed border-slate-200 hover:border-slate-300 rounded-xl"
-    >
-      <Plus className="w-4 h-4 mr-2" />
-      Add task
-    </Button>
+    {!creatingTask && (
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => setCreatingTask(true)}
+        className="w-full justify-start text-slate-500 hover:text-slate-700 hover:bg-white border border-dashed border-slate-200 hover:border-slate-300 rounded-xl"
+      >
+        <Plus className="w-4 h-4 mr-2" />
+        Add task
+      </Button>
+    )}
   </div>
   );
 }

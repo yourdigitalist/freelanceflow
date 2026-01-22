@@ -472,6 +472,7 @@ export default function ProjectDetail() {
             <TaskListView
               tasks={tasks}
               taskStatuses={taskStatuses}
+              projectId={projectId}
               onEditTask={(task) => {
                 setEditingTask(task);
                 setTaskDialogOpen(true);
