@@ -206,16 +206,6 @@ export default function TaskListView({ tasks, taskStatuses, onEditTask, onDelete
     localStorage.setItem(`taskListSortOrder_${projectId}`, newSortOrder);
   };
 
-  const getStatusOrder = (statusId) => {
-    const status = taskStatuses.find(s => s.id === statusId);
-    return status?.order || 999;
-  };
-
-  const getPriorityOrder = (priority) => {
-    const order = { low: 1, medium: 2, high: 3 };
-    return order[priority] || 0;
-  };
-
   return (
     <div className="space-y-3">
       {/* Filters */}
