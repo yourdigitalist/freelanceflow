@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -9,8 +10,16 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Pencil, Trash2 } from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Pencil, Trash2, MessageSquare } from 'lucide-react';
 import { cn } from "@/lib/utils";
+import { base44 } from '@/api/base44Client';
 
 const priorityColors = {
   low: "bg-slate-100 text-slate-700",
@@ -25,6 +34,8 @@ const priorityLabels = {
 };
 
 export default function TaskListView({ tasks, taskStatuses, onEditTask, onDeleteTask }) {
+  const [editingCell, setEditingCell] = useState(null);
+  const [editValue, setEditValue] = useState('');
   const topLevelTasks = tasks.filter(t => !t.parent_task_id);
 
   const getStatusName = (statusId) => {
@@ -37,6 +48,29 @@ export default function TaskListView({ tasks, taskStatuses, onEditTask, onDelete
     return status?.color || '#94A3B8';
   };
 
+  const handleCellEdit = (taskId, field, value) => {
+    setEditingCell({ taskId, field });
+    setEditValue(value || '');
+  };
+
+  const handleSaveCell = async (task, field) => {
+    let valueToSave = editValue;
+    if (field === 'estimated_hours') {
+      valueToSave = editValue ? parseFloat(editValue) : null;
+    }
+    await base44.entities.Task.update(task.id, { [field]: valueToSave });
+    setEditingCell(null);
+    setEditValue('');
+  };
+
+  const handleStatusChange = async (task, newStatusId) => {
+    await base44.entities.Task.update(task.id, { status_id: newStatusId });
+  };
+
+  const handlePriorityChange = async (task, newPriority) => {
+    await base44.entities.Task.update(task.id, { priority: newPriority });
+  };
+
   return (
     <div className="bg-white rounded-xl border border-slate-200">
       <Table>
@@ -46,39 +80,127 @@ export default function TaskListView({ tasks, taskStatuses, onEditTask, onDelete
             <TableHead>Status</TableHead>
             <TableHead>Priority</TableHead>
             <TableHead>Estimated Hours</TableHead>
+            <TableHead>Due Date</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {topLevelTasks.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={5} className="text-center text-slate-500 py-8">
+              <TableCell colSpan={6} className="text-center text-slate-500 py-8">
                 No tasks yet. Create your first task to get started.
               </TableCell>
             </TableRow>
           ) : (
             topLevelTasks.map((task) => (
               <TableRow key={task.id} className="hover:bg-slate-50">
-                <TableCell className="font-medium">{task.title}</TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    <div 
-                      className="w-2 h-2 rounded-full"
-                      style={{ backgroundColor: getStatusColor(task.status_id) }}
+                <TableCell 
+                  className="font-medium cursor-pointer"
+                  onClick={() => handleCellEdit(task.id, 'title', task.title)}
+                >
+                  {editingCell?.taskId === task.id && editingCell?.field === 'title' ? (
+                    <Input
+                      value={editValue}
+                      onChange={(e) => setEditValue(e.target.value)}
+                      onBlur={() => handleSaveCell(task, 'title')}
+                      onKeyPress={(e) => e.key === 'Enter' && handleSaveCell(task, 'title')}
+                      autoFocus
+                      className="h-8"
                     />
-                    <span className="text-sm">{getStatusName(task.status_id)}</span>
-                  </div>
+                  ) : (
+                    task.title
+                  )}
                 </TableCell>
                 <TableCell>
-                  <Badge className={cn("text-xs", priorityColors[task.priority || 'medium'])}>
-                    {priorityLabels[task.priority || 'medium']}
-                  </Badge>
+                  <Select
+                    value={task.status_id}
+                    onValueChange={(value) => handleStatusChange(task, value)}
+                  >
+                    <SelectTrigger className="h-8 w-full">
+                      <div className="flex items-center gap-2">
+                        <div 
+                          className="w-2 h-2 rounded-full"
+                          style={{ backgroundColor: getStatusColor(task.status_id) }}
+                        />
+                        <SelectValue />
+                      </div>
+                    </SelectTrigger>
+                    <SelectContent>
+                      {taskStatuses.map(status => (
+                        <SelectItem key={status.id} value={status.id}>
+                          <div className="flex items-center gap-2">
+                            <div 
+                              className="w-2 h-2 rounded-full"
+                              style={{ backgroundColor: status.color }}
+                            />
+                            {status.name}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </TableCell>
                 <TableCell>
-                  {task.estimated_hours ? `${task.estimated_hours}h` : '—'}
+                  <Select
+                    value={task.priority || 'medium'}
+                    onValueChange={(value) => handlePriorityChange(task, value)}
+                  >
+                    <SelectTrigger className="h-8 w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="low">Low</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="high">High</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </TableCell>
+                <TableCell 
+                  className="cursor-pointer"
+                  onClick={() => handleCellEdit(task.id, 'estimated_hours', task.estimated_hours)}
+                >
+                  {editingCell?.taskId === task.id && editingCell?.field === 'estimated_hours' ? (
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.5"
+                      value={editValue}
+                      onChange={(e) => setEditValue(e.target.value)}
+                      onBlur={() => handleSaveCell(task, 'estimated_hours')}
+                      onKeyPress={(e) => e.key === 'Enter' && handleSaveCell(task, 'estimated_hours')}
+                      autoFocus
+                      className="h-8 w-20"
+                    />
+                  ) : (
+                    task.estimated_hours ? `${task.estimated_hours}h` : '—'
+                  )}
+                </TableCell>
+                <TableCell 
+                  className="cursor-pointer"
+                  onClick={() => handleCellEdit(task.id, 'due_date', task.due_date)}
+                >
+                  {editingCell?.taskId === task.id && editingCell?.field === 'due_date' ? (
+                    <Input
+                      type="date"
+                      value={editValue}
+                      onChange={(e) => setEditValue(e.target.value)}
+                      onBlur={() => handleSaveCell(task, 'due_date')}
+                      onKeyPress={(e) => e.key === 'Enter' && handleSaveCell(task, 'due_date')}
+                      autoFocus
+                      className="h-8 w-36"
+                    />
+                  ) : (
+                    task.due_date || '—'
+                  )}
                 </TableCell>
                 <TableCell className="text-right">
-                  <div className="flex gap-2 justify-end">
+                  <div className="flex gap-2 justify-end items-center">
+                    {task.comments && task.comments.length > 0 && (
+                      <span className="flex items-center gap-1 text-xs text-slate-500">
+                        <MessageSquare className="w-3.5 h-3.5" />
+                        {task.comments.length}
+                      </span>
+                    )}
                     <Button
                       variant="ghost"
                       size="sm"

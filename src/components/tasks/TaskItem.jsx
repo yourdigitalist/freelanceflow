@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Calendar, Clock, MoreHorizontal, Pencil, Trash2, ChevronDown, ChevronRight, CheckSquare } from 'lucide-react';
+import { Calendar, Clock, MoreHorizontal, Pencil, Trash2, ChevronDown, ChevronRight, CheckSquare, MessageSquare } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -68,6 +68,12 @@ export default function TaskItem({ task, tasks, onEdit, onDelete, isDragging }) 
           <span className="flex items-center gap-1 text-xs text-slate-500">
             <Clock className="w-3 h-3" />
             {task.estimated_hours}h
+          </span>
+        )}
+        {task.comments && task.comments.length > 0 && (
+          <span className="flex items-center gap-1 text-xs text-slate-500">
+            <MessageSquare className="w-3 h-3" />
+            {task.comments.length}
           </span>
         )}
         {subtasks.length > 0 && (

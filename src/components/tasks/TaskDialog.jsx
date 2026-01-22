@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,7 +16,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, X } from 'lucide-react';
+import { Plus, X, MessageSquare, Send } from 'lucide-react';
+import { base44 } from '@/api/base44Client';
+import { format } from 'date-fns';
 
 export default function TaskDialog({ open, onOpenChange, task, taskStatuses, parentTask, onSave }) {
   const [formData, setFormData] = useState({
@@ -31,6 +33,12 @@ export default function TaskDialog({ open, onOpenChange, task, taskStatuses, par
   const [subtasks, setSubtasks] = useState([]);
   const [newSubtask, setNewSubtask] = useState('');
   const [saving, setSaving] = useState(false);
+  const [newComment, setNewComment] = useState('');
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    base44.auth.me().then(setUser).catch(() => setUser(null));
+  }, []);
 
   useEffect(() => {
     if (task && task.id) {
@@ -42,6 +50,7 @@ export default function TaskDialog({ open, onOpenChange, task, taskStatuses, par
         due_date: task.due_date || '',
         estimated_hours: task.estimated_hours || '',
         parent_task_id: task.parent_task_id || '',
+        comments: task.comments || [],
       });
       setSubtasks([]);
     } else {
@@ -53,10 +62,12 @@ export default function TaskDialog({ open, onOpenChange, task, taskStatuses, par
         due_date: '',
         estimated_hours: '',
         parent_task_id: parentTask?.id || '',
+        comments: [],
       });
       setSubtasks([]);
     }
     setNewSubtask('');
+    setNewComment('');
   }, [task, parentTask, taskStatuses, open]);
 
   const handleSubmit = async (e) => {
@@ -81,14 +92,27 @@ export default function TaskDialog({ open, onOpenChange, task, taskStatuses, par
     setSubtasks(subtasks.filter((_, i) => i !== index));
   };
 
+  const addComment = () => {
+    if (newComment.trim() && user) {
+      const comment = {
+        text: newComment.trim(),
+        author: user.email,
+        created_at: new Date().toISOString(),
+      };
+      const updatedComments = [...(formData.comments || []), comment];
+      setFormData({ ...formData, comments: updatedComments });
+      setNewComment('');
+    }
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>
-            {task ? 'Edit Task' : parentTask ? `Add Subtask to: ${parentTask.title}` : 'Add Task'}
-          </DialogTitle>
-        </DialogHeader>
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
+        <SheetHeader>
+          <SheetTitle>
+            {task && task.id ? 'Edit Task' : parentTask ? `Add Subtask to: ${parentTask.title}` : 'Add Task'}
+          </SheetTitle>
+        </SheetHeader>
         <form onSubmit={handleSubmit} className="space-y-4 mt-4">
           <div>
             <Label htmlFor="title">Task Title *</Label>
@@ -204,16 +228,49 @@ export default function TaskDialog({ open, onOpenChange, task, taskStatuses, par
             </div>
           )}
 
+          {task && task.id && (
+            <div className="border-t border-slate-200 pt-4">
+              <Label className="flex items-center gap-2 mb-3">
+                <MessageSquare className="w-4 h-4" />
+                Comments ({(formData.comments || []).length})
+              </Label>
+              <div className="space-y-3 mb-3 max-h-60 overflow-y-auto">
+                {(formData.comments || []).map((comment, index) => (
+                  <div key={index} className="bg-slate-50 rounded-lg p-3">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-xs font-medium text-slate-900">{comment.author}</span>
+                      <span className="text-xs text-slate-500">
+                        {format(new Date(comment.created_at), 'MMM d, h:mm a')}
+                      </span>
+                    </div>
+                    <p className="text-sm text-slate-700">{comment.text}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Add a comment..."
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addComment())}
+                />
+                <Button type="button" variant="outline" size="icon" onClick={addComment}>
+                  <Send className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          )}
+
           <div className="flex justify-end gap-3 pt-4">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
             <Button type="submit" disabled={saving} className="bg-emerald-600 hover:bg-emerald-700">
-              {saving ? 'Saving...' : (task ? 'Save Changes' : 'Add Task')}
+              {saving ? 'Saving...' : (task && task.id ? 'Save Changes' : 'Add Task')}
             </Button>
           </div>
         </form>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 }
