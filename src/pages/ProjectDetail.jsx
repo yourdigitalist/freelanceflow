@@ -92,10 +92,20 @@ export default function ProjectDetail() {
     enabled: !!projectId,
   });
 
-  const { data: taskStatuses = [] } = useQuery({
+  const { data: allTaskStatuses = [] } = useQuery({
     queryKey: ['taskStatuses'],
-    queryFn: () => base44.entities.TaskStatus.list(),
+    queryFn: () => base44.entities.TaskStatus.list('order'),
   });
+
+  const { data: statusTemplates = [] } = useQuery({
+    queryKey: ['taskStatusTemplates'],
+    queryFn: () => base44.entities.TaskStatusTemplate.list(),
+  });
+
+  // Get project-specific statuses or fall back to global
+  const taskStatuses = allTaskStatuses.filter(s => 
+    s.project_id === projectId || (!s.project_id && !allTaskStatuses.some(st => st.project_id === projectId))
+  );
 
   const { data: timeEntries = [] } = useQuery({
     queryKey: ['timeEntries', projectId],
@@ -146,21 +156,33 @@ export default function ProjectDetail() {
     },
   });
 
-  const createStatusMutation = useMutation({
-    mutationFn: (data) => base44.entities.TaskStatus.create(data),
+  const saveStatusesMutation = useMutation({
+    mutationFn: async (statuses) => {
+      // Delete old project statuses
+      const oldProjectStatuses = allTaskStatuses.filter(s => s.project_id === projectId);
+      await Promise.all(oldProjectStatuses.map(s => base44.entities.TaskStatus.delete(s.id)));
+      
+      // Create new statuses
+      await Promise.all(statuses.map(s => base44.entities.TaskStatus.create(s)));
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['taskStatuses'] });
-      setStatusDialogOpen(false);
-      setEditingStatus(null);
+      setStatusManagementOpen(false);
+      toast.success('Statuses updated');
     },
   });
 
-  const updateStatusMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.TaskStatus.update(id, data),
+  const saveTemplateMutation = useMutation({
+    mutationFn: ({ name, statuses }) => {
+      return base44.entities.TaskStatusTemplate.create({
+        name,
+        statuses: statuses.map(({ name, key, color, order }) => ({ name, key, color, order })),
+        is_default: false,
+      });
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['taskStatuses'] });
-      setStatusDialogOpen(false);
-      setEditingStatus(null);
+      queryClient.invalidateQueries({ queryKey: ['taskStatusTemplates'] });
+      toast.success('Template saved');
     },
   });
 
@@ -199,18 +221,7 @@ export default function ProjectDetail() {
     await updateTaskMutation.mutateAsync({ id: taskId, data: { status_id: newStatusId } });
   };
 
-  const handleStatusSave = async (data) => {
-    const statusData = {
-      ...data,
-      key: data.key || data.name.toLowerCase().replace(/\s+/g, '_'),
-    };
-    
-    if (editingStatus) {
-      await updateStatusMutation.mutateAsync({ id: editingStatus.id, data: statusData });
-    } else {
-      await createStatusMutation.mutateAsync(statusData);
-    }
-  };
+
 
   const totalHours = timeEntries.reduce((sum, entry) => sum + (entry.hours || 0), 0);
   const unbilledHours = timeEntries.filter(e => !e.billed && e.billable).reduce((sum, e) => sum + (e.hours || 0), 0);
@@ -335,16 +346,12 @@ export default function ProjectDetail() {
         <div className="flex items-center justify-between p-6 border-b border-slate-100">
           <h2 className="text-lg font-semibold text-slate-900">Tasks</h2>
           <div className="flex gap-2">
-            <Button 
-              onClick={() => {
-                setEditingStatus(null);
-                setStatusDialogOpen(true);
-              }} 
-              size="sm" 
+            <Button
               variant="outline"
+              size="sm"
+              onClick={() => setStatusManagementOpen(true)}
             >
-              <Plus className="w-4 h-4 mr-2" />
-              Status
+              Edit Statuses
             </Button>
             <Button 
               onClick={() => {
@@ -385,16 +392,15 @@ export default function ProjectDetail() {
         onSave={handleTaskSave}
       />
 
-      {/* Status Dialog */}
-      <StatusDialog
-        open={statusDialogOpen}
-        onOpenChange={(open) => {
-          setStatusDialogOpen(open);
-          if (!open) setEditingStatus(null);
-        }}
-        status={editingStatus}
-        statuses={taskStatuses}
-        onSave={handleStatusSave}
+      {/* Status Management Dialog */}
+      <ProjectStatusManagementDialog
+        open={statusManagementOpen}
+        onOpenChange={setStatusManagementOpen}
+        projectId={projectId}
+        currentStatuses={taskStatuses}
+        templates={statusTemplates}
+        onSave={(statuses) => saveStatusesMutation.mutate(statuses)}
+        onSaveAsTemplate={(name, statuses) => saveTemplateMutation.mutate({ name, statuses })}
       />
 
       {/* Project Dialog */}

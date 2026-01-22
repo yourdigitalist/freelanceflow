@@ -10,6 +10,8 @@ import { Badge } from "@/components/ui/badge";
 import { Printer, Download, Mail } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { cn } from "@/lib/utils";
+import { useQuery } from '@tanstack/react-query';
+import { base44 } from '@/api/base44Client';
 
 const statusColors = {
   draft: "bg-slate-100 text-slate-700",
@@ -20,6 +22,14 @@ const statusColors = {
 };
 
 export default function InvoicePreview({ open, onOpenChange, invoice, client, project }) {
+  const { data: invoiceSettings } = useQuery({
+    queryKey: ['invoiceSettings'],
+    queryFn: async () => {
+      const list = await base44.entities.InvoiceSettings.list();
+      return list[0] || null;
+    },
+  });
+
   if (!invoice) return null;
 
   const handlePrint = () => {
@@ -45,12 +55,34 @@ export default function InvoicePreview({ open, onOpenChange, invoice, client, pr
           {/* Header */}
           <div className="flex justify-between items-start mb-8">
             <div>
+              {invoiceSettings?.business_logo && (
+                <img 
+                  src={invoiceSettings.business_logo} 
+                  alt="Business logo" 
+                  className="h-12 mb-3 object-contain"
+                />
+              )}
+              {invoiceSettings?.business_name && (
+                <h2 className="text-lg font-semibold text-slate-900 mb-1">{invoiceSettings.business_name}</h2>
+              )}
+              {invoiceSettings?.business_address && (
+                <p className="text-sm text-slate-600 whitespace-pre-line mb-2">{invoiceSettings.business_address}</p>
+              )}
+              {(invoiceSettings?.business_email || invoiceSettings?.business_phone) && (
+                <p className="text-sm text-slate-600">
+                  {invoiceSettings.business_email}
+                  {invoiceSettings.business_email && invoiceSettings.business_phone && ' | '}
+                  {invoiceSettings.business_phone}
+                </p>
+              )}
+            </div>
+            <div className="text-right">
               <h1 className="text-2xl font-bold text-slate-900 mb-1">INVOICE</h1>
               <p className="text-slate-500">{invoice.invoice_number}</p>
+              <Badge className={cn("text-sm mt-2", statusColors[invoice.status])}>
+                {invoice.status?.toUpperCase()}
+              </Badge>
             </div>
-            <Badge className={cn("text-sm", statusColors[invoice.status])}>
-              {invoice.status?.toUpperCase()}
-            </Badge>
           </div>
 
           {/* Dates and Client Info */}
@@ -130,7 +162,7 @@ export default function InvoicePreview({ open, onOpenChange, invoice, client, pr
           </div>
 
           {/* Notes and Payment Terms */}
-          {(invoice.notes || invoice.payment_terms) && (
+          {(invoice.notes || invoice.payment_terms || invoiceSettings?.invoice_footer) && (
             <div className="border-t border-slate-200 pt-6 space-y-4">
               {invoice.notes && (
                 <div>
@@ -142,6 +174,11 @@ export default function InvoicePreview({ open, onOpenChange, invoice, client, pr
                 <div>
                   <h4 className="text-sm font-medium text-slate-500 mb-1">Payment Terms</h4>
                   <p className="text-slate-600 text-sm">{invoice.payment_terms}</p>
+                </div>
+              )}
+              {invoiceSettings?.invoice_footer && (
+                <div className="text-center pt-4 border-t border-slate-100">
+                  <p className="text-sm text-slate-500">{invoiceSettings.invoice_footer}</p>
                 </div>
               )}
             </div>
