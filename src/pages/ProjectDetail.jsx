@@ -11,6 +11,7 @@ import {
   Calendar,
   Pencil,
   FileText,
+  Trash2,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { Button } from "@/components/ui/button";
@@ -60,6 +61,7 @@ export default function ProjectDetail() {
   const [projectDialogOpen, setProjectDialogOpen] = useState(false);
   const [statusManagementOpen, setStatusManagementOpen] = useState(false);
   const [invoiceDialogOpen, setInvoiceDialogOpen] = useState(false);
+  const [deleteProjectOpen, setDeleteProjectOpen] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: project } = useQuery({
@@ -153,6 +155,15 @@ export default function ProjectDetail() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['project', projectId] });
       setProjectDialogOpen(false);
+    },
+  });
+
+  const deleteProjectMutation = useMutation({
+    mutationFn: () => base44.entities.Project.delete(projectId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+      toast.success('Project deleted');
+      window.location.href = createPageUrl('Projects');
     },
   });
 
@@ -312,6 +323,10 @@ export default function ProjectDetail() {
             <Button variant="outline" onClick={() => setProjectDialogOpen(true)}>
               <Pencil className="w-4 h-4 mr-2" />
               Edit
+            </Button>
+            <Button variant="outline" onClick={() => setDeleteProjectOpen(true)} className="text-red-600 hover:text-red-700">
+              <Trash2 className="w-4 h-4 mr-2" />
+              Delete
             </Button>
             <Button variant="outline" onClick={handleCreateInvoice}>
               <FileText className="w-4 h-4 mr-2" />
@@ -478,6 +493,27 @@ export default function ProjectDetail() {
               onClick={() => deleteTaskMutation.mutate(deleteTask.id)}
             >
               Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete Project Confirmation */}
+      <AlertDialog open={deleteProjectOpen} onOpenChange={setDeleteProjectOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete project?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete "{project?.name}" and all its tasks and time entries. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-600 hover:bg-red-700"
+              onClick={() => deleteProjectMutation.mutate()}
+            >
+              Delete Project
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
