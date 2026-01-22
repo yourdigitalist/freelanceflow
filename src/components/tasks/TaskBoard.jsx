@@ -3,15 +3,12 @@ import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { cn } from "@/lib/utils";
 import TaskItem from './TaskItem';
 
-const columns = [
-  { id: 'todo', title: 'To Do', color: 'bg-slate-100' },
-  { id: 'in_progress', title: 'In Progress', color: 'bg-blue-50' },
-  { id: 'review', title: 'Review', color: 'bg-amber-50' },
-  { id: 'completed', title: 'Completed', color: 'bg-emerald-50' },
-];
-
-export default function TaskBoard({ tasks, onDragEnd, onEditTask, onDeleteTask }) {
-  const getColumnTasks = (status) => tasks.filter(task => task.status === status);
+export default function TaskBoard({ tasks, taskStatuses, onDragEnd, onEditTask, onDeleteTask }) {
+  const columns = taskStatuses.sort((a, b) => a.order - b.order);
+  
+  const getColumnTasks = (statusId) => tasks.filter(task => 
+    (task.status_id === statusId || task.status === statusId) && !task.parent_task_id
+  );
 
   return (
     <DragDropContext onDragEnd={onDragEnd}>
@@ -29,7 +26,7 @@ export default function TaskBoard({ tasks, onDragEnd, onEditTask, onDeleteTask }
                 )}
               >
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-semibold text-slate-700">{column.title}</h3>
+                  <h3 className="font-semibold text-slate-700">{column.name}</h3>
                   <span className="text-sm text-slate-500 bg-white/60 px-2 py-0.5 rounded-full">
                     {getColumnTasks(column.id).length}
                   </span>
@@ -45,6 +42,7 @@ export default function TaskBoard({ tasks, onDragEnd, onEditTask, onDeleteTask }
                         >
                           <TaskItem
                             task={task}
+                            tasks={tasks}
                             onEdit={onEditTask}
                             onDelete={onDeleteTask}
                             isDragging={snapshot.isDragging}
