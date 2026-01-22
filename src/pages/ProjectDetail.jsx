@@ -260,13 +260,45 @@ export default function ProjectDetail() {
     
     // If moving to a different status
     if (sourceStatusId !== destStatusId) {
-      await updateTaskMutation.mutateAsync({ id: taskId, data: { status_id: destStatusId, order: destIndex } });
+      // Optimistic update
+      queryClient.setQueryData(['tasks', projectId], (old) => {
+        return old.map(t => t.id === taskId ? { ...t, status_id: destStatusId, order: destIndex } : t);
+      });
+      
+      // Get destination column tasks for proper ordering
+      const destTasks = tasks.filter(t => t.status_id === destStatusId && !t.parent_task_id).sort((a, b) => (a.order || 0) - (b.order || 0));
+      const reordered = Array.from(destTasks);
+      reordered.splice(destIndex, 0, task);
+      
+      // Update status and order
+      await base44.entities.Task.update(taskId, { status_id: destStatusId, order: destIndex });
+      
+      // Update order for other tasks in destination column
+      const updates = reordered
+        .filter(t => t && t.id && t.id !== taskId)
+        .map((t, index) => {
+          const newOrder = index >= destIndex ? index + 1 : index;
+          return base44.entities.Task.update(t.id, { order: newOrder });
+        });
+      await Promise.all(updates);
+      queryClient.invalidateQueries({ queryKey: ['tasks', projectId] });
     } else {
       // Reordering within the same status
-      const statusTasks = tasks.filter(t => t.status_id === sourceStatusId && !t.parent_task_id);
+      const statusTasks = tasks.filter(t => t.status_id === sourceStatusId && !t.parent_task_id).sort((a, b) => (a.order || 0) - (b.order || 0));
       const reordered = Array.from(statusTasks);
       const [moved] = reordered.splice(sourceIndex, 1);
       reordered.splice(destIndex, 0, moved);
+      
+      // Optimistic update
+      queryClient.setQueryData(['tasks', projectId], (old) => {
+        return old.map(oldTask => {
+          const idx = reordered.findIndex(t => t.id === oldTask.id);
+          if (idx !== -1) {
+            return { ...oldTask, order: idx };
+          }
+          return oldTask;
+        });
+      });
       
       // Update order for all affected tasks
       const updates = reordered

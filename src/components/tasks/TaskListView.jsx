@@ -102,6 +102,7 @@ export default function TaskListView({ tasks, taskStatuses, onEditTask, onDelete
       valueToSave = editValue ? parseFloat(editValue) : null;
     }
     await base44.entities.Task.update(task.id, { [field]: valueToSave });
+    queryClient.invalidateQueries({ queryKey: ['tasks', projectId] });
     setEditingCell(null);
     setEditValue('');
   };
@@ -137,9 +138,23 @@ export default function TaskListView({ tasks, taskStatuses, onEditTask, onDelete
     
     if (sourceIndex === destIndex) return;
     
+    // Reset to manual order when dragging
+    setSortBy('order');
+    
     const reordered = Array.from(topLevelTasks);
     const [moved] = reordered.splice(sourceIndex, 1);
     reordered.splice(destIndex, 0, moved);
+    
+    // Optimistic update
+    queryClient.setQueryData(['tasks', projectId], (old) => {
+      return old.map(task => {
+        const idx = reordered.findIndex(t => t.id === task.id);
+        if (idx !== -1) {
+          return { ...task, order: idx };
+        }
+        return task;
+      });
+    });
     
     // Update order for all affected tasks
     const updates = reordered.map((task, index) => 
@@ -303,9 +318,21 @@ export default function TaskListView({ tasks, taskStatuses, onEditTask, onDelete
                               </Select>
                             </TableCell>
                             <TableCell className="w-[12%]">
-                              <Badge className={cn("font-normal", priorityColors[task.priority || 'medium'])}>
-                                {priorityLabels[task.priority || 'medium']}
-                              </Badge>
+                              <Select
+                                value={task.priority || 'medium'}
+                                onValueChange={(value) => handlePriorityChange(task, value)}
+                              >
+                                <SelectTrigger className="h-8 w-full border-0 hover:bg-slate-100/50">
+                                  <Badge className={cn("font-normal", priorityColors[task.priority || 'medium'])}>
+                                    {priorityLabels[task.priority || 'medium']}
+                                  </Badge>
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="low">Low</SelectItem>
+                                  <SelectItem value="medium">Medium</SelectItem>
+                                  <SelectItem value="high">High</SelectItem>
+                                </SelectContent>
+                              </Select>
                             </TableCell>
                             <TableCell 
                               className="w-[12%] cursor-text hover:bg-slate-100/50 transition-colors"

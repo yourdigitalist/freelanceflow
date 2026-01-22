@@ -8,9 +8,12 @@ import { Button } from "@/components/ui/button";
 export default function TaskBoard({ tasks, taskStatuses, onDragEnd, onEditTask, onDeleteTask, onAddTask }) {
   const columns = taskStatuses.sort((a, b) => a.order - b.order);
   
-  const getColumnTasks = (statusId) => tasks.filter(task => 
-    (task.status_id === statusId || task.status === statusId) && !task.parent_task_id
-  );
+  const getColumnTasks = (statusId) => {
+    const filtered = tasks.filter(task => 
+      (task.status_id === statusId || task.status === statusId) && !task.parent_task_id
+    );
+    return filtered.sort((a, b) => (a.order || 0) - (b.order || 0));
+  };
 
   return (
     <DragDropContext onDragEnd={onDragEnd}>
