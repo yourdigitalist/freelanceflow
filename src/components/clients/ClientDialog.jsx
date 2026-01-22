@@ -16,25 +16,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import PhoneInput from 'react-phone-number-input';
+import 'react-phone-number-input/style.css';
 
 const avatarColors = [
   '#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4'
-];
-
-const countryCodes = [
-  { code: '+1', country: 'US/CA' },
-  { code: '+44', country: 'UK' },
-  { code: '+49', country: 'DE' },
-  { code: '+33', country: 'FR' },
-  { code: '+34', country: 'ES' },
-  { code: '+39', country: 'IT' },
-  { code: '+31', country: 'NL' },
-  { code: '+48', country: 'PL' },
-  { code: '+351', country: 'PT' },
-  { code: '+91', country: 'IN' },
-  { code: '+86', country: 'CN' },
-  { code: '+81', country: 'JP' },
-  { code: '+61', country: 'AU' },
 ];
 
 export default function ClientDialog({ open, onOpenChange, client, onSave }) {
@@ -162,28 +148,26 @@ export default function ClientDialog({ open, onOpenChange, client, onSave }) {
 
           <div>
             <Label htmlFor="phone">Phone</Label>
-            <div className="flex gap-2">
-              <Select
-                value={formData.phone_country_code}
-                onValueChange={(value) => setFormData({ ...formData, phone_country_code: value })}
-              >
-                <SelectTrigger className="w-[120px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {countryCodes.map(({ code, country }) => (
-                    <SelectItem key={code} value={code}>
-                      {code} {country}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Input
+            <div className="[&_.PhoneInputInput]:border [&_.PhoneInputInput]:border-input [&_.PhoneInputInput]:rounded-md [&_.PhoneInputInput]:px-3 [&_.PhoneInputInput]:py-2 [&_.PhoneInputInput]:bg-transparent [&_.PhoneInputInput]:text-base [&_.PhoneInputInput]:shadow-sm [&_.PhoneInputInput]:transition-colors [&_.PhoneInputInput]:focus-visible:outline-none [&_.PhoneInputInput]:focus-visible:ring-1 [&_.PhoneInputInput]:focus-visible:ring-ring [&_.PhoneInputInput]:disabled:cursor-not-allowed [&_.PhoneInputInput]:disabled:opacity-50">
+              <PhoneInput
                 id="phone"
-                value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                placeholder="234 567 890"
-                className="flex-1"
+                international
+                countryCallingCodeEditable={false}
+                defaultCountry="US"
+                value={formData.phone_country_code + (formData.phone ? formData.phone : '')}
+                onChange={(value) => {
+                  if (value) {
+                    const match = value.match(/^(\+\d{1,3})(.*)/);
+                    if (match) {
+                      setFormData({ 
+                        ...formData, 
+                        phone_country_code: match[1],
+                        phone: match[2].trim()
+                      });
+                    }
+                  }
+                }}
+                placeholder="Enter phone number"
               />
             </div>
           </div>

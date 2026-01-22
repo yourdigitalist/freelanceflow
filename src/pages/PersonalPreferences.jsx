@@ -21,19 +21,19 @@ export default function PersonalPreferences() {
     enabled: !!user,
   });
 
-  const preference = preferences[0] || { date_format: 'DD-MM-YYYY', time_format: '24h', number_format: '1,000.00' };
+  const preference = preferences[0];
 
-  const [dateFormat, setDateFormat] = useState(preference.date_format || 'DD-MM-YYYY');
-  const [timeFormat, setTimeFormat] = useState(preference.time_format || '24h');
-  const [numberFormat, setNumberFormat] = useState(preference.number_format || '1,000.00');
+  const [dateFormat, setDateFormat] = useState(preference?.date_format || 'DD-MM-YYYY');
+  const [timeFormat, setTimeFormat] = useState(preference?.time_format || '24h');
+  const [numberFormat, setNumberFormat] = useState(preference?.number_format || '1,000.00');
 
   useEffect(() => {
-    if (preference) {
-      setDateFormat(preference.date_format || 'DD-MM-YYYY');
-      setTimeFormat(preference.time_format || '24h');
-      setNumberFormat(preference.number_format || '1,000.00');
+    if (preferences[0]) {
+      setDateFormat(preferences[0].date_format || 'DD-MM-YYYY');
+      setTimeFormat(preferences[0].time_format || '24h');
+      setNumberFormat(preferences[0].number_format || '1,000.00');
     }
-  }, [preference]);
+  }, [preferences]);
 
   const saveMutation = useMutation({
     mutationFn: async (data) => {
