@@ -59,6 +59,8 @@ export default function Invoices() {
   const [deleteInvoice, setDeleteInvoice] = useState(null);
   const [previewInvoice, setPreviewInvoice] = useState(null);
   const [statusFilter, setStatusFilter] = useState('all');
+  const [yearFilter, setYearFilter] = useState('all');
+  const [monthFilter, setMonthFilter] = useState('all');
   const queryClient = useQueryClient();
 
   const { data: invoices = [], isLoading } = useQuery({
@@ -119,9 +121,44 @@ export default function Invoices() {
 
   const unbilledTime = timeEntries.filter(t => !t.billed && t.billable);
 
-  const filteredInvoices = statusFilter === 'all' 
-    ? invoices 
-    : invoices.filter(inv => inv.status === statusFilter);
+  const filteredInvoices = invoices.filter(inv => {
+    // Status filter
+    if (statusFilter !== 'all' && inv.status !== statusFilter) return false;
+    
+    // Date filters
+    if (inv.issue_date) {
+      const issueDate = parseISO(inv.issue_date);
+      const year = issueDate.getFullYear().toString();
+      const month = (issueDate.getMonth() + 1).toString();
+      
+      if (yearFilter !== 'all' && year !== yearFilter) return false;
+      if (monthFilter !== 'all' && month !== monthFilter) return false;
+    }
+    
+    return true;
+  });
+
+  // Get unique years from invoices
+  const availableYears = [...new Set(
+    invoices
+      .filter(inv => inv.issue_date)
+      .map(inv => parseISO(inv.issue_date).getFullYear().toString())
+  )].sort().reverse();
+
+  const months = [
+    { value: '1', label: 'January' },
+    { value: '2', label: 'February' },
+    { value: '3', label: 'March' },
+    { value: '4', label: 'April' },
+    { value: '5', label: 'May' },
+    { value: '6', label: 'June' },
+    { value: '7', label: 'July' },
+    { value: '8', label: 'August' },
+    { value: '9', label: 'September' },
+    { value: '10', label: 'October' },
+    { value: '11', label: 'November' },
+    { value: '12', label: 'December' },
+  ];
 
   const totalPending = invoices
     .filter(inv => inv.status === 'sent' || inv.status === 'overdue')
@@ -178,7 +215,7 @@ export default function Invoices() {
       </div>
 
       {/* Filters */}
-      <div className="flex gap-4 mb-6">
+      <div className="flex flex-wrap gap-4 mb-6">
         <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger className="w-[180px]">
             <Filter className="w-4 h-4 mr-2" />
@@ -191,6 +228,30 @@ export default function Invoices() {
             <SelectItem value="paid">Paid</SelectItem>
             <SelectItem value="overdue">Overdue</SelectItem>
             <SelectItem value="cancelled">Cancelled</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select value={yearFilter} onValueChange={setYearFilter}>
+          <SelectTrigger className="w-[140px]">
+            <SelectValue placeholder="All years" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Years</SelectItem>
+            {availableYears.map(year => (
+              <SelectItem key={year} value={year}>{year}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Select value={monthFilter} onValueChange={setMonthFilter}>
+          <SelectTrigger className="w-[140px]">
+            <SelectValue placeholder="All months" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Months</SelectItem>
+            {months.map(month => (
+              <SelectItem key={month.value} value={month.value}>{month.label}</SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>

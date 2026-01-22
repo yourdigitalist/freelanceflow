@@ -1,0 +1,256 @@
+import React, { useState, useEffect } from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Plus, Trash2, Save, List } from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { toast } from 'sonner';
+
+const PRESET_COLORS = [
+  '#94A3B8', '#3B82F6', '#10B981', '#F59E0B', '#EF4444', 
+  '#8B5CF6', '#EC4899', '#06B6D4', '#84CC16', '#F97316'
+];
+
+export default function ProjectStatusManagementDialog({ 
+  open, 
+  onOpenChange, 
+  projectId,
+  currentStatuses = [],
+  templates = [],
+  onSave,
+  onSaveAsTemplate 
+}) {
+  const [statuses, setStatuses] = useState([]);
+  const [templateName, setTemplateName] = useState('');
+  const [showTemplateSave, setShowTemplateSave] = useState(false);
+
+  useEffect(() => {
+    if (open && currentStatuses.length > 0) {
+      setStatuses(currentStatuses.map(s => ({ ...s })));
+    }
+  }, [open, currentStatuses]);
+
+  const addStatus = () => {
+    const newOrder = statuses.length;
+    setStatuses([
+      ...statuses,
+      {
+        name: '',
+        key: '',
+        color: PRESET_COLORS[newOrder % PRESET_COLORS.length],
+        order: newOrder,
+        project_id: projectId,
+      }
+    ]);
+  };
+
+  const updateStatus = (index, field, value) => {
+    const updated = [...statuses];
+    updated[index] = { ...updated[index], [field]: value };
+    
+    // Auto-generate key from name
+    if (field === 'name') {
+      updated[index].key = value.toLowerCase().replace(/\s+/g, '_');
+    }
+    
+    setStatuses(updated);
+  };
+
+  const removeStatus = (index) => {
+    const updated = statuses.filter((_, i) => i !== index);
+    // Reorder
+    updated.forEach((s, i) => s.order = i);
+    setStatuses(updated);
+  };
+
+  const applyTemplate = (templateId) => {
+    const template = templates.find(t => t.id === templateId);
+    if (template) {
+      const newStatuses = template.statuses.map((s, i) => ({
+        ...s,
+        order: i,
+        project_id: projectId,
+      }));
+      setStatuses(newStatuses);
+      toast.success('Template applied');
+    }
+  };
+
+  const handleSave = () => {
+    // Validate
+    const hasEmpty = statuses.some(s => !s.name.trim() || !s.key.trim());
+    if (hasEmpty) {
+      toast.error('All statuses must have a name');
+      return;
+    }
+
+    onSave(statuses);
+  };
+
+  const handleSaveAsTemplate = () => {
+    if (!templateName.trim()) {
+      toast.error('Please enter a template name');
+      return;
+    }
+
+    onSaveAsTemplate(templateName, statuses);
+    setTemplateName('');
+    setShowTemplateSave(false);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Manage Project Statuses</DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-6 mt-4">
+          {/* Apply Template */}
+          {templates.length > 0 && (
+            <div>
+              <Label>Apply Template</Label>
+              <Select onValueChange={applyTemplate}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Choose a template..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {templates.map(template => (
+                    <SelectItem key={template.id} value={template.id}>
+                      {template.name} {template.is_default && '(Default)'}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {/* Statuses List */}
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <Label>Statuses</Label>
+              <Button type="button" variant="outline" size="sm" onClick={addStatus}>
+                <Plus className="w-4 h-4 mr-2" />
+                Add Status
+              </Button>
+            </div>
+
+            <div className="space-y-3">
+              {statuses.map((status, index) => (
+                <div key={index} className="flex gap-3 items-start p-3 bg-slate-50 rounded-lg">
+                  <div className="flex-1 space-y-2">
+                    <Input
+                      placeholder="Status name (e.g., To Do)"
+                      value={status.name}
+                      onChange={(e) => updateStatus(index, 'name', e.target.value)}
+                    />
+                    <Input
+                      placeholder="Key (e.g., todo)"
+                      value={status.key}
+                      onChange={(e) => updateStatus(index, 'key', e.target.value)}
+                      className="text-sm"
+                    />
+                  </div>
+                  
+                  <div className="flex flex-col gap-2">
+                    <div className="flex gap-1">
+                      {PRESET_COLORS.map(color => (
+                        <button
+                          key={color}
+                          type="button"
+                          className="w-6 h-6 rounded border-2 transition-all"
+                          style={{ 
+                            backgroundColor: color,
+                            borderColor: status.color === color ? '#1e293b' : 'transparent'
+                          }}
+                          onClick={() => updateStatus(index, 'color', color)}
+                        />
+                      ))}
+                    </div>
+                  </div>
+
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => removeStatus(index)}
+                    className="text-red-500"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Save as Template */}
+          {!showTemplateSave ? (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setShowTemplateSave(true)}
+              className="w-full"
+            >
+              <Save className="w-4 h-4 mr-2" />
+              Save as Template
+            </Button>
+          ) : (
+            <div className="space-y-3 p-4 bg-emerald-50 rounded-lg border border-emerald-200">
+              <Label>Template Name</Label>
+              <div className="flex gap-2">
+                <Input
+                  placeholder="e.g., Default Workflow"
+                  value={templateName}
+                  onChange={(e) => setTemplateName(e.target.value)}
+                />
+                <Button
+                  type="button"
+                  onClick={handleSaveAsTemplate}
+                  className="bg-emerald-600 hover:bg-emerald-700"
+                >
+                  Save
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setShowTemplateSave(false);
+                    setTemplateName('');
+                  }}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Action Buttons */}
+          <div className="flex justify-end gap-3 pt-4 border-t">
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              onClick={handleSave}
+              className="bg-emerald-600 hover:bg-emerald-700"
+            >
+              Save Changes
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}

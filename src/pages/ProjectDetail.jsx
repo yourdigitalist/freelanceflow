@@ -19,9 +19,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import TaskBoard from '../components/tasks/TaskBoard';
 import TaskDialog from '../components/tasks/TaskDialog';
-import StatusDialog from '../components/tasks/StatusDialog';
 import ProjectDialog from '../components/projects/ProjectDialog';
 import InvoiceDialog from '../components/invoices/InvoiceDialog';
+import ProjectStatusManagementDialog from '../components/projects/ProjectStatusManagementDialog';
+import { toast } from 'sonner';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -57,8 +58,7 @@ export default function ProjectDetail() {
   const [editingTask, setEditingTask] = useState(null);
   const [deleteTask, setDeleteTask] = useState(null);
   const [projectDialogOpen, setProjectDialogOpen] = useState(false);
-  const [statusDialogOpen, setStatusDialogOpen] = useState(false);
-  const [editingStatus, setEditingStatus] = useState(null);
+  const [statusManagementOpen, setStatusManagementOpen] = useState(false);
   const [invoiceDialogOpen, setInvoiceDialogOpen] = useState(false);
   const queryClient = useQueryClient();
 

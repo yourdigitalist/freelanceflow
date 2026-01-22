@@ -9,7 +9,8 @@ import {
   FileText, 
   Menu, 
   X,
-  Sparkles
+  Sparkles,
+  Settings
 } from 'lucide-react';
 import { cn } from "@/lib/utils";
 
@@ -19,6 +20,7 @@ const navigation = [
   { name: 'Projects', icon: FolderKanban, page: 'Projects' },
   { name: 'Time', icon: Clock, page: 'TimeTracking' },
   { name: 'Invoices', icon: FileText, page: 'Invoices' },
+  { name: 'Settings', icon: Settings, page: 'InvoiceSettings' },
 ];
 
 export default function Layout({ children, currentPageName }) {

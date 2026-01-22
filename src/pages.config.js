@@ -5,6 +5,7 @@ import ProjectDetail from './pages/ProjectDetail';
 import TimeTracking from './pages/TimeTracking';
 import Invoices from './pages/Invoices';
 import TaskStatuses from './pages/TaskStatuses';
+import InvoiceSettings from './pages/InvoiceSettings';
 import __Layout from './Layout.jsx';
 
 
@@ -16,6 +17,7 @@ export const PAGES = {
     "TimeTracking": TimeTracking,
     "Invoices": Invoices,
     "TaskStatuses": TaskStatuses,
+    "InvoiceSettings": InvoiceSettings,
 }
 
 export const pagesConfig = {

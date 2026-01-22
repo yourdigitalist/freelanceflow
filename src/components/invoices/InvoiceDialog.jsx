@@ -18,6 +18,8 @@ import {
 } from "@/components/ui/select";
 import { Plus, Trash2 } from 'lucide-react';
 import { format, addDays } from 'date-fns';
+import { useQuery } from '@tanstack/react-query';
+import { base44 } from '@/api/base44Client';
 
 export default function InvoiceDialog({ 
   open, 
@@ -43,6 +45,15 @@ export default function InvoiceDialog({
   });
   const [saving, setSaving] = useState(false);
 
+  // Fetch invoice settings
+  const { data: invoiceSettings } = useQuery({
+    queryKey: ['invoiceSettings'],
+    queryFn: async () => {
+      const list = await base44.entities.InvoiceSettings.list();
+      return list[0] || null;
+    },
+  });
+
   useEffect(() => {
     if (invoice) {
       setFormData({
@@ -67,12 +78,12 @@ export default function InvoiceDialog({
         issue_date: format(new Date(), 'yyyy-MM-dd'),
         due_date: format(addDays(new Date(), 30), 'yyyy-MM-dd'),
         line_items: initialData?.line_items || [{ description: '', quantity: 1, rate: 0, amount: 0 }],
-        tax_rate: 0,
+        tax_rate: invoiceSettings?.default_tax_rate || 0,
         notes: '',
-        payment_terms: 'Payment due within 30 days.',
+        payment_terms: invoiceSettings?.default_payment_terms || 'Payment due within 30 days.',
       });
     }
-  }, [invoice, initialData, open]);
+  }, [invoice, initialData, invoiceSettings, open]);
 
   const updateLineItem = (index, field, value) => {
     const newItems = [...formData.line_items];
