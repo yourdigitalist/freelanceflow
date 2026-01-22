@@ -19,6 +19,7 @@ const navigation = [
   { name: 'Projects', icon: FolderKanban, page: 'Projects' },
   { name: 'Time', icon: Clock, page: 'TimeTracking' },
   { name: 'Invoices', icon: FileText, page: 'Invoices' },
+  { name: 'Statuses', icon: FolderKanban, page: 'TaskStatuses' },
 ];
 
 export default function Layout({ children, currentPageName }) {
