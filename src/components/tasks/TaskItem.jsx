@@ -1,5 +1,5 @@
-import React from 'react';
-import { Calendar, Clock, MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { Calendar, Clock, MoreHorizontal, Pencil, Trash2, ChevronDown, ChevronRight, CheckSquare } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -17,7 +17,11 @@ const priorityColors = {
   high: "bg-red-100 text-red-700",
 };
 
-export default function TaskItem({ task, onEdit, onDelete, isDragging }) {
+export default function TaskItem({ task, tasks, onEdit, onDelete, isDragging }) {
+  const [showSubtasks, setShowSubtasks] = useState(false);
+  const subtasks = tasks?.filter(t => t.parent_task_id === task.id) || [];
+  const completedSubtasks = subtasks.filter(t => t.status === 'completed' || t.status_id === '6971e7543803687d3a132544').length;
+  
   return (
     <div 
       className={cn(
@@ -66,7 +70,40 @@ export default function TaskItem({ task, onEdit, onDelete, isDragging }) {
             {task.estimated_hours}h
           </span>
         )}
+        {subtasks.length > 0 && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowSubtasks(!showSubtasks);
+            }}
+            className="flex items-center gap-1 text-xs text-slate-500 hover:text-slate-700 transition-colors"
+          >
+            <CheckSquare className="w-3 h-3" />
+            {completedSubtasks}/{subtasks.length}
+            {showSubtasks ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
+          </button>
+        )}
       </div>
+
+      {showSubtasks && subtasks.length > 0 && (
+        <div className="mt-3 pt-3 border-t border-slate-100 space-y-2">
+          {subtasks.map(subtask => (
+            <div key={subtask.id} className="flex items-start gap-2 text-xs">
+              <CheckSquare className={cn("w-3 h-3 mt-0.5 flex-shrink-0", 
+                (subtask.status === 'completed' || subtask.status_id === '6971e7543803687d3a132544') 
+                  ? "text-emerald-600" 
+                  : "text-slate-300"
+              )} />
+              <span className={cn(
+                "text-slate-600 flex-1",
+                (subtask.status === 'completed' || subtask.status_id === '6971e7543803687d3a132544') && "line-through text-slate-400"
+              )}>
+                {subtask.title}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
