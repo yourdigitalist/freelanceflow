@@ -33,7 +33,7 @@ export default function TaskDialog({ open, onOpenChange, task, taskStatuses, par
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (task) {
+    if (task && task.id) {
       setFormData({
         title: task.title || '',
         description: task.description || '',
@@ -48,7 +48,7 @@ export default function TaskDialog({ open, onOpenChange, task, taskStatuses, par
       setFormData({
         title: '',
         description: '',
-        status_id: parentTask?.status_id || (taskStatuses?.[0]?.id || ''),
+        status_id: task?.status_id || parentTask?.status_id || (taskStatuses?.[0]?.id || ''),
         priority: 'medium',
         due_date: '',
         estimated_hours: '',
