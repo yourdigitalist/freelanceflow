@@ -43,7 +43,7 @@ export default function ProjectCard({ project, client, totalHours = 0, taskCount
           {project.name}
         </h3>
         <div className="flex items-center gap-2 text-sm text-slate-500 mt-1">
-          <span>{client?.name || 'No client'}</span>
+          <span>{client ? [client.first_name, client.last_name].filter(Boolean).join(' ') || client.company || 'No client' : 'No client'}</span>
           {project.folder && (
             <>
               <span>•</span>

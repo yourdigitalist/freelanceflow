@@ -111,7 +111,7 @@ export default function ProjectDialog({ open, onOpenChange, project, clients = [
               <SelectContent>
                 {clients.map(client => (
                   <SelectItem key={client.id} value={client.id}>
-                    {client.name}
+                    {[client.first_name, client.last_name].filter(Boolean).join(' ') || client.company || 'Unnamed Client'}
                   </SelectItem>
                 ))}
               </SelectContent>
