@@ -86,6 +86,11 @@ export default function ProjectDetail() {
     enabled: !!projectId,
   });
 
+  const { data: taskStatuses = [] } = useQuery({
+    queryKey: ['taskStatuses'],
+    queryFn: () => base44.entities.TaskStatus.list(),
+  });
+
   const { data: timeEntries = [] } = useQuery({
     queryKey: ['timeEntries', projectId],
     queryFn: () => base44.entities.TimeEntry.filter({ project_id: projectId }),
@@ -125,19 +130,31 @@ export default function ProjectDetail() {
     },
   });
 
-  const handleTaskSave = async (data) => {
+  const handleTaskSave = async (data, subtasks = []) => {
     if (editingTask) {
       await updateTaskMutation.mutateAsync({ id: editingTask.id, data });
     } else {
-      await createTaskMutation.mutateAsync(data);
+      const parentTask = await createTaskMutation.mutateAsync(data);
+      // Create subtasks if any
+      if (subtasks.length > 0) {
+        for (const subtask of subtasks) {
+          await base44.entities.Task.create({
+            ...subtask,
+            project_id: projectId,
+            parent_task_id: parentTask.id,
+            status_id: data.status_id,
+          });
+        }
+        queryClient.invalidateQueries({ queryKey: ['tasks', projectId] });
+      }
     }
   };
 
   const handleDragEnd = async (result) => {
     if (!result.destination) return;
     const taskId = result.draggableId;
-    const newStatus = result.destination.droppableId;
-    await updateTaskMutation.mutateAsync({ id: taskId, data: { status: newStatus } });
+    const newStatusId = result.destination.droppableId;
+    await updateTaskMutation.mutateAsync({ id: taskId, data: { status_id: newStatusId } });
   };
 
   const totalHours = timeEntries.reduce((sum, entry) => sum + (entry.hours || 0), 0);
@@ -253,6 +270,7 @@ export default function ProjectDetail() {
         <div className="p-6">
           <TaskBoard
             tasks={tasks}
+            taskStatuses={taskStatuses}
             onDragEnd={handleDragEnd}
             onEditTask={(task) => {
               setEditingTask(task);
@@ -271,6 +289,7 @@ export default function ProjectDetail() {
           if (!open) setEditingTask(null);
         }}
         task={editingTask}
+        taskStatuses={taskStatuses}
         onSave={handleTaskSave}
       />
 
