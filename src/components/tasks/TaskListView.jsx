@@ -107,16 +107,6 @@ export default function TaskListView({ tasks, taskStatuses, onEditTask, onDelete
     topLevelTasks = [...topLevelTasks].sort((a, b) => (a.order || 0) - (b.order || 0));
   }
 
-  const getStatusName = (statusId) => {
-    const status = taskStatuses.find(s => s.id === statusId);
-    return status?.name || 'Unknown';
-  };
-
-  const getStatusColor = (statusId) => {
-    const status = taskStatuses.find(s => s.id === statusId);
-    return status?.color || '#94A3B8';
-  };
-
   const handleCellEdit = (taskId, field, value) => {
     setEditingCell({ taskId, field });
     setEditValue(value || '');
