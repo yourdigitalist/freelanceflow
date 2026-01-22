@@ -12,6 +12,7 @@ import ReviewRequests from './pages/ReviewRequests';
 import PublicReviewView from './pages/PublicReviewView';
 import Onboarding from './pages/Onboarding';
 import CompanySettings from './pages/CompanySettings';
+import BillingSettings from './pages/BillingSettings';
 import __Layout from './Layout.jsx';
 
 
@@ -30,6 +31,7 @@ export const PAGES = {
     "PublicReviewView": PublicReviewView,
     "Onboarding": Onboarding,
     "CompanySettings": CompanySettings,
+    "BillingSettings": BillingSettings,
 }
 
 export const pagesConfig = {
