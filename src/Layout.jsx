@@ -29,7 +29,9 @@ const navigation = [
   { name: 'Reviews', icon: Eye, page: 'ReviewRequests' },
   { name: 'Settings', icon: Settings, hasSubmenu: true, submenuItems: [
     { name: 'Invoice Settings', page: 'InvoiceSettings' },
-    { name: 'Personal Preferences', page: 'PersonalPreferences' }
+    { name: 'Personal Preferences', page: 'PersonalPreferences' },
+    { name: 'Company Settings', page: 'CompanySettings' },
+    { name: 'Billing', page: 'BillingSettings' }
   ]},
 ];
 
