@@ -1,0 +1,308 @@
+import React, { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { base44 } from '@/api/base44Client';
+import { Link } from 'react-router-dom';
+import { createPageUrl } from '../utils';
+import {
+  ArrowLeft,
+  Plus,
+  Clock,
+  DollarSign,
+  Calendar,
+  Pencil,
+} from 'lucide-react';
+import { format } from 'date-fns';
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { cn } from "@/lib/utils";
+import TaskBoard from '../components/tasks/TaskBoard';
+import TaskDialog from '../components/tasks/TaskDialog';
+import ProjectDialog from '../components/projects/ProjectDialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+
+const statusColors = {
+  planning: "bg-slate-100 text-slate-700",
+  in_progress: "bg-blue-100 text-blue-700",
+  review: "bg-amber-100 text-amber-700",
+  completed: "bg-emerald-100 text-emerald-700",
+  on_hold: "bg-rose-100 text-rose-700",
+};
+
+const statusLabels = {
+  planning: "Planning",
+  in_progress: "In Progress",
+  review: "Review",
+  completed: "Completed",
+  on_hold: "On Hold",
+};
+
+export default function ProjectDetail() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const projectId = urlParams.get('id');
+
+  const [taskDialogOpen, setTaskDialogOpen] = useState(false);
+  const [editingTask, setEditingTask] = useState(null);
+  const [deleteTask, setDeleteTask] = useState(null);
+  const [projectDialogOpen, setProjectDialogOpen] = useState(false);
+  const queryClient = useQueryClient();
+
+  const { data: project } = useQuery({
+    queryKey: ['project', projectId],
+    queryFn: async () => {
+      const projects = await base44.entities.Project.filter({ id: projectId });
+      return projects[0];
+    },
+    enabled: !!projectId,
+  });
+
+  const { data: client } = useQuery({
+    queryKey: ['client', project?.client_id],
+    queryFn: async () => {
+      if (!project?.client_id) return null;
+      const clients = await base44.entities.Client.filter({ id: project.client_id });
+      return clients[0];
+    },
+    enabled: !!project?.client_id,
+  });
+
+  const { data: clients = [] } = useQuery({
+    queryKey: ['clients'],
+    queryFn: () => base44.entities.Client.list(),
+  });
+
+  const { data: tasks = [] } = useQuery({
+    queryKey: ['tasks', projectId],
+    queryFn: () => base44.entities.Task.filter({ project_id: projectId }),
+    enabled: !!projectId,
+  });
+
+  const { data: timeEntries = [] } = useQuery({
+    queryKey: ['timeEntries', projectId],
+    queryFn: () => base44.entities.TimeEntry.filter({ project_id: projectId }),
+    enabled: !!projectId,
+  });
+
+  const createTaskMutation = useMutation({
+    mutationFn: (data) => base44.entities.Task.create({ ...data, project_id: projectId }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tasks', projectId] });
+      setTaskDialogOpen(false);
+    },
+  });
+
+  const updateTaskMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.Task.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tasks', projectId] });
+      setTaskDialogOpen(false);
+      setEditingTask(null);
+    },
+  });
+
+  const deleteTaskMutation = useMutation({
+    mutationFn: (id) => base44.entities.Task.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tasks', projectId] });
+      setDeleteTask(null);
+    },
+  });
+
+  const updateProjectMutation = useMutation({
+    mutationFn: (data) => base44.entities.Project.update(projectId, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['project', projectId] });
+      setProjectDialogOpen(false);
+    },
+  });
+
+  const handleTaskSave = async (data) => {
+    if (editingTask) {
+      await updateTaskMutation.mutateAsync({ id: editingTask.id, data });
+    } else {
+      await createTaskMutation.mutateAsync(data);
+    }
+  };
+
+  const handleDragEnd = async (result) => {
+    if (!result.destination) return;
+    const taskId = result.draggableId;
+    const newStatus = result.destination.droppableId;
+    await updateTaskMutation.mutateAsync({ id: taskId, data: { status: newStatus } });
+  };
+
+  const totalHours = timeEntries.reduce((sum, entry) => sum + (entry.hours || 0), 0);
+  const unbilledHours = timeEntries.filter(e => !e.billed && e.billable).reduce((sum, e) => sum + (e.hours || 0), 0);
+
+  if (!project) {
+    return (
+      <div className="p-6 lg:p-8 flex items-center justify-center min-h-[60vh]">
+        <div className="animate-pulse text-slate-500">Loading project...</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-6 lg:p-8 max-w-7xl mx-auto">
+      {/* Header */}
+      <div className="mb-6">
+        <Link to={createPageUrl('Projects')} className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-slate-700 mb-4">
+          <ArrowLeft className="w-4 h-4" />
+          Back to Projects
+        </Link>
+
+        <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
+          <div className="flex items-start gap-4">
+            <div 
+              className="w-14 h-14 rounded-2xl flex items-center justify-center text-white font-bold text-xl flex-shrink-0"
+              style={{ backgroundColor: project.color || '#10b981' }}
+            >
+              {project.name?.charAt(0)?.toUpperCase()}
+            </div>
+            <div>
+              <div className="flex items-center gap-3 mb-1">
+                <h1 className="text-2xl font-bold text-slate-900">{project.name}</h1>
+                <Badge className={cn("font-medium", statusColors[project.status])}>
+                  {statusLabels[project.status]}
+                </Badge>
+              </div>
+              <p className="text-slate-500">{client?.name || 'No client'}</p>
+              {project.description && (
+                <p className="text-sm text-slate-600 mt-2 max-w-2xl">{project.description}</p>
+              )}
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setProjectDialogOpen(true)}>
+              <Pencil className="w-4 h-4 mr-2" />
+              Edit
+            </Button>
+            <Link to={createPageUrl(`TimeTracking?project=${projectId}`)}>
+              <Button className="bg-emerald-600 hover:bg-emerald-700">
+                <Clock className="w-4 h-4 mr-2" />
+                Log Time
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="bg-white rounded-xl p-4 border border-slate-200/60">
+          <div className="flex items-center gap-2 text-sm text-slate-500 mb-1">
+            <Clock className="w-4 h-4" />
+            Total Hours
+          </div>
+          <p className="text-2xl font-bold text-slate-900">{totalHours.toFixed(1)}h</p>
+          <p className="text-xs text-slate-500">{unbilledHours.toFixed(1)}h unbilled</p>
+        </div>
+        <div className="bg-white rounded-xl p-4 border border-slate-200/60">
+          <div className="flex items-center gap-2 text-sm text-slate-500 mb-1">
+            <DollarSign className="w-4 h-4" />
+            {project.billing_type === 'hourly' ? 'Rate' : 'Budget'}
+          </div>
+          <p className="text-2xl font-bold text-slate-900">
+            ${project.billing_type === 'hourly' ? project.hourly_rate || 0 : project.budget || 0}
+          </p>
+          <p className="text-xs text-slate-500">{project.billing_type}</p>
+        </div>
+        <div className="bg-white rounded-xl p-4 border border-slate-200/60">
+          <div className="flex items-center gap-2 text-sm text-slate-500 mb-1">
+            <Calendar className="w-4 h-4" />
+            Due Date
+          </div>
+          <p className="text-2xl font-bold text-slate-900">
+            {project.due_date ? format(new Date(project.due_date), 'MMM d') : '—'}
+          </p>
+          {project.due_date && (
+            <p className="text-xs text-slate-500">{format(new Date(project.due_date), 'yyyy')}</p>
+          )}
+        </div>
+        <div className="bg-white rounded-xl p-4 border border-slate-200/60">
+          <div className="text-sm text-slate-500 mb-1">Tasks</div>
+          <p className="text-2xl font-bold text-slate-900">{tasks.length}</p>
+          <p className="text-xs text-slate-500">{tasks.filter(t => t.status === 'completed').length} completed</p>
+        </div>
+      </div>
+
+      {/* Tasks Section */}
+      <div className="bg-white rounded-2xl border border-slate-200/60 overflow-hidden">
+        <div className="flex items-center justify-between p-6 border-b border-slate-100">
+          <h2 className="text-lg font-semibold text-slate-900">Tasks</h2>
+          <Button 
+            onClick={() => {
+              setEditingTask(null);
+              setTaskDialogOpen(true);
+            }}
+            className="bg-emerald-600 hover:bg-emerald-700"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Add Task
+          </Button>
+        </div>
+        <div className="p-6">
+          <TaskBoard
+            tasks={tasks}
+            onDragEnd={handleDragEnd}
+            onEditTask={(task) => {
+              setEditingTask(task);
+              setTaskDialogOpen(true);
+            }}
+            onDeleteTask={setDeleteTask}
+          />
+        </div>
+      </div>
+
+      {/* Task Dialog */}
+      <TaskDialog
+        open={taskDialogOpen}
+        onOpenChange={(open) => {
+          setTaskDialogOpen(open);
+          if (!open) setEditingTask(null);
+        }}
+        task={editingTask}
+        onSave={handleTaskSave}
+      />
+
+      {/* Project Dialog */}
+      <ProjectDialog
+        open={projectDialogOpen}
+        onOpenChange={setProjectDialogOpen}
+        project={project}
+        clients={clients}
+        onSave={(data) => updateProjectMutation.mutateAsync(data)}
+      />
+
+      {/* Delete Task Confirmation */}
+      <AlertDialog open={!!deleteTask} onOpenChange={() => setDeleteTask(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete task?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete "{deleteTask?.title}". This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-600 hover:bg-red-700"
+              onClick={() => deleteTaskMutation.mutate(deleteTask.id)}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+}
