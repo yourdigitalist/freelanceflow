@@ -17,13 +17,12 @@ export default function ReviewRequests() {
     queryFn: () => base44.entities.ReviewRequest.list('-updated_date', 50),
   });
 
-  const { data: clients = {} } = useQuery({
-    queryKey: ['clients'],
-    queryFn: async () => {
-      const clientList = await base44.entities.Client.list();
-      return Object.fromEntries(clientList.map(c => [c.id, c]));
-    },
+  const { data: clientsList = [] } = useQuery({
+    queryKey: ['clientsList'],
+    queryFn: () => base44.entities.Client.list(),
   });
+
+  const getClient = (clientId) => clientsList.find(c => c.id === clientId);
 
   const statusColors = {
     pending: 'bg-yellow-50 text-yellow-700 border-yellow-200',
@@ -56,7 +55,7 @@ export default function ReviewRequests() {
           </div>
         ) : (
           reviews.map((review) => {
-            const client = clients[review.client_id];
+            const client = getClient(review.client_id);
             return (
               <div
                 key={review.id}
