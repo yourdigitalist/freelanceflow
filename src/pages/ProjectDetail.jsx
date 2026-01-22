@@ -18,6 +18,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import TaskBoard from '../components/tasks/TaskBoard';
 import TaskDialog from '../components/tasks/TaskDialog';
+import StatusDialog from '../components/tasks/StatusDialog';
 import ProjectDialog from '../components/projects/ProjectDialog';
 import {
   AlertDialog,
@@ -54,6 +55,8 @@ export default function ProjectDetail() {
   const [editingTask, setEditingTask] = useState(null);
   const [deleteTask, setDeleteTask] = useState(null);
   const [projectDialogOpen, setProjectDialogOpen] = useState(false);
+  const [statusDialogOpen, setStatusDialogOpen] = useState(false);
+  const [editingStatus, setEditingStatus] = useState(null);
   const queryClient = useQueryClient();
 
   const { data: project } = useQuery({
@@ -127,6 +130,24 @@ export default function ProjectDetail() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['project', projectId] });
       setProjectDialogOpen(false);
+    },
+  });
+
+  const createStatusMutation = useMutation({
+    mutationFn: (data) => base44.entities.TaskStatus.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['taskStatuses'] });
+      setStatusDialogOpen(false);
+      setEditingStatus(null);
+    },
+  });
+
+  const updateStatusMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.TaskStatus.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['taskStatuses'] });
+      setStatusDialogOpen(false);
+      setEditingStatus(null);
     },
   });
 
@@ -269,16 +290,30 @@ export default function ProjectDetail() {
       <div className="bg-white rounded-2xl border border-slate-200/60 overflow-hidden">
         <div className="flex items-center justify-between p-6 border-b border-slate-100">
           <h2 className="text-lg font-semibold text-slate-900">Tasks</h2>
-          <Button 
-            onClick={() => {
-              setEditingTask(null);
-              setTaskDialogOpen(true);
-            }}
-            className="bg-emerald-600 hover:bg-emerald-700"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Add Task
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              onClick={() => {
+                setEditingStatus(null);
+                setStatusDialogOpen(true);
+              }} 
+              size="sm" 
+              variant="outline"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Status
+            </Button>
+            <Button 
+              onClick={() => {
+                setEditingTask(null);
+                setTaskDialogOpen(true);
+              }}
+              size="sm"
+              className="bg-emerald-600 hover:bg-emerald-700"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Task
+            </Button>
+          </div>
         </div>
         <div className="p-6">
           <TaskBoard
