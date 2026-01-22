@@ -5,9 +5,11 @@ import Invoices from './pages/Invoices';
 import PersonalPreferences from './pages/PersonalPreferences';
 import ProjectDetail from './pages/ProjectDetail';
 import Projects from './pages/Projects';
+import PublicInvoiceView from './pages/PublicInvoiceView';
 import TaskStatuses from './pages/TaskStatuses';
 import TimeTracking from './pages/TimeTracking';
-import PublicInvoiceView from './pages/PublicInvoiceView';
+import ReviewRequests from './pages/ReviewRequests';
+import PublicReviewView from './pages/PublicReviewView';
 import __Layout from './Layout.jsx';
 
 
@@ -19,9 +21,11 @@ export const PAGES = {
     "PersonalPreferences": PersonalPreferences,
     "ProjectDetail": ProjectDetail,
     "Projects": Projects,
+    "PublicInvoiceView": PublicInvoiceView,
     "TaskStatuses": TaskStatuses,
     "TimeTracking": TimeTracking,
-    "PublicInvoiceView": PublicInvoiceView,
+    "ReviewRequests": ReviewRequests,
+    "PublicReviewView": PublicReviewView,
 }
 
 export const pagesConfig = {
