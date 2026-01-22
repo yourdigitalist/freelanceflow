@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import { Settings, Upload, Loader2 } from 'lucide-react';
 import PageHeader from '../components/shared/PageHeader';
 import { toast } from 'sonner';
@@ -30,6 +31,12 @@ export default function InvoiceSettings() {
     invoice_footer: '',
     default_payment_terms: 'Payment due within 30 days.',
     default_tax_rate: 0,
+    default_invoice_email_subject: '',
+    default_invoice_email_body: '',
+    default_reminder_email_subject: '',
+    default_reminder_email_body: '',
+    enable_reminders: false,
+    reminder_days_before_due: 7,
   });
 
   React.useEffect(() => {
@@ -203,6 +210,91 @@ export default function InvoiceSettings() {
                 rows={3}
               />
             </div>
+          </div>
+        </div>
+
+        {/* Email Templates */}
+        <div>
+          <h3 className="text-lg font-semibold text-slate-900 mb-4">Email Templates</h3>
+          <p className="text-sm text-slate-500 mb-4">Use placeholders: [Client Name], [Invoice Number], [Project Name], [Due Date], [Business Name]</p>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="default_invoice_email_subject">Default Invoice Email Subject</Label>
+              <Input
+                id="default_invoice_email_subject"
+                value={formData.default_invoice_email_subject}
+                onChange={(e) => setFormData({ ...formData, default_invoice_email_subject: e.target.value })}
+                placeholder="Invoice [Invoice Number] from [Business Name]"
+              />
+            </div>
+            <div>
+              <Label htmlFor="default_invoice_email_body">Default Invoice Email Body</Label>
+              <Textarea
+                id="default_invoice_email_body"
+                value={formData.default_invoice_email_body}
+                onChange={(e) => setFormData({ ...formData, default_invoice_email_body: e.target.value })}
+                placeholder="Hi [Client Name],
+
+Here is your invoice for [Project Name]. Please let us know if you have any questions.
+
+Thanks,
+[Business Name]"
+                rows={6}
+              />
+            </div>
+            <div>
+              <Label htmlFor="default_reminder_email_subject">Default Reminder Email Subject</Label>
+              <Input
+                id="default_reminder_email_subject"
+                value={formData.default_reminder_email_subject}
+                onChange={(e) => setFormData({ ...formData, default_reminder_email_subject: e.target.value })}
+                placeholder="Reminder: Invoice [Invoice Number] Due Soon"
+              />
+            </div>
+            <div>
+              <Label htmlFor="default_reminder_email_body">Default Reminder Email Body</Label>
+              <Textarea
+                id="default_reminder_email_body"
+                value={formData.default_reminder_email_body}
+                onChange={(e) => setFormData({ ...formData, default_reminder_email_body: e.target.value })}
+                placeholder="Hi [Client Name],
+
+This is a friendly reminder that invoice [Invoice Number] for [Project Name] is due on [Due Date].
+
+Please let us know if you have any questions.
+
+Thanks,
+[Business Name]"
+                rows={6}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Reminder Settings */}
+        <div>
+          <h3 className="text-lg font-semibold text-slate-900 mb-4">Reminder Settings</h3>
+          <div className="space-y-4">
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="enable_reminders"
+                checked={formData.enable_reminders}
+                onCheckedChange={(checked) => setFormData({ ...formData, enable_reminders: checked })}
+              />
+              <Label htmlFor="enable_reminders">Enable Automatic Reminders</Label>
+            </div>
+            {formData.enable_reminders && (
+              <div>
+                <Label htmlFor="reminder_days_before_due">Send Reminder (days before due date)</Label>
+                <Input
+                  id="reminder_days_before_due"
+                  type="number"
+                  min="1"
+                  value={formData.reminder_days_before_due}
+                  onChange={(e) => setFormData({ ...formData, reminder_days_before_due: parseInt(e.target.value) || 7 })}
+                />
+              </div>
+            )}
           </div>
         </div>
 

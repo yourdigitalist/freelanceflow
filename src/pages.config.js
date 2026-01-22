@@ -1,23 +1,23 @@
-import Dashboard from './pages/Dashboard';
 import Clients from './pages/Clients';
-import Projects from './pages/Projects';
-import ProjectDetail from './pages/ProjectDetail';
-import TimeTracking from './pages/TimeTracking';
-import Invoices from './pages/Invoices';
-import TaskStatuses from './pages/TaskStatuses';
+import Dashboard from './pages/Dashboard';
 import InvoiceSettings from './pages/InvoiceSettings';
+import Invoices from './pages/Invoices';
+import ProjectDetail from './pages/ProjectDetail';
+import Projects from './pages/Projects';
+import TaskStatuses from './pages/TaskStatuses';
+import TimeTracking from './pages/TimeTracking';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
-    "Dashboard": Dashboard,
     "Clients": Clients,
-    "Projects": Projects,
-    "ProjectDetail": ProjectDetail,
-    "TimeTracking": TimeTracking,
-    "Invoices": Invoices,
-    "TaskStatuses": TaskStatuses,
+    "Dashboard": Dashboard,
     "InvoiceSettings": InvoiceSettings,
+    "Invoices": Invoices,
+    "ProjectDetail": ProjectDetail,
+    "Projects": Projects,
+    "TaskStatuses": TaskStatuses,
+    "TimeTracking": TimeTracking,
 }
 
 export const pagesConfig = {

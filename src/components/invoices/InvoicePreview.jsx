@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -12,6 +12,7 @@ import { format, parseISO } from 'date-fns';
 import { cn } from "@/lib/utils";
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
+import SendEmailDialog from './SendEmailDialog';
 
 const statusColors = {
   draft: "bg-slate-100 text-slate-700",
@@ -22,6 +23,9 @@ const statusColors = {
 };
 
 export default function InvoicePreview({ open, onOpenChange, invoice, client, project }) {
+  const [sendEmailDialogOpen, setSendEmailDialogOpen] = useState(false);
+  const [emailType, setEmailType] = useState('invoice');
+  
   const { data: invoiceSettings } = useQuery({
     queryKey: ['invoiceSettings'],
     queryFn: async () => {
@@ -36,6 +40,49 @@ export default function InvoicePreview({ open, onOpenChange, invoice, client, pr
     window.print();
   };
 
+  const replacePlaceholders = (template, currentInvoice, currentClient, currentProject, currentSettings) => {
+    if (!template) return '';
+    let text = template;
+    text = text.replace(/\[Client Name\]/g, currentClient?.name || 'Client');
+    text = text.replace(/\[Invoice Number\]/g, currentInvoice?.invoice_number || '');
+    text = text.replace(/\[Project Name\]/g, currentProject?.name || 'the project');
+    text = text.replace(/\[Due Date\]/g, currentInvoice?.due_date ? format(parseISO(currentInvoice.due_date), 'MMMM d, yyyy') : '');
+    text = text.replace(/\[Business Name\]/g, currentSettings?.business_name || 'Your Business');
+    return text;
+  };
+
+  const handleSendInvoice = () => {
+    setEmailType('invoice');
+    setSendEmailDialogOpen(true);
+  };
+
+  const handleSendReminder = () => {
+    setEmailType('reminder');
+    setSendEmailDialogOpen(true);
+  };
+
+  const getEmailSubject = () => {
+    if (emailType === 'reminder') {
+      return invoiceSettings?.default_reminder_email_subject 
+        ? replacePlaceholders(invoiceSettings.default_reminder_email_subject, invoice, client, project, invoiceSettings)
+        : `Reminder: Invoice ${invoice?.invoice_number} Due Soon`;
+    }
+    return invoiceSettings?.default_invoice_email_subject 
+      ? replacePlaceholders(invoiceSettings.default_invoice_email_subject, invoice, client, project, invoiceSettings)
+      : `Invoice ${invoice?.invoice_number} from ${invoiceSettings?.business_name || 'Your Business'}`;
+  };
+
+  const getEmailBody = () => {
+    if (emailType === 'reminder') {
+      return invoiceSettings?.default_reminder_email_body
+        ? replacePlaceholders(invoiceSettings.default_reminder_email_body, invoice, client, project, invoiceSettings)
+        : `Hi ${client?.name},\n\nThis is a friendly reminder that invoice ${invoice?.invoice_number} for ${project?.name || 'the project'} is due on ${invoice?.due_date ? format(parseISO(invoice.due_date), 'MMMM d, yyyy') : ''}.`;
+    }
+    return invoiceSettings?.default_invoice_email_body
+      ? replacePlaceholders(invoiceSettings.default_invoice_email_body, invoice, client, project, invoiceSettings)
+      : `Hi ${client?.name},\n\nHere is your invoice for ${project?.name || 'the project'}.\n\nPlease let us know if you have any questions.\n\nThanks,\n${invoiceSettings?.business_name || 'Your Business'}`;
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -47,6 +94,20 @@ export default function InvoicePreview({ open, onOpenChange, invoice, client, pr
                 <Printer className="w-4 h-4 mr-2" />
                 Print
               </Button>
+              {client?.email && (
+                <>
+                  <Button variant="outline" size="sm" onClick={handleSendInvoice}>
+                    <Mail className="w-4 h-4 mr-2" />
+                    Send Invoice
+                  </Button>
+                  {invoice.status === 'sent' && (
+                    <Button variant="outline" size="sm" onClick={handleSendReminder}>
+                      <Mail className="w-4 h-4 mr-2" />
+                      Send Reminder
+                    </Button>
+                  )}
+                </>
+              )}
             </div>
           </div>
         </DialogHeader>
@@ -185,6 +246,16 @@ export default function InvoicePreview({ open, onOpenChange, invoice, client, pr
           )}
         </div>
       </DialogContent>
+
+      <SendEmailDialog
+        open={sendEmailDialogOpen}
+        onOpenChange={setSendEmailDialogOpen}
+        invoice={invoice}
+        client={client}
+        initialSubject={getEmailSubject()}
+        initialBody={getEmailBody()}
+        emailType={emailType}
+      />
     </Dialog>
   );
 }
