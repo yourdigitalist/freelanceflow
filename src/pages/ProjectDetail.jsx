@@ -65,8 +65,13 @@ export default function ProjectDetail() {
   const [statusManagementOpen, setStatusManagementOpen] = useState(false);
   const [invoiceDialogOpen, setInvoiceDialogOpen] = useState(false);
   const [deleteProjectOpen, setDeleteProjectOpen] = useState(false);
-  const [taskView, setTaskView] = useState('board'); // 'board' or 'list'
+  const [taskView, setTaskView] = useState(() => localStorage.getItem(`taskView_${projectId}`) || 'board');
   const queryClient = useQueryClient();
+
+  const handleViewChange = (view) => {
+    setTaskView(view);
+    localStorage.setItem(`taskView_${projectId}`, view);
+  };
 
   const { data: project } = useQuery({
     queryKey: ['project', projectId],
@@ -260,28 +265,36 @@ export default function ProjectDetail() {
     
     // If moving to a different status
     if (sourceStatusId !== destStatusId) {
-      // Optimistic update
-      queryClient.setQueryData(['tasks', projectId], (old) => {
-        return old.map(t => t.id === taskId ? { ...t, status_id: destStatusId, order: destIndex } : t);
-      });
-      
-      // Get destination column tasks for proper ordering
       const destTasks = tasks.filter(t => t.status_id === destStatusId && !t.parent_task_id).sort((a, b) => (a.order || 0) - (b.order || 0));
       const reordered = Array.from(destTasks);
       reordered.splice(destIndex, 0, task);
       
-      // Update status and order
-      await base44.entities.Task.update(taskId, { status_id: destStatusId, order: destIndex });
-      
-      // Update order for other tasks in destination column
-      const updates = reordered
-        .filter(t => t && t.id && t.id !== taskId)
-        .map((t, index) => {
-          const newOrder = index >= destIndex ? index + 1 : index;
-          return base44.entities.Task.update(t.id, { order: newOrder });
+      // Optimistic update - immediately update UI
+      queryClient.setQueryData(['tasks', projectId], (old) => {
+        return old.map(t => {
+          if (t.id === taskId) {
+            return { ...t, status_id: destStatusId, order: destIndex };
+          }
+          const idx = reordered.findIndex(rt => rt.id === t.id && t.id !== taskId);
+          if (idx !== -1) {
+            return { ...t, order: idx >= destIndex ? idx + 1 : idx };
+          }
+          return t;
         });
-      await Promise.all(updates);
-      queryClient.invalidateQueries({ queryKey: ['tasks', projectId] });
+      });
+      
+      // Update in background
+      base44.entities.Task.update(taskId, { status_id: destStatusId, order: destIndex }).then(() => {
+        const updates = reordered
+          .filter(t => t && t.id && t.id !== taskId)
+          .map((t, index) => {
+            const newOrder = index >= destIndex ? index + 1 : index;
+            return base44.entities.Task.update(t.id, { order: newOrder });
+          });
+        return Promise.all(updates);
+      }).then(() => {
+        queryClient.invalidateQueries({ queryKey: ['tasks', projectId] });
+      });
     } else {
       // Reordering within the same status
       const statusTasks = tasks.filter(t => t.status_id === sourceStatusId && !t.parent_task_id).sort((a, b) => (a.order || 0) - (b.order || 0));
@@ -300,14 +313,15 @@ export default function ProjectDetail() {
         });
       });
       
-      // Update order for all affected tasks
+      // Update in background
       const updates = reordered
         .filter(t => t && t.id)
         .map((task, index) => 
           base44.entities.Task.update(task.id, { order: index })
         );
-      await Promise.all(updates);
-      queryClient.invalidateQueries({ queryKey: ['tasks', projectId] });
+      Promise.all(updates).then(() => {
+        queryClient.invalidateQueries({ queryKey: ['tasks', projectId] });
+      });
     }
   };
 
@@ -444,7 +458,7 @@ export default function ProjectDetail() {
               <Button
                 variant={taskView === 'board' ? 'default' : 'ghost'}
                 size="sm"
-                onClick={() => setTaskView('board')}
+                onClick={() => handleViewChange('board')}
                 className={cn(
                   "rounded-none",
                   taskView === 'board' ? "bg-emerald-600 hover:bg-emerald-700" : ""
@@ -455,7 +469,7 @@ export default function ProjectDetail() {
               <Button
                 variant={taskView === 'list' ? 'default' : 'ghost'}
                 size="sm"
-                onClick={() => setTaskView('list')}
+                onClick={() => handleViewChange('list')}
                 className={cn(
                   "rounded-none",
                   taskView === 'list' ? "bg-emerald-600 hover:bg-emerald-700" : ""
@@ -489,6 +503,7 @@ export default function ProjectDetail() {
             <TaskBoard
               tasks={tasks}
               taskStatuses={taskStatuses}
+              projectId={projectId}
               onDragEnd={handleDragEnd}
               onEditTask={(task) => {
                 setEditingTask(task);

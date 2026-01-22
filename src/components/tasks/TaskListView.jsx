@@ -40,8 +40,8 @@ export default function TaskListView({ tasks, taskStatuses, onEditTask, onDelete
   const [editValue, setEditValue] = useState('');
   const [creatingTask, setCreatingTask] = useState(false);
   const [newTaskTitle, setNewTaskTitle] = useState('');
-  const [sortBy, setSortBy] = useState('order');
-  const [sortOrder, setSortOrder] = useState('asc');
+  const [sortBy, setSortBy] = useState(() => localStorage.getItem(`taskListSort_${projectId}`) || 'order');
+  const [sortOrder, setSortOrder] = useState(() => localStorage.getItem(`taskListSortOrder_${projectId}`) || 'asc');
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterPriority, setFilterPriority] = useState('all');
   const queryClient = useQueryClient();
@@ -108,26 +108,52 @@ export default function TaskListView({ tasks, taskStatuses, onEditTask, onDelete
   };
 
   const handleStatusChange = async (task, newStatusId) => {
+    // Optimistic update
+    queryClient.setQueryData(['tasks', projectId], (old) => 
+      old.map(t => t.id === task.id ? { ...t, status_id: newStatusId } : t)
+    );
+    
     await base44.entities.Task.update(task.id, { status_id: newStatusId });
     queryClient.invalidateQueries({ queryKey: ['tasks', projectId] });
   };
 
   const handlePriorityChange = async (task, newPriority) => {
+    // Optimistic update
+    queryClient.setQueryData(['tasks', projectId], (old) => 
+      old.map(t => t.id === task.id ? { ...t, priority: newPriority } : t)
+    );
+    
     await base44.entities.Task.update(task.id, { priority: newPriority });
     queryClient.invalidateQueries({ queryKey: ['tasks', projectId] });
   };
 
   const handleCreateTask = async () => {
     if (!newTaskTitle.trim()) return;
-    await base44.entities.Task.create({
+    
+    // Optimistic update
+    const tempId = `temp-${Date.now()}`;
+    const newTask = {
+      id: tempId,
       title: newTaskTitle.trim(),
       project_id: projectId,
       status_id: taskStatuses[0]?.id,
       priority: 'medium',
-    });
-    queryClient.invalidateQueries({ queryKey: ['tasks', projectId] });
+      order: topLevelTasks.length,
+    };
+    
+    queryClient.setQueryData(['tasks', projectId], (old) => [...(old || []), newTask]);
+    
     setCreatingTask(false);
     setNewTaskTitle('');
+    
+    try {
+      await base44.entities.Task.create(newTask);
+      queryClient.invalidateQueries({ queryKey: ['tasks', projectId] });
+    } catch (error) {
+      queryClient.setQueryData(['tasks', projectId], (old) => 
+        old.filter(t => t.id !== tempId)
+      );
+    }
   };
 
   const handleDragEnd = async (result) => {
@@ -140,6 +166,7 @@ export default function TaskListView({ tasks, taskStatuses, onEditTask, onDelete
     
     // Reset to manual order when dragging
     setSortBy('order');
+    localStorage.setItem(`taskListSort_${projectId}`, 'order');
     
     const reordered = Array.from(topLevelTasks);
     const [moved] = reordered.splice(sourceIndex, 1);
@@ -156,21 +183,21 @@ export default function TaskListView({ tasks, taskStatuses, onEditTask, onDelete
       });
     });
     
-    // Update order for all affected tasks
+    // Update order for all affected tasks in background
     const updates = reordered.map((task, index) => 
       base44.entities.Task.update(task.id, { order: index })
     );
-    await Promise.all(updates);
-    queryClient.invalidateQueries({ queryKey: ['tasks', projectId] });
+    Promise.all(updates).then(() => {
+      queryClient.invalidateQueries({ queryKey: ['tasks', projectId] });
+    });
   };
 
   const toggleSort = (field) => {
-    if (sortBy === field) {
-      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortBy(field);
-      setSortOrder('asc');
-    }
+    const newSortOrder = sortBy === field ? (sortOrder === 'asc' ? 'desc' : 'asc') : 'asc';
+    setSortBy(field);
+    setSortOrder(newSortOrder);
+    localStorage.setItem(`taskListSort_${projectId}`, field);
+    localStorage.setItem(`taskListSortOrder_${projectId}`, newSortOrder);
   };
 
   return (

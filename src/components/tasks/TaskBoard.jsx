@@ -1,11 +1,17 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { cn } from "@/lib/utils";
 import TaskItem from './TaskItem';
 import { Plus } from 'lucide-react';
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { base44 } from '@/api/base44Client';
+import { useQueryClient } from '@tanstack/react-query';
 
-export default function TaskBoard({ tasks, taskStatuses, onDragEnd, onEditTask, onDeleteTask, onAddTask }) {
+export default function TaskBoard({ tasks, taskStatuses, onDragEnd, onEditTask, onDeleteTask, onAddTask, projectId }) {
+  const [creatingInColumn, setCreatingInColumn] = useState(null);
+  const [newTaskTitle, setNewTaskTitle] = useState('');
+  const queryClient = useQueryClient();
   const columns = taskStatuses.sort((a, b) => a.order - b.order);
   
   const getColumnTasks = (statusId) => {
@@ -13,6 +19,41 @@ export default function TaskBoard({ tasks, taskStatuses, onDragEnd, onEditTask, 
       (task.status_id === statusId || task.status === statusId) && !task.parent_task_id
     );
     return filtered.sort((a, b) => (a.order || 0) - (b.order || 0));
+  };
+
+  const handleInlineCreate = async (statusId) => {
+    if (!newTaskTitle.trim()) {
+      setCreatingInColumn(null);
+      setNewTaskTitle('');
+      return;
+    }
+    
+    // Optimistic update
+    const tempId = `temp-${Date.now()}`;
+    const newTask = {
+      id: tempId,
+      title: newTaskTitle.trim(),
+      project_id: projectId,
+      status_id: statusId,
+      priority: 'medium',
+      order: getColumnTasks(statusId).length,
+    };
+    
+    queryClient.setQueryData(['tasks', projectId], (old) => [...(old || []), newTask]);
+    
+    setNewTaskTitle('');
+    setCreatingInColumn(null);
+    
+    // Create on server
+    try {
+      await base44.entities.Task.create(newTask);
+      queryClient.invalidateQueries({ queryKey: ['tasks', projectId] });
+    } catch (error) {
+      // Revert on error
+      queryClient.setQueryData(['tasks', projectId], (old) => 
+        old.filter(t => t.id !== tempId)
+      );
+    }
   };
 
   return (
@@ -63,15 +104,30 @@ export default function TaskBoard({ tasks, taskStatuses, onDragEnd, onEditTask, 
                   ))}
                   {provided.placeholder}
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => onAddTask(column.id)}
-                    className="w-full justify-start text-slate-500 hover:text-slate-700 hover:bg-white/60 mt-2"
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add task
-                  </Button>
+                  {creatingInColumn === column.id ? (
+                    <Input
+                      value={newTaskTitle}
+                      onChange={(e) => setNewTaskTitle(e.target.value)}
+                      onBlur={() => handleInlineCreate(column.id)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') handleInlineCreate(column.id);
+                        if (e.key === 'Escape') { setCreatingInColumn(null); setNewTaskTitle(''); }
+                      }}
+                      placeholder="Task title..."
+                      autoFocus
+                      className="mt-2"
+                    />
+                  ) : (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setCreatingInColumn(column.id)}
+                      className="w-full justify-start text-slate-500 hover:text-slate-700 hover:bg-white/60 mt-2"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add task
+                    </Button>
+                  )}
                 </div>
               </div>
             )}
