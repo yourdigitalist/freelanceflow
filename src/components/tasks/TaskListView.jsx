@@ -46,6 +46,26 @@ export default function TaskListView({ tasks, taskStatuses, onEditTask, onDelete
   const [filterPriority, setFilterPriority] = useState('all');
   const queryClient = useQueryClient();
 
+  const getStatusOrder = (statusId) => {
+    const status = taskStatuses.find(s => s.id === statusId);
+    return status?.order || 999;
+  };
+
+  const getPriorityOrder = (priority) => {
+    const order = { low: 1, medium: 2, high: 3 };
+    return order[priority] || 0;
+  };
+
+  const getStatusName = (statusId) => {
+    const status = taskStatuses.find(s => s.id === statusId);
+    return status?.name || 'Unknown';
+  };
+
+  const getStatusColor = (statusId) => {
+    const status = taskStatuses.find(s => s.id === statusId);
+    return status?.color || '#94A3B8';
+  };
+
   let topLevelTasks = tasks.filter(t => !t.parent_task_id);
 
   // Apply filters
