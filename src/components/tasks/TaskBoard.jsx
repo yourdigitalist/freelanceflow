@@ -2,8 +2,10 @@ import React from 'react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { cn } from "@/lib/utils";
 import TaskItem from './TaskItem';
+import { Plus } from 'lucide-react';
+import { Button } from "@/components/ui/button";
 
-export default function TaskBoard({ tasks, taskStatuses, onDragEnd, onEditTask, onDeleteTask }) {
+export default function TaskBoard({ tasks, taskStatuses, onDragEnd, onEditTask, onDeleteTask, onAddTask }) {
   const columns = taskStatuses.sort((a, b) => a.order - b.order);
   
   const getColumnTasks = (statusId) => tasks.filter(task => 
@@ -56,6 +58,15 @@ export default function TaskBoard({ tasks, taskStatuses, onDragEnd, onEditTask, 
                     </Draggable>
                   ))}
                   {provided.placeholder}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onAddTask(column.id)}
+                    className="w-full justify-start text-slate-500 hover:text-slate-700 hover:bg-white/60 mt-2"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add task
+                  </Button>
                   </div>
                 </div>
               </div>

@@ -220,9 +220,30 @@ export default function ProjectDetail() {
 
   const handleDragEnd = async (result) => {
     if (!result.destination) return;
+    
     const taskId = result.draggableId;
-    const newStatusId = result.destination.droppableId;
-    await updateTaskMutation.mutateAsync({ id: taskId, data: { status_id: newStatusId } });
+    const sourceIndex = result.source.index;
+    const destIndex = result.destination.index;
+    const sourceStatusId = result.source.droppableId;
+    const destStatusId = result.destination.droppableId;
+    
+    // If moving to a different status
+    if (sourceStatusId !== destStatusId) {
+      await updateTaskMutation.mutateAsync({ id: taskId, data: { status_id: destStatusId, order: destIndex } });
+    } else {
+      // Reordering within the same status
+      const statusTasks = tasks.filter(t => t.status_id === sourceStatusId && !t.parent_task_id);
+      const reordered = Array.from(statusTasks);
+      const [moved] = reordered.splice(sourceIndex, 1);
+      reordered.splice(destIndex, 0, moved);
+      
+      // Update order for all affected tasks
+      const updates = reordered.map((task, index) => 
+        base44.entities.Task.update(task.id, { order: index })
+      );
+      await Promise.all(updates);
+      queryClient.invalidateQueries({ queryKey: ['tasks', projectId] });
+    }
   };
 
 
@@ -380,6 +401,10 @@ export default function ProjectDetail() {
               setTaskDialogOpen(true);
             }}
             onDeleteTask={setDeleteTask}
+            onAddTask={(statusId) => {
+              setEditingTask({ status_id: statusId });
+              setTaskDialogOpen(true);
+            }}
           />
         </div>
       </div>
@@ -393,6 +418,7 @@ export default function ProjectDetail() {
         }}
         task={editingTask}
         taskStatuses={taskStatuses}
+        defaultStatusId={editingTask?.status_id}
         onSave={handleTaskSave}
       />
 
