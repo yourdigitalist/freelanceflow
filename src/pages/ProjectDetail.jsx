@@ -14,6 +14,7 @@ import {
   Trash2,
   LayoutGrid,
   List,
+  Eye,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { Button } from "@/components/ui/button";
@@ -26,6 +27,7 @@ import TaskDialog from '../components/tasks/TaskDialog';
 import ProjectDialog from '../components/projects/ProjectDialog';
 import InvoiceDialog from '../components/invoices/InvoiceDialog';
 import ProjectStatusManagementDialog from '../components/projects/ProjectStatusManagementDialog';
+import SendForReviewDialog from '../components/reviews/SendForReviewDialog';
 import { toast } from 'sonner';
 import {
   AlertDialog,
@@ -65,6 +67,7 @@ export default function ProjectDetail() {
   const [statusManagementOpen, setStatusManagementOpen] = useState(false);
   const [invoiceDialogOpen, setInvoiceDialogOpen] = useState(false);
   const [deleteProjectOpen, setDeleteProjectOpen] = useState(false);
+  const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
   const [taskView, setTaskView] = useState(() => localStorage.getItem(`taskView_${projectId}`) || 'board');
   const queryClient = useQueryClient();
 
@@ -412,6 +415,10 @@ export default function ProjectDetail() {
             </div>
           </div>
           <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setReviewDialogOpen(true)}>
+              <Eye className="w-4 h-4 mr-2" />
+              Send for Review
+            </Button>
             <Button variant="outline" onClick={() => setProjectDialogOpen(true)}>
               <Pencil className="w-4 h-4 mr-2" />
               Edit
@@ -652,6 +659,17 @@ export default function ProjectDetail() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Send for Review Dialog */}
+      <SendForReviewDialog
+        open={reviewDialogOpen}
+        onOpenChange={setReviewDialogOpen}
+        project={project}
+        client={client}
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ['reviewRequests'] });
+        }}
+      />
     </div>
   );
 }
