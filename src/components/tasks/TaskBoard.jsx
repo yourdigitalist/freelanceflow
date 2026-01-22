@@ -90,6 +90,7 @@ export default function TaskBoard({ tasks, taskStatuses, onDragEnd, onEditTask, 
                           {...provided.draggableProps}
                           {...provided.dragHandleProps}
                           className={cn(snapshot.isDragging && "opacity-70")}
+                          onClick={() => onEditTask(task)}
                         >
                           <TaskItem
                             task={task}

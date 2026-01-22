@@ -6,6 +6,7 @@ import ProjectDetail from './pages/ProjectDetail';
 import Projects from './pages/Projects';
 import TaskStatuses from './pages/TaskStatuses';
 import TimeTracking from './pages/TimeTracking';
+import PersonalPreferences from './pages/PersonalPreferences';
 import __Layout from './Layout.jsx';
 
 
@@ -18,6 +19,7 @@ export const PAGES = {
     "Projects": Projects,
     "TaskStatuses": TaskStatuses,
     "TimeTracking": TimeTracking,
+    "PersonalPreferences": PersonalPreferences,
 }
 
 export const pagesConfig = {

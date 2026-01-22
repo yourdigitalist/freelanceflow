@@ -68,6 +68,12 @@ export default function TaskListView({ tasks, taskStatuses, onEditTask, onDelete
       } else if (sortBy === 'title') {
         aVal = (aVal || '').toLowerCase();
         bVal = (bVal || '').toLowerCase();
+      } else if (sortBy === 'status_id') {
+        aVal = getStatusOrder(aVal);
+        bVal = getStatusOrder(bVal);
+      } else if (sortBy === 'priority') {
+        aVal = getPriorityOrder(aVal);
+        bVal = getPriorityOrder(bVal);
       }
       
       if (sortOrder === 'asc') {
@@ -200,6 +206,16 @@ export default function TaskListView({ tasks, taskStatuses, onEditTask, onDelete
     localStorage.setItem(`taskListSortOrder_${projectId}`, newSortOrder);
   };
 
+  const getStatusOrder = (statusId) => {
+    const status = taskStatuses.find(s => s.id === statusId);
+    return status?.order || 999;
+  };
+
+  const getPriorityOrder = (priority) => {
+    const order = { low: 1, medium: 2, high: 3 };
+    return order[priority] || 0;
+  };
+
   return (
     <div className="space-y-3">
       {/* Filters */}
@@ -245,8 +261,28 @@ export default function TaskListView({ tasks, taskStatuses, onEditTask, onDelete
                     {sortBy === 'title' && <ArrowUpDown className="ml-2 h-4 w-4" />}
                   </Button>
                 </TableHead>
-                <TableHead className="w-[15%]">Status</TableHead>
-                <TableHead className="w-[12%]">Priority</TableHead>
+                <TableHead className="w-[15%]">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 -ml-3 font-semibold hover:bg-transparent"
+                    onClick={() => toggleSort('status_id')}
+                  >
+                    Status
+                    {sortBy === 'status_id' && <ArrowUpDown className="ml-2 h-4 w-4" />}
+                  </Button>
+                </TableHead>
+                <TableHead className="w-[12%]">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 -ml-3 font-semibold hover:bg-transparent"
+                    onClick={() => toggleSort('priority')}
+                  >
+                    Priority
+                    {sortBy === 'priority' && <ArrowUpDown className="ml-2 h-4 w-4" />}
+                  </Button>
+                </TableHead>
                 <TableHead className="w-[12%]">
                   <Button
                     variant="ghost"
