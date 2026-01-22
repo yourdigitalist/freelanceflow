@@ -58,7 +58,7 @@ export default function TaskBoard({ tasks, taskStatuses, onDragEnd, onEditTask, 
 
   return (
     <DragDropContext onDragEnd={onDragEnd}>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="flex gap-4 overflow-x-auto pb-4">
         {columns.map(column => (
           <Droppable key={column.id} droppableId={column.id}>
             {(provided, snapshot) => (
@@ -66,7 +66,8 @@ export default function TaskBoard({ tasks, taskStatuses, onDragEnd, onEditTask, 
                 ref={provided.innerRef}
                 {...provided.droppableProps}
                 className={cn(
-                  "rounded-2xl overflow-hidden min-h-[400px] transition-all",
+                  "rounded-2xl overflow-hidden min-h-[400px] transition-all flex-shrink-0",
+                  "w-[280px]",
                   snapshot.isDraggingOver ? "bg-emerald-50 ring-2 ring-emerald-400" : "bg-slate-50"
                 )}
               >

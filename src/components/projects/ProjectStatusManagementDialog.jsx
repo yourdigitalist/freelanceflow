@@ -92,6 +92,7 @@ export default function ProjectStatusManagementDialog({
     if (template) {
       const newStatuses = template.statuses.map((s, i) => ({
         ...s,
+        is_done: s.is_done || (s.key === 'done'),
         order: i,
         project_id: projectId,
       }));

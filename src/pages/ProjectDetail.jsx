@@ -178,27 +178,42 @@ export default function ProjectDetail() {
 
   const saveStatusesMutation = useMutation({
     mutationFn: async (statuses) => {
-      // Delete old project statuses
+      // Get old project statuses
       const oldProjectStatuses = allTaskStatuses.filter(s => s.project_id === projectId);
-      const oldStatusIds = oldProjectStatuses.map(s => s.id);
       
+      // Create mapping from old key to old id
+      const oldStatusKeyToId = {};
+      oldProjectStatuses.forEach(s => {
+        oldStatusKeyToId[s.key] = s.id;
+      });
+      
+      // Delete old project statuses
       await Promise.all(oldProjectStatuses.map(s => base44.entities.TaskStatus.delete(s.id)));
       
-      // Create new statuses (without id field to avoid conflicts)
+      // Create new statuses
       const newStatuses = statuses.map(({ id, ...rest }) => ({
         ...rest,
         project_id: projectId
       }));
       const createdStatuses = await Promise.all(newStatuses.map(s => base44.entities.TaskStatus.create(s)));
       
-      // Reassign orphaned tasks to the first new status
-      if (createdStatuses.length > 0) {
-        const firstNewStatusId = createdStatuses[0].id;
-        const orphanedTasks = tasks.filter(t => oldStatusIds.includes(t.status_id));
-        await Promise.all(orphanedTasks.map(t => 
-          base44.entities.Task.update(t.id, { status_id: firstNewStatusId })
-        ));
-      }
+      // Create mapping from new key to new id
+      const newStatusKeyToId = {};
+      createdStatuses.forEach(s => {
+        newStatusKeyToId[s.key] = s.id;
+      });
+      
+      // Update tasks to use new status IDs based on matching keys
+      const tasksToUpdate = tasks.filter(t => oldProjectStatuses.some(os => os.id === t.status_id));
+      await Promise.all(tasksToUpdate.map(task => {
+        const oldStatus = oldProjectStatuses.find(os => os.id === task.status_id);
+        if (oldStatus && newStatusKeyToId[oldStatus.key]) {
+          return base44.entities.Task.update(task.id, { status_id: newStatusKeyToId[oldStatus.key] });
+        } else if (createdStatuses.length > 0) {
+          // Fallback to first status if key not found
+          return base44.entities.Task.update(task.id, { status_id: createdStatuses[0].id });
+        }
+      }));
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['taskStatuses'] });
@@ -212,7 +227,7 @@ export default function ProjectDetail() {
     mutationFn: ({ name, statuses }) => {
       return base44.entities.TaskStatusTemplate.create({
         name,
-        statuses: statuses.map(({ name, key, color, order }) => ({ name, key, color, order })),
+        statuses: statuses.map(({ name, key, color, order, is_done }) => ({ name, key, color, order, is_done })),
         is_default: false,
       });
     },
