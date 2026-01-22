@@ -16,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, X, MessageSquare, Send } from 'lucide-react';
+import { Plus, X, MessageSquare, Send, Copy } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { format } from 'date-fns';
 
@@ -81,6 +81,21 @@ export default function TaskDialog({ open, onOpenChange, task, taskStatuses, par
     setSaving(false);
   };
 
+  const handleDuplicate = async () => {
+    if (!task || !task.id) return;
+    
+    setSaving(true);
+    const duplicatedData = {
+      ...formData,
+      title: `${formData.title} (Copy)`,
+      estimated_hours: formData.estimated_hours ? parseFloat(formData.estimated_hours) : null,
+      comments: [],
+    };
+    
+    await onSave(duplicatedData, subtasks);
+    setSaving(false);
+  };
+
   const addSubtask = () => {
     if (newSubtask.trim()) {
       setSubtasks([...subtasks, { title: newSubtask.trim(), priority: 'medium' }]);
@@ -109,9 +124,22 @@ export default function TaskDialog({ open, onOpenChange, task, taskStatuses, par
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
         <SheetHeader>
-          <SheetTitle>
-            {task && task.id ? 'Edit Task' : parentTask ? `Add Subtask to: ${parentTask.title}` : 'Add Task'}
-          </SheetTitle>
+          <div className="flex items-center justify-between">
+            <SheetTitle>
+              {task && task.id ? 'Edit Task' : parentTask ? `Add Subtask to: ${parentTask.title}` : 'Add Task'}
+            </SheetTitle>
+            {task && task.id && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleDuplicate}
+                disabled={saving}
+              >
+                <Copy className="w-4 h-4 mr-2" />
+                Duplicate
+              </Button>
+            )}
+          </div>
         </SheetHeader>
         <form onSubmit={handleSubmit} className="space-y-4 mt-4">
           <div>
