@@ -1,7 +1,18 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { FolderKanban, Search, Filter } from 'lucide-react';
+import { FolderKanban, Search, Filter, LayoutGrid, List, Folder, Trash2, Pencil } from 'lucide-react';
+import { createPageUrl } from '../utils';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -79,6 +90,11 @@ export default function Projects() {
     }
   };
 
+  const handleEdit = (project) => {
+    setEditingProject(project);
+    setDialogOpen(true);
+  };
+
   const getProjectTaskCount = (projectId) => tasks.filter(t => t.project_id === projectId).length;
   const getProjectHours = (projectId) => timeEntries.filter(t => t.project_id === projectId).reduce((sum, e) => sum + (e.hours || 0), 0);
 
@@ -116,12 +132,11 @@ export default function Projects() {
           />
         </div>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[180px]">
-            <Filter className="w-4 h-4 mr-2" />
-            <SelectValue placeholder="All statuses" />
+          <SelectTrigger className="w-full sm:w-40">
+            <SelectValue placeholder="Status" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Statuses</SelectItem>
+            <SelectItem value="all">All Status</SelectItem>
             <SelectItem value="planning">Planning</SelectItem>
             <SelectItem value="in_progress">In Progress</SelectItem>
             <SelectItem value="review">Review</SelectItem>
@@ -129,6 +144,36 @@ export default function Projects() {
             <SelectItem value="on_hold">On Hold</SelectItem>
           </SelectContent>
         </Select>
+        <Select value={folderFilter} onValueChange={setFolderFilter}>
+          <SelectTrigger className="w-full sm:w-40">
+            <SelectValue placeholder="Folder" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Folders</SelectItem>
+            <SelectItem value="none">No Folder</SelectItem>
+            {folders.map(folder => (
+              <SelectItem key={folder} value={folder}>{folder}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <div className="flex gap-1 bg-slate-100 rounded-lg p-1">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setViewMode('grid')}
+            className={viewMode === 'grid' ? 'bg-white shadow-sm' : ''}
+          >
+            <LayoutGrid className="w-4 h-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setViewMode('list')}
+            className={viewMode === 'list' ? 'bg-white shadow-sm' : ''}
+          >
+            <List className="w-4 h-4" />
+          </Button>
+        </div>
       </div>
 
       {/* Projects Grid */}
@@ -146,17 +191,93 @@ export default function Projects() {
           ))}
         </div>
       ) : filteredProjects.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredProjects.map(project => (
-            <ProjectCard
-              key={project.id}
-              project={project}
-              client={clients.find(c => c.id === project.client_id)}
-              totalHours={getProjectHours(project.id)}
-              taskCount={getProjectTaskCount(project.id)}
-            />
-          ))}
-        </div>
+        viewMode === 'grid' ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredProjects.map(project => (
+              <ProjectCard
+                key={project.id}
+                project={project}
+                client={clients.find(c => c.id === project.client_id)}
+                totalHours={getProjectHours(project.id)}
+                taskCount={getProjectTaskCount(project.id)}
+                onEdit={handleEdit}
+                onDelete={setDeleteProject}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="bg-white rounded-2xl border border-slate-200/60 overflow-hidden">
+            <div className="divide-y divide-slate-100">
+              {filteredProjects.map(project => {
+                const client = clients.find(c => c.id === project.client_id);
+                const taskCount = getProjectTaskCount(project.id);
+                const totalHours = getProjectHours(project.id);
+                return (
+                  <div key={project.id} className="flex items-center gap-4 p-4 hover:bg-slate-50 transition-colors">
+                    <div 
+                      className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold flex-shrink-0"
+                      style={{ backgroundColor: project.color || '#10b981' }}
+                    >
+                      {project.name?.charAt(0)?.toUpperCase()}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <a 
+                        href={`#${createPageUrl(`ProjectDetail?id=${project.id}`)}`}
+                        className="font-semibold text-slate-900 hover:text-emerald-600 block truncate"
+                      >
+                        {project.name}
+                      </a>
+                      <div className="flex items-center gap-3 text-sm text-slate-500 mt-0.5">
+                        <span>{client?.name}</span>
+                        {project.folder && (
+                          <>
+                            <span>•</span>
+                            <span className="flex items-center gap-1">
+                              <Folder className="w-3 h-3" />
+                              {project.folder}
+                            </span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-6 text-sm">
+                      <div className="text-center">
+                        <div className="font-semibold text-slate-900">{taskCount}</div>
+                        <div className="text-xs text-slate-500">Tasks</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="font-semibold text-slate-900">{totalHours.toFixed(1)}h</div>
+                        <div className="text-xs text-slate-500">Hours</div>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleEdit(project);
+                        }}
+                        className="text-slate-400 hover:text-slate-600"
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setDeleteProject(project);
+                        }}
+                        className="text-slate-400 hover:text-red-600"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )
       ) : (
         <EmptyState
           icon={FolderKanban}
