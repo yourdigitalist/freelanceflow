@@ -3,14 +3,16 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import PageHeader from '../components/shared/PageHeader';
-import { Eye, Copy, ExternalLink, Loader2 } from 'lucide-react';
+import { Eye, Copy, ExternalLink, Loader2, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import SendForReviewDialog from '../components/reviews/SendForReviewDialog';
 
 export default function ReviewRequests() {
   const queryClient = useQueryClient();
   const [copiedToken, setCopiedToken] = useState(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   const { data: reviews = [], isLoading } = useQuery({
     queryKey: ['reviewRequests'],
@@ -46,6 +48,8 @@ export default function ReviewRequests() {
       <PageHeader
         title="Review Requests"
         description="Manage work sent for client review"
+        actionLabel="Create Request"
+        onAction={() => setDialogOpen(true)}
       />
 
       <div className="space-y-3">
@@ -138,6 +142,15 @@ export default function ReviewRequests() {
           })
         )}
       </div>
+
+      <SendForReviewDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ['reviewRequests'] });
+          setDialogOpen(false);
+        }}
+      />
     </div>
   );
 }
