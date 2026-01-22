@@ -229,7 +229,7 @@ export default function Projects() {
                         {project.name}
                       </Link>
                       <div className="flex items-center gap-3 text-sm text-slate-500 mt-0.5">
-                        <span>{client?.name}</span>
+                        <span>{client ? [client.first_name, client.last_name].filter(Boolean).join(' ') || client.company : 'No Client'}</span>
                         {project.folder && (
                           <>
                             <span>•</span>
