@@ -159,17 +159,11 @@ export default function ProjectStatusManagementDialog({
             <div className="space-y-3">
               {statuses.map((status, index) => (
                 <div key={index} className="flex gap-3 items-start p-3 bg-slate-50 rounded-lg">
-                  <div className="flex-1 space-y-2">
+                  <div className="flex-1">
                     <Input
                       placeholder="Status name (e.g., To Do)"
                       value={status.name}
                       onChange={(e) => updateStatus(index, 'name', e.target.value)}
-                    />
-                    <Input
-                      placeholder="Key (e.g., todo)"
-                      value={status.key}
-                      onChange={(e) => updateStatus(index, 'key', e.target.value)}
-                      className="text-sm"
                     />
                   </div>
                   
