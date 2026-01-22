@@ -12,6 +12,8 @@ import {
   Pencil,
   FileText,
   Trash2,
+  LayoutGrid,
+  List,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { Button } from "@/components/ui/button";
@@ -19,6 +21,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import TaskBoard from '../components/tasks/TaskBoard';
+import TaskListView from '../components/tasks/TaskListView';
 import TaskDialog from '../components/tasks/TaskDialog';
 import ProjectDialog from '../components/projects/ProjectDialog';
 import InvoiceDialog from '../components/invoices/InvoiceDialog';
@@ -62,6 +65,7 @@ export default function ProjectDetail() {
   const [statusManagementOpen, setStatusManagementOpen] = useState(false);
   const [invoiceDialogOpen, setInvoiceDialogOpen] = useState(false);
   const [deleteProjectOpen, setDeleteProjectOpen] = useState(false);
+  const [taskView, setTaskView] = useState('board'); // 'board' or 'list'
   const queryClient = useQueryClient();
 
   const { data: project } = useQuery({
@@ -171,6 +175,8 @@ export default function ProjectDetail() {
     mutationFn: async (statuses) => {
       // Delete old project statuses
       const oldProjectStatuses = allTaskStatuses.filter(s => s.project_id === projectId);
+      const oldStatusIds = oldProjectStatuses.map(s => s.id);
+      
       await Promise.all(oldProjectStatuses.map(s => base44.entities.TaskStatus.delete(s.id)));
       
       // Create new statuses (without id field to avoid conflicts)
@@ -178,10 +184,20 @@ export default function ProjectDetail() {
         ...rest,
         project_id: projectId
       }));
-      await Promise.all(newStatuses.map(s => base44.entities.TaskStatus.create(s)));
+      const createdStatuses = await Promise.all(newStatuses.map(s => base44.entities.TaskStatus.create(s)));
+      
+      // Reassign orphaned tasks to the first new status
+      if (createdStatuses.length > 0) {
+        const firstNewStatusId = createdStatuses[0].id;
+        const orphanedTasks = tasks.filter(t => oldStatusIds.includes(t.status_id));
+        await Promise.all(orphanedTasks.map(t => 
+          base44.entities.Task.update(t.id, { status_id: firstNewStatusId })
+        ));
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['taskStatuses'] });
+      queryClient.invalidateQueries({ queryKey: ['tasks', projectId] });
       setStatusManagementOpen(false);
       toast.success('Statuses updated');
     },
@@ -392,6 +408,30 @@ export default function ProjectDetail() {
         <div className="flex items-center justify-between p-6 border-b border-slate-100">
           <h2 className="text-lg font-semibold text-slate-900">Tasks</h2>
           <div className="flex gap-2">
+            <div className="flex border border-slate-200 rounded-lg overflow-hidden">
+              <Button
+                variant={taskView === 'board' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setTaskView('board')}
+                className={cn(
+                  "rounded-none",
+                  taskView === 'board' ? "bg-emerald-600 hover:bg-emerald-700" : ""
+                )}
+              >
+                <LayoutGrid className="w-4 h-4" />
+              </Button>
+              <Button
+                variant={taskView === 'list' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setTaskView('list')}
+                className={cn(
+                  "rounded-none",
+                  taskView === 'list' ? "bg-emerald-600 hover:bg-emerald-700" : ""
+                )}
+              >
+                <List className="w-4 h-4" />
+              </Button>
+            </div>
             <Button
               variant="outline"
               size="sm"
@@ -413,20 +453,32 @@ export default function ProjectDetail() {
           </div>
         </div>
         <div className="p-6">
-          <TaskBoard
-            tasks={tasks}
-            taskStatuses={taskStatuses}
-            onDragEnd={handleDragEnd}
-            onEditTask={(task) => {
-              setEditingTask(task);
-              setTaskDialogOpen(true);
-            }}
-            onDeleteTask={setDeleteTask}
-            onAddTask={(statusId) => {
-              setEditingTask({ status_id: statusId });
-              setTaskDialogOpen(true);
-            }}
-          />
+          {taskView === 'board' ? (
+            <TaskBoard
+              tasks={tasks}
+              taskStatuses={taskStatuses}
+              onDragEnd={handleDragEnd}
+              onEditTask={(task) => {
+                setEditingTask(task);
+                setTaskDialogOpen(true);
+              }}
+              onDeleteTask={setDeleteTask}
+              onAddTask={(statusId) => {
+                setEditingTask({ status_id: statusId });
+                setTaskDialogOpen(true);
+              }}
+            />
+          ) : (
+            <TaskListView
+              tasks={tasks}
+              taskStatuses={taskStatuses}
+              onEditTask={(task) => {
+                setEditingTask(task);
+                setTaskDialogOpen(true);
+              }}
+              onDeleteTask={setDeleteTask}
+            />
+          )}
         </div>
       </div>
 
