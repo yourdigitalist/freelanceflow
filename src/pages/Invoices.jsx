@@ -116,7 +116,11 @@ export default function Invoices() {
     }
   };
 
-  const getClientName = (clientId) => clients.find(c => c.id === clientId)?.name || 'Unknown';
+  const getClientName = (clientId) => {
+    const client = clients.find(c => c.id === clientId);
+    if (!client) return 'Unknown';
+    return [client.first_name, client.last_name].filter(Boolean).join(' ') || client.company || 'Unnamed Client';
+  };
   const getProjectName = (projectId) => projects.find(p => p.id === projectId)?.name;
 
   const unbilledTime = timeEntries.filter(t => !t.billed && t.billable);

@@ -27,12 +27,24 @@ export default function SendEmailDialog({
   const [body, setBody] = useState('');
   const [sending, setSending] = useState(false);
 
+  const [mergeTags] = useState([
+    { tag: '{{client_first_name}}', label: 'Client First Name' },
+    { tag: '{{client_last_name}}', label: 'Client Last Name' },
+    { tag: '{{invoice_number}}', label: 'Invoice Number' },
+    { tag: '{{invoice_total}}', label: 'Invoice Total' },
+    { tag: '{{due_date}}', label: 'Due Date' },
+  ]);
+
   useEffect(() => {
-    if (open) {
+    if (open && initialSubject && initialBody) {
       setSubject(initialSubject || '');
       setBody(initialBody || '');
     }
   }, [open, initialSubject, initialBody]);
+
+  const insertMergeTag = (tag) => {
+    setBody(body + tag);
+  };
 
   const handleSendEmail = async () => {
     if (!client?.email) {
@@ -51,6 +63,14 @@ export default function SendEmailDialog({
       
       const settings = await base44.entities.InvoiceSettings.list().then(list => list[0]);
       const businessName = settings?.business_name || 'Your Business';
+
+      // Replace merge tags
+      let processedBody = body
+        .replace(/\{\{client_first_name\}\}/g, client.first_name || '')
+        .replace(/\{\{client_last_name\}\}/g, client.last_name || '')
+        .replace(/\{\{invoice_number\}\}/g, invoice.invoice_number || '')
+        .replace(/\{\{invoice_total\}\}/g, `$${(invoice.total || 0).toFixed(2)}`)
+        .replace(/\{\{due_date\}\}/g, invoice.due_date || '');
       
       const htmlBody = `
         <!DOCTYPE html>
@@ -84,7 +104,9 @@ export default function SendEmailDialog({
                         <p style="margin: 0; color: #111827; font-size: 36px; font-weight: bold;">$${invoice.total.toFixed(2)}</p>
                       </div>
                       
-                      <p style="margin: 0 0 30px; color: #374151; font-size: 16px; line-height: 1.6; white-space: pre-wrap;">${body}</p>
+                      <div style="margin: 0 0 30px; color: #374151; font-size: 16px; line-height: 1.6;">
+                        ${processedBody.split('\n').map(line => `<p style="margin: 0 0 10px;">${line}</p>`).join('')}
+                      </div>
                       
                       <a href="${invoiceViewUrl}" style="display: inline-block; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #ffffff; text-decoration: none; padding: 16px 32px; border-radius: 8px; font-weight: 600; font-size: 16px; box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);">
                         View Invoice
@@ -160,13 +182,28 @@ export default function SendEmailDialog({
           </div>
           <div className="grid grid-cols-4 items-start gap-4">
             <Label htmlFor="body" className="text-right">Body</Label>
-            <Textarea
-              id="body"
-              value={body}
-              onChange={(e) => setBody(e.target.value)}
-              rows={10}
-              className="col-span-3 resize-none"
-            />
+            <div className="col-span-3 space-y-2">
+              <Textarea
+                id="body"
+                value={body}
+                onChange={(e) => setBody(e.target.value)}
+                rows={10}
+                className="resize-none"
+              />
+              <div className="flex flex-wrap gap-2">
+                {mergeTags.map(({ tag, label }) => (
+                  <Button
+                    key={tag}
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => insertMergeTag(tag)}
+                  >
+                    {label}
+                  </Button>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
         <div className="flex justify-end gap-2">

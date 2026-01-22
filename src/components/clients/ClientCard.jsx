@@ -25,10 +25,12 @@ export default function ClientCard({ client, projectCount = 0, onEdit, onDelete 
             className="w-12 h-12 rounded-xl flex items-center justify-center text-white font-semibold text-lg"
             style={{ backgroundColor: client.avatar_color || '#10b981' }}
           >
-            {client.name?.charAt(0)?.toUpperCase()}
+            {(client.first_name?.charAt(0) || client.last_name?.charAt(0) || 'C').toUpperCase()}
           </div>
           <div>
-            <h3 className="font-semibold text-slate-900">{client.name}</h3>
+            <h3 className="font-semibold text-slate-900">
+              {[client.first_name, client.last_name].filter(Boolean).join(' ') || 'Unnamed Client'}
+            </h3>
             {client.company && (
               <p className="text-sm text-slate-500 flex items-center gap-1">
                 <Building2 className="w-3 h-3" />

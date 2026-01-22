@@ -20,6 +20,16 @@ import { Plus, Trash2 } from 'lucide-react';
 import { format, addDays } from 'date-fns';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function InvoiceDialog({ 
   open, 
@@ -110,26 +120,41 @@ export default function InvoiceDialog({
     }
   };
 
-  const importUnbilledTime = () => {
+  const [importMode, setImportMode] = useState(null);
+
+  const importUnbilledTime = (mode = 'combined') => {
     if (!formData.project_id) return;
     
     const projectTime = unbilledTime.filter(t => t.project_id === formData.project_id && t.billable && !t.billed);
     const project = projects.find(p => p.id === formData.project_id);
     const rate = project?.hourly_rate || 0;
     
-    if (projectTime.length > 0) {
+    if (projectTime.length === 0) return;
+
+    let newItems = [];
+    
+    if (mode === 'combined') {
       const totalHours = projectTime.reduce((sum, t) => sum + (t.hours || 0), 0);
-      const newItem = {
+      newItems = [{
         description: `Professional services - ${totalHours} hours`,
         quantity: totalHours,
         rate: rate,
         amount: totalHours * rate,
-      };
-      setFormData({
-        ...formData,
-        line_items: [...formData.line_items.filter(item => item.description), newItem],
-      });
+      }];
+    } else {
+      newItems = projectTime.map(t => ({
+        description: t.description || 'Professional services',
+        quantity: t.hours || 0,
+        rate: rate,
+        amount: (t.hours || 0) * rate,
+      }));
     }
+    
+    setFormData({
+      ...formData,
+      line_items: [...formData.line_items.filter(item => item.description), ...newItems],
+    });
+    setImportMode(null);
   };
 
   const importProjectBudget = () => {
@@ -283,7 +308,7 @@ export default function InvoiceDialog({
                   </Button>
                 )}
                 {formData.project_id && (
-                  <Button type="button" variant="outline" size="sm" onClick={importUnbilledTime}>
+                  <Button type="button" variant="outline" size="sm" onClick={() => setImportMode('prompt')}>
                     Import Billable Hours
                   </Button>
                 )}
@@ -398,6 +423,27 @@ export default function InvoiceDialog({
           </div>
         </form>
       </DialogContent>
+
+      {/* Import Mode Dialog */}
+      <AlertDialog open={importMode === 'prompt'} onOpenChange={() => setImportMode(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Import Billable Hours</AlertDialogTitle>
+            <AlertDialogDescription>
+              How would you like to import the billable hours?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={() => importUnbilledTime('combined')}>
+              Combined (One Item)
+            </AlertDialogAction>
+            <AlertDialogAction onClick={() => importUnbilledTime('separate')}>
+              Separate Items
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Dialog>
   );
 }
