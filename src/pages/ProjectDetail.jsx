@@ -157,6 +157,19 @@ export default function ProjectDetail() {
     await updateTaskMutation.mutateAsync({ id: taskId, data: { status_id: newStatusId } });
   };
 
+  const handleStatusSave = async (data) => {
+    const statusData = {
+      ...data,
+      key: data.key || data.name.toLowerCase().replace(/\s+/g, '_'),
+    };
+    
+    if (editingStatus) {
+      await updateStatusMutation.mutateAsync({ id: editingStatus.id, data: statusData });
+    } else {
+      await createStatusMutation.mutateAsync(statusData);
+    }
+  };
+
   const totalHours = timeEntries.reduce((sum, entry) => sum + (entry.hours || 0), 0);
   const unbilledHours = timeEntries.filter(e => !e.billed && e.billable).reduce((sum, e) => sum + (e.hours || 0), 0);
 
@@ -291,6 +304,18 @@ export default function ProjectDetail() {
         task={editingTask}
         taskStatuses={taskStatuses}
         onSave={handleTaskSave}
+      />
+
+      {/* Status Dialog */}
+      <StatusDialog
+        open={statusDialogOpen}
+        onOpenChange={(open) => {
+          setStatusDialogOpen(open);
+          if (!open) setEditingStatus(null);
+        }}
+        status={editingStatus}
+        statuses={taskStatuses}
+        onSave={handleStatusSave}
       />
 
       {/* Project Dialog */}
