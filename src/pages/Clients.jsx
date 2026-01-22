@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { Users, Search } from 'lucide-react';
+import { Users, Search, LayoutGrid, List } from 'lucide-react';
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import PageHeader from '../components/shared/PageHeader';
 import EmptyState from '../components/shared/EmptyState';
 import ClientCard from '../components/clients/ClientCard';
@@ -23,6 +24,7 @@ export default function Clients() {
   const [editingClient, setEditingClient] = useState(null);
   const [deleteClient, setDeleteClient] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [viewMode, setViewMode] = useState('grid');
   const queryClient = useQueryClient();
 
   const { data: clients = [], isLoading } = useQuery({
@@ -93,15 +95,35 @@ export default function Clients() {
         }}
       />
 
-      {/* Search */}
-      <div className="relative max-w-md mb-6">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-        <Input
-          placeholder="Search clients..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-10"
-        />
+      {/* Search and View Toggle */}
+      <div className="flex gap-4 mb-6">
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <Input
+            placeholder="Search clients..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        <div className="flex gap-1 bg-slate-100 rounded-lg p-1">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setViewMode('grid')}
+            className={viewMode === 'grid' ? 'bg-white shadow-sm' : ''}
+          >
+            <LayoutGrid className="w-4 h-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setViewMode('list')}
+            className={viewMode === 'list' ? 'bg-white shadow-sm' : ''}
+          >
+            <List className="w-4 h-4" />
+          </Button>
+        </div>
       </div>
 
       {/* Clients Grid */}
@@ -124,17 +146,59 @@ export default function Clients() {
           ))}
         </div>
       ) : filteredClients.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredClients.map(client => (
-            <ClientCard
-              key={client.id}
-              client={client}
-              projectCount={getProjectCount(client.id)}
-              onEdit={handleEdit}
-              onDelete={setDeleteClient}
-            />
-          ))}
-        </div>
+        viewMode === 'grid' ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredClients.map(client => (
+              <ClientCard
+                key={client.id}
+                client={client}
+                projectCount={getProjectCount(client.id)}
+                onEdit={handleEdit}
+                onDelete={setDeleteClient}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="bg-white rounded-2xl border border-slate-200/60 overflow-hidden">
+            <div className="divide-y divide-slate-100">
+              {filteredClients.map(client => (
+                <div key={client.id} className="flex items-center gap-4 p-4 hover:bg-slate-50 transition-colors">
+                  <div 
+                    className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-semibold flex-shrink-0"
+                    style={{ backgroundColor: client.avatar_color || '#10b981' }}
+                  >
+                    {client.name?.charAt(0)?.toUpperCase()}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-semibold text-slate-900 truncate">{client.name}</div>
+                    <div className="text-sm text-slate-500 truncate">{client.email}</div>
+                  </div>
+                  <div className="text-sm text-slate-600">
+                    {getProjectCount(client.id)} projects
+                  </div>
+                  <div className="flex gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleEdit(client)}
+                      className="text-slate-400 hover:text-slate-600"
+                    >
+                      <Users className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setDeleteClient(client)}
+                      className="text-slate-400 hover:text-red-600"
+                    >
+                      <Users className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )
       ) : (
         <EmptyState
           icon={Users}

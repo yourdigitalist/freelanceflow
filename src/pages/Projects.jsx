@@ -21,6 +21,9 @@ export default function Projects() {
   const [editingProject, setEditingProject] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [viewMode, setViewMode] = useState('grid');
+  const [folderFilter, setFolderFilter] = useState('all');
+  const [deleteProject, setDeleteProject] = useState(null);
   const queryClient = useQueryClient();
 
   const { data: projects = [], isLoading } = useQuery({
@@ -60,6 +63,14 @@ export default function Projects() {
     },
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: (id) => base44.entities.Project.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+      setDeleteProject(null);
+    },
+  });
+
   const handleSave = async (data) => {
     if (editingProject) {
       await updateMutation.mutateAsync({ id: editingProject.id, data });
@@ -71,10 +82,14 @@ export default function Projects() {
   const getProjectTaskCount = (projectId) => tasks.filter(t => t.project_id === projectId).length;
   const getProjectHours = (projectId) => timeEntries.filter(t => t.project_id === projectId).reduce((sum, e) => sum + (e.hours || 0), 0);
 
+  const folders = [...new Set(projects.map(p => p.folder).filter(Boolean))];
+
   const filteredProjects = projects.filter(project => {
     const matchesSearch = project.name?.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === 'all' || project.status === statusFilter;
-    return matchesSearch && matchesStatus;
+    const matchesFolder = folderFilter === 'all' || 
+      (folderFilter === 'none' ? !project.folder : project.folder === folderFilter);
+    return matchesSearch && matchesStatus && matchesFolder;
   });
 
   return (
@@ -166,6 +181,27 @@ export default function Projects() {
         clients={clients}
         onSave={handleSave}
       />
+
+      {/* Delete Confirmation */}
+      <AlertDialog open={!!deleteProject} onOpenChange={() => setDeleteProject(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete project?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete "{deleteProject?.name}" and all its tasks and time entries. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-600 hover:bg-red-700"
+              onClick={() => deleteMutation.mutate(deleteProject.id)}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

@@ -129,6 +129,16 @@ export default function ProjectDialog({ open, onOpenChange, project, clients = [
             />
           </div>
 
+          <div>
+            <Label htmlFor="folder">Folder (optional)</Label>
+            <Input
+              id="folder"
+              value={formData.folder || ''}
+              onChange={(e) => setFormData({ ...formData, folder: e.target.value })}
+              placeholder="e.g., Client Work, Internal, Marketing"
+            />
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="status">Status</Label>

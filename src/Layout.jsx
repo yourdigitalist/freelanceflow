@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from './utils';
+import { base44 } from '@/api/base44Client';
+import { useQuery } from '@tanstack/react-query';
 import { 
   LayoutDashboard, 
   Users, 
@@ -10,14 +12,15 @@ import {
   Menu, 
   X,
   Sparkles,
-  Settings
+  Settings,
+  ChevronRight
 } from 'lucide-react';
 import { cn } from "@/lib/utils";
 
 const navigation = [
   { name: 'Dashboard', icon: LayoutDashboard, page: 'Dashboard' },
   { name: 'Clients', icon: Users, page: 'Clients' },
-  { name: 'Projects', icon: FolderKanban, page: 'Projects' },
+  { name: 'Projects', icon: FolderKanban, page: 'Projects', hasSubmenu: true },
   { name: 'Time', icon: Clock, page: 'TimeTracking' },
   { name: 'Invoices', icon: FileText, page: 'Invoices' },
   { name: 'Settings', icon: Settings, page: 'InvoiceSettings' },
@@ -25,6 +28,12 @@ const navigation = [
 
 export default function Layout({ children, currentPageName }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [projectsExpanded, setProjectsExpanded] = useState(false);
+
+  const { data: projects = [] } = useQuery({
+    queryKey: ['projects'],
+    queryFn: () => base44.entities.Project.list('-updated_date', 5),
+  });
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -55,23 +64,71 @@ export default function Layout({ children, currentPageName }) {
             {navigation.map((item) => {
               const isActive = currentPageName === item.page;
               return (
-                <Link
-                  key={item.name}
-                  to={createPageUrl(item.page)}
-                  onClick={() => setSidebarOpen(false)}
-                  className={cn(
-                    "flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
-                    isActive 
-                      ? "bg-emerald-50 text-emerald-700" 
-                      : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                <div key={item.name}>
+                  {item.hasSubmenu ? (
+                    <div>
+                      <button
+                        onClick={() => setProjectsExpanded(!projectsExpanded)}
+                        className={cn(
+                          "flex items-center justify-between w-full gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
+                          isActive 
+                            ? "bg-emerald-50 text-emerald-700" 
+                            : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                        )}
+                      >
+                        <div className="flex items-center gap-3">
+                          <item.icon className={cn(
+                            "w-5 h-5",
+                            isActive ? "text-emerald-600" : "text-slate-400"
+                          )} />
+                          {item.name}
+                        </div>
+                        <ChevronRight className={cn(
+                          "w-4 h-4 transition-transform",
+                          projectsExpanded && "rotate-90"
+                        )} />
+                      </button>
+                      {projectsExpanded && (
+                        <div className="ml-8 mt-1 space-y-1">
+                          <Link
+                            to={createPageUrl(item.page)}
+                            onClick={() => setSidebarOpen(false)}
+                            className="block px-3 py-1.5 text-sm text-slate-600 hover:text-emerald-600 rounded-lg hover:bg-slate-50"
+                          >
+                            All Projects
+                          </Link>
+                          {projects.slice(0, 5).map(project => (
+                            <Link
+                              key={project.id}
+                              to={createPageUrl(`ProjectDetail?id=${project.id}`)}
+                              onClick={() => setSidebarOpen(false)}
+                              className="block px-3 py-1.5 text-sm text-slate-600 hover:text-emerald-600 rounded-lg hover:bg-slate-50 truncate"
+                            >
+                              {project.name}
+                            </Link>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <Link
+                      to={createPageUrl(item.page)}
+                      onClick={() => setSidebarOpen(false)}
+                      className={cn(
+                        "flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
+                        isActive 
+                          ? "bg-emerald-50 text-emerald-700" 
+                          : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                      )}
+                    >
+                      <item.icon className={cn(
+                        "w-5 h-5",
+                        isActive ? "text-emerald-600" : "text-slate-400"
+                      )} />
+                      {item.name}
+                    </Link>
                   )}
-                >
-                  <item.icon className={cn(
-                    "w-5 h-5",
-                    isActive ? "text-emerald-600" : "text-slate-400"
-                  )} />
-                  {item.name}
-                </Link>
+                </div>
               );
             })}
           </nav>
