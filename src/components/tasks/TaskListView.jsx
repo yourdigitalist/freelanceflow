@@ -21,7 +21,7 @@ import { Pencil, Trash2, MessageSquare, Plus, GripVertical, ArrowUpDown } from '
 import { cn } from "@/lib/utils";
 import { base44 } from '@/api/base44Client';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQueryClient, useQuery } from '@tanstack/react-query';
 
 const priorityColors = {
   low: "bg-slate-100 text-slate-700",
@@ -44,7 +44,26 @@ export default function TaskListView({ tasks, taskStatuses, onEditTask, onDelete
   const [sortOrder, setSortOrder] = useState(() => localStorage.getItem(`taskListSortOrder_${projectId}`) || 'asc');
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterPriority, setFilterPriority] = useState('all');
+  const [hideDone, setHideDone] = useState(false);
   const queryClient = useQueryClient();
+  const [user, setUser] = React.useState(null);
+  const [dateFormat, setDateFormat] = React.useState('DD-MM-YYYY');
+
+  React.useEffect(() => {
+    base44.auth.me().then(setUser);
+  }, []);
+
+  const { data: preferences = [] } = useQuery({
+    queryKey: ['personalPreferences', user?.email],
+    queryFn: () => base44.entities.PersonalPreference.filter({ created_by: user.email }),
+    enabled: !!user,
+  });
+
+  React.useEffect(() => {
+    if (preferences[0]) {
+      setDateFormat(preferences[0].date_format || 'DD-MM-YYYY');
+    }
+  }, [preferences]);
 
   const getStatusOrder = (statusId) => {
     const status = taskStatuses.find(s => s.id === statusId);
@@ -74,6 +93,12 @@ export default function TaskListView({ tasks, taskStatuses, onEditTask, onDelete
   }
   if (filterPriority !== 'all') {
     topLevelTasks = topLevelTasks.filter(t => t.priority === filterPriority);
+  }
+  if (hideDone) {
+    const doneStatus = taskStatuses.find(s => s.key === 'done');
+    if (doneStatus) {
+      topLevelTasks = topLevelTasks.filter(t => t.status_id !== doneStatus.id);
+    }
   }
 
   // Apply sorting
@@ -216,6 +241,27 @@ export default function TaskListView({ tasks, taskStatuses, onEditTask, onDelete
     localStorage.setItem(`taskListSortOrder_${projectId}`, newSortOrder);
   };
 
+  const formatDate = (dateString) => {
+    if (!dateString) return '—';
+    const date = new Date(dateString);
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    
+    if (dateFormat === 'MM-DD-YYYY') {
+      return `${month}-${day}-${year}`;
+    } else if (dateFormat === 'YYYY-MM-DD') {
+      return `${year}-${month}-${day}`;
+    } else {
+      return `${day}-${month}-${year}`;
+    }
+  };
+
+  const isDoneStatus = (statusId) => {
+    const status = taskStatuses.find(s => s.id === statusId);
+    return status?.key === 'done';
+  };
+
   return (
     <div className="space-y-3">
       {/* Filters */}
@@ -242,6 +288,14 @@ export default function TaskListView({ tasks, taskStatuses, onEditTask, onDelete
             <SelectItem value="high">High</SelectItem>
           </SelectContent>
         </Select>
+        <Button
+          variant={hideDone ? "default" : "outline"}
+          size="sm"
+          onClick={() => setHideDone(!hideDone)}
+          className={hideDone ? "bg-emerald-600 hover:bg-emerald-700" : ""}
+        >
+          {hideDone ? "Show Done" : "Hide Done"}
+        </Button>
       </div>
 
       <DragDropContext onDragEnd={handleDragEnd}>
@@ -326,9 +380,10 @@ export default function TaskListView({ tasks, taskStatuses, onEditTask, onDelete
                             ref={provided.innerRef}
                             {...provided.draggableProps}
                             className={cn(
-                              "group transition-colors",
+                              "group transition-all duration-300",
                               snapshot.isDragging && "opacity-50 bg-slate-100",
-                              editingCell?.taskId === task.id ? "bg-emerald-50/30" : "hover:bg-slate-50"
+                              editingCell?.taskId === task.id ? "bg-emerald-50/30" : "hover:bg-slate-50",
+                              isDoneStatus(task.status_id) && "bg-emerald-50/40"
                             )}
                           >
                             <TableCell {...provided.dragHandleProps} className="cursor-grab active:cursor-grabbing">
@@ -432,7 +487,7 @@ export default function TaskListView({ tasks, taskStatuses, onEditTask, onDelete
                                   className="h-8 -my-1"
                                 />
                               ) : (
-                                <span className="block py-1">{task.due_date || '—'}</span>
+                                <span className="block py-1">{formatDate(task.due_date)}</span>
                               )}
                             </TableCell>
                             <TableCell className="text-right">
