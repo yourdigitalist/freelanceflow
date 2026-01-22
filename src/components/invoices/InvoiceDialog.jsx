@@ -282,9 +282,9 @@ export default function InvoiceDialog({
                     Import Project Budget
                   </Button>
                 )}
-                {formData.project_id && !canImportBudget && (
+                {formData.project_id && (
                   <Button type="button" variant="outline" size="sm" onClick={importUnbilledTime}>
-                    Import Unbilled Time
+                    Import Billable Hours
                   </Button>
                 )}
               </div>

@@ -21,13 +21,37 @@ const avatarColors = [
   '#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4'
 ];
 
+const countryCodes = [
+  { code: '+1', country: 'US/CA' },
+  { code: '+44', country: 'UK' },
+  { code: '+49', country: 'DE' },
+  { code: '+33', country: 'FR' },
+  { code: '+34', country: 'ES' },
+  { code: '+39', country: 'IT' },
+  { code: '+31', country: 'NL' },
+  { code: '+48', country: 'PL' },
+  { code: '+351', country: 'PT' },
+  { code: '+91', country: 'IN' },
+  { code: '+86', country: 'CN' },
+  { code: '+81', country: 'JP' },
+  { code: '+61', country: 'AU' },
+];
+
 export default function ClientDialog({ open, onOpenChange, client, onSave }) {
   const [formData, setFormData] = useState({
-    name: '',
+    first_name: '',
+    last_name: '',
     email: '',
     phone: '',
+    phone_country_code: '+1',
     company: '',
-    address: '',
+    street: '',
+    street2: '',
+    city: '',
+    state: '',
+    zip: '',
+    country: '',
+    tax_id: '',
     notes: '',
     status: 'active',
     avatar_color: avatarColors[0],
@@ -37,22 +61,38 @@ export default function ClientDialog({ open, onOpenChange, client, onSave }) {
   useEffect(() => {
     if (client) {
       setFormData({
-        name: client.name || '',
+        first_name: client.first_name || '',
+        last_name: client.last_name || '',
         email: client.email || '',
         phone: client.phone || '',
+        phone_country_code: client.phone_country_code || '+1',
         company: client.company || '',
-        address: client.address || '',
+        street: client.street || '',
+        street2: client.street2 || '',
+        city: client.city || '',
+        state: client.state || '',
+        zip: client.zip || '',
+        country: client.country || '',
+        tax_id: client.tax_id || '',
         notes: client.notes || '',
         status: client.status || 'active',
         avatar_color: client.avatar_color || avatarColors[0],
       });
     } else {
       setFormData({
-        name: '',
+        first_name: '',
+        last_name: '',
         email: '',
         phone: '',
+        phone_country_code: '+1',
         company: '',
-        address: '',
+        street: '',
+        street2: '',
+        city: '',
+        state: '',
+        zip: '',
+        country: '',
+        tax_id: '',
         notes: '',
         status: 'active',
         avatar_color: avatarColors[Math.floor(Math.random() * avatarColors.length)],
@@ -75,17 +115,30 @@ export default function ClientDialog({ open, onOpenChange, client, onSave }) {
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 mt-4">
           <div className="grid grid-cols-2 gap-4">
-            <div className="col-span-2 sm:col-span-1">
-              <Label htmlFor="name">Name *</Label>
+            <div>
+              <Label htmlFor="first_name">First Name *</Label>
               <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder="John Smith"
+                id="first_name"
+                value={formData.first_name}
+                onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
+                placeholder="John"
                 required
               />
             </div>
-            <div className="col-span-2 sm:col-span-1">
+            <div>
+              <Label htmlFor="last_name">Last Name *</Label>
+              <Input
+                id="last_name"
+                value={formData.last_name}
+                onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
+                placeholder="Smith"
+                required
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
               <Label htmlFor="email">Email *</Label>
               <Input
                 id="email"
@@ -94,18 +147,6 @@ export default function ClientDialog({ open, onOpenChange, client, onSave }) {
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 placeholder="john@company.com"
                 required
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="phone">Phone</Label>
-              <Input
-                id="phone"
-                value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                placeholder="+1 234 567 890"
               />
             </div>
             <div>
@@ -120,13 +161,79 @@ export default function ClientDialog({ open, onOpenChange, client, onSave }) {
           </div>
 
           <div>
-            <Label htmlFor="address">Address</Label>
+            <Label htmlFor="phone">Phone</Label>
+            <div className="flex gap-2">
+              <Select
+                value={formData.phone_country_code}
+                onValueChange={(value) => setFormData({ ...formData, phone_country_code: value })}
+              >
+                <SelectTrigger className="w-[120px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {countryCodes.map(({ code, country }) => (
+                    <SelectItem key={code} value={code}>
+                      {code} {country}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Input
+                id="phone"
+                value={formData.phone}
+                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                placeholder="234 567 890"
+                className="flex-1"
+              />
+            </div>
+          </div>
+
+          <div>
+            <Label htmlFor="tax_id">Tax Identification Number</Label>
             <Input
-              id="address"
-              value={formData.address}
-              onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-              placeholder="123 Main St, City, Country"
+              id="tax_id"
+              value={formData.tax_id}
+              onChange={(e) => setFormData({ ...formData, tax_id: e.target.value })}
+              placeholder="Tax ID / VAT number"
             />
+          </div>
+
+          <div className="space-y-3">
+            <Label>Address</Label>
+            <Input
+              placeholder="Street"
+              value={formData.street}
+              onChange={(e) => setFormData({ ...formData, street: e.target.value })}
+            />
+            <Input
+              placeholder="Street 2"
+              value={formData.street2}
+              onChange={(e) => setFormData({ ...formData, street2: e.target.value })}
+            />
+            <div className="grid grid-cols-2 gap-2">
+              <Input
+                placeholder="City"
+                value={formData.city}
+                onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+              />
+              <Input
+                placeholder="State/Province"
+                value={formData.state}
+                onChange={(e) => setFormData({ ...formData, state: e.target.value })}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <Input
+                placeholder="ZIP/Postal Code"
+                value={formData.zip}
+                onChange={(e) => setFormData({ ...formData, zip: e.target.value })}
+              />
+              <Input
+                placeholder="Country"
+                value={formData.country}
+                onChange={(e) => setFormData({ ...formData, country: e.target.value })}
+              />
+            </div>
           </div>
 
           <div>

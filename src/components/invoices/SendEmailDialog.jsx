@@ -46,10 +46,73 @@ export default function SendEmailDialog({
 
     setSending(true);
     try {
+      // Generate styled HTML email with invoice link
+      const invoiceViewUrl = `${window.location.origin}/#/invoice-view?id=${invoice.id}`;
+      
+      const settings = await base44.entities.InvoiceSettings.list().then(list => list[0]);
+      const businessName = settings?.business_name || 'Your Business';
+      
+      const htmlBody = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        </head>
+        <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f5f5f5;">
+          <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f5f5f5; padding: 40px 0;">
+            <tr>
+              <td align="center">
+                <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+                  <!-- Header with logo/brand -->
+                  <tr>
+                    <td style="padding: 40px; text-align: center; background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                      ${settings?.business_logo ? `<img src="${settings.business_logo}" alt="${businessName}" style="max-width: 150px; height: auto; margin-bottom: 10px;">` : ''}
+                      <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: bold;">${businessName}</h1>
+                    </td>
+                  </tr>
+                  
+                  <!-- Invoice details -->
+                  <tr>
+                    <td style="padding: 40px; text-align: center;">
+                      <p style="margin: 0 0 10px; color: #6b7280; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">Invoice</p>
+                      <h2 style="margin: 0 0 10px; color: #111827; font-size: 20px;">${invoice.invoice_number}</h2>
+                      <p style="margin: 0 0 30px; color: #6b7280; font-size: 14px;">Due ${invoice.due_date}</p>
+                      
+                      <div style="background-color: #f9fafb; border-radius: 8px; padding: 20px; margin-bottom: 30px;">
+                        <p style="margin: 0 0 5px; color: #6b7280; font-size: 12px; text-transform: uppercase;">Total Amount</p>
+                        <p style="margin: 0; color: #111827; font-size: 36px; font-weight: bold;">$${invoice.total.toFixed(2)}</p>
+                      </div>
+                      
+                      <p style="margin: 0 0 30px; color: #374151; font-size: 16px; line-height: 1.6; white-space: pre-wrap;">${body}</p>
+                      
+                      <a href="${invoiceViewUrl}" style="display: inline-block; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #ffffff; text-decoration: none; padding: 16px 32px; border-radius: 8px; font-weight: 600; font-size: 16px; box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);">
+                        View Invoice
+                      </a>
+                    </td>
+                  </tr>
+                  
+                  <!-- Footer -->
+                  <tr>
+                    <td style="padding: 30px; background-color: #f9fafb; text-align: center; border-top: 1px solid #e5e7eb;">
+                      <p style="margin: 0 0 10px; color: #6b7280; font-size: 14px;">${businessName}</p>
+                      ${settings?.business_address ? `<p style="margin: 0 0 5px; color: #9ca3af; font-size: 12px;">${settings.business_address.replace(/\n/g, ', ')}</p>` : ''}
+                      ${settings?.business_email ? `<p style="margin: 0 0 5px; color: #9ca3af; font-size: 12px;">${settings.business_email}</p>` : ''}
+                      ${settings?.business_phone ? `<p style="margin: 0; color: #9ca3af; font-size: 12px;">${settings.business_phone}</p>` : ''}
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+        </body>
+        </html>
+      `;
+
       await base44.integrations.Core.SendEmail({
         to: client.email,
         subject: subject,
-        body: body,
+        body: htmlBody,
       });
 
       // Update invoice status to 'sent' if it's currently 'draft'
