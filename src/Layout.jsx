@@ -15,7 +15,8 @@ import {
   Settings,
   ChevronRight,
   ChevronLeft,
-  User
+  User,
+  Eye
 } from 'lucide-react';
 import { cn } from "@/lib/utils";
 
@@ -25,6 +26,7 @@ const navigation = [
   { name: 'Projects', icon: FolderKanban, page: 'Projects', hasSubmenu: true },
   { name: 'Time', icon: Clock, page: 'TimeTracking' },
   { name: 'Invoices', icon: FileText, page: 'Invoices' },
+  { name: 'Reviews', icon: Eye, page: 'ReviewRequests' },
   { name: 'Settings', icon: Settings, hasSubmenu: true, submenuItems: [
     { name: 'Invoice Settings', page: 'InvoiceSettings' },
     { name: 'Personal Preferences', page: 'PersonalPreferences' }
