@@ -11,6 +11,7 @@ import TimeTracking from './pages/TimeTracking';
 import ReviewRequests from './pages/ReviewRequests';
 import PublicReviewView from './pages/PublicReviewView';
 import Onboarding from './pages/Onboarding';
+import CompanySettings from './pages/CompanySettings';
 import __Layout from './Layout.jsx';
 
 
@@ -28,6 +29,7 @@ export const PAGES = {
     "ReviewRequests": ReviewRequests,
     "PublicReviewView": PublicReviewView,
     "Onboarding": Onboarding,
+    "CompanySettings": CompanySettings,
 }
 
 export const pagesConfig = {
