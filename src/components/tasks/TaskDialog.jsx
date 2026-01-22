@@ -16,16 +16,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Plus, X } from 'lucide-react';
 
-export default function TaskDialog({ open, onOpenChange, task, onSave }) {
+export default function TaskDialog({ open, onOpenChange, task, taskStatuses, parentTask, onSave }) {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    status: 'todo',
+    status_id: '',
     priority: 'medium',
     due_date: '',
     estimated_hours: '',
+    parent_task_id: '',
   });
+  const [subtasks, setSubtasks] = useState([]);
+  const [newSubtask, setNewSubtask] = useState('');
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -33,22 +37,27 @@ export default function TaskDialog({ open, onOpenChange, task, onSave }) {
       setFormData({
         title: task.title || '',
         description: task.description || '',
-        status: task.status || 'todo',
+        status_id: task.status_id || (taskStatuses?.[0]?.id || ''),
         priority: task.priority || 'medium',
         due_date: task.due_date || '',
         estimated_hours: task.estimated_hours || '',
+        parent_task_id: task.parent_task_id || '',
       });
+      setSubtasks([]);
     } else {
       setFormData({
         title: '',
         description: '',
-        status: 'todo',
+        status_id: parentTask?.status_id || (taskStatuses?.[0]?.id || ''),
         priority: 'medium',
         due_date: '',
         estimated_hours: '',
+        parent_task_id: parentTask?.id || '',
       });
+      setSubtasks([]);
     }
-  }, [task, open]);
+    setNewSubtask('');
+  }, [task, parentTask, taskStatuses, open]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -57,15 +66,28 @@ export default function TaskDialog({ open, onOpenChange, task, onSave }) {
       ...formData,
       estimated_hours: formData.estimated_hours ? parseFloat(formData.estimated_hours) : null,
     };
-    await onSave(dataToSave);
+    await onSave(dataToSave, subtasks);
     setSaving(false);
+  };
+
+  const addSubtask = () => {
+    if (newSubtask.trim()) {
+      setSubtasks([...subtasks, { title: newSubtask.trim(), priority: 'medium' }]);
+      setNewSubtask('');
+    }
+  };
+
+  const removeSubtask = (index) => {
+    setSubtasks(subtasks.filter((_, i) => i !== index));
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{task ? 'Edit Task' : 'Add Task'}</DialogTitle>
+          <DialogTitle>
+            {task ? 'Edit Task' : parentTask ? `Add Subtask to: ${parentTask.title}` : 'Add Task'}
+          </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 mt-4">
           <div>
@@ -94,17 +116,16 @@ export default function TaskDialog({ open, onOpenChange, task, onSave }) {
             <div>
               <Label htmlFor="status">Status</Label>
               <Select
-                value={formData.status}
-                onValueChange={(value) => setFormData({ ...formData, status: value })}
+                value={formData.status_id}
+                onValueChange={(value) => setFormData({ ...formData, status_id: value })}
               >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="todo">To Do</SelectItem>
-                  <SelectItem value="in_progress">In Progress</SelectItem>
-                  <SelectItem value="review">Review</SelectItem>
-                  <SelectItem value="completed">Completed</SelectItem>
+                  {taskStatuses?.map(status => (
+                    <SelectItem key={status.id} value={status.id}>{status.name}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -149,6 +170,39 @@ export default function TaskDialog({ open, onOpenChange, task, onSave }) {
               />
             </div>
           </div>
+
+          {!task && !parentTask && (
+            <div>
+              <Label>Subtasks (optional)</Label>
+              <div className="mt-2 space-y-2">
+                {subtasks.map((subtask, index) => (
+                  <div key={index} className="flex items-center gap-2 bg-slate-50 rounded-lg px-3 py-2">
+                    <span className="flex-1 text-sm text-slate-700">{subtask.title}</span>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6"
+                      onClick={() => removeSubtask(index)}
+                    >
+                      <X className="w-3 h-3" />
+                    </Button>
+                  </div>
+                ))}
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Add a subtask..."
+                    value={newSubtask}
+                    onChange={(e) => setNewSubtask(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addSubtask())}
+                  />
+                  <Button type="button" variant="outline" size="icon" onClick={addSubtask}>
+                    <Plus className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="flex justify-end gap-3 pt-4">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
