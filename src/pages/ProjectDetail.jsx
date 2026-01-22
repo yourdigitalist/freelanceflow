@@ -210,12 +210,12 @@ export default function ProjectDetail() {
   });
 
   const handleTaskSave = async (data, subtasks = []) => {
-    if (editingTask) {
+    if (editingTask && editingTask.id) {
       await updateTaskMutation.mutateAsync({ id: editingTask.id, data });
     } else {
       const parentTask = await createTaskMutation.mutateAsync(data);
       // Create subtasks if any
-      if (subtasks.length > 0) {
+      if (subtasks.length > 0 && parentTask && parentTask.id) {
         for (const subtask of subtasks) {
           await base44.entities.Task.create({
             ...subtask,
@@ -233,6 +233,10 @@ export default function ProjectDetail() {
     if (!result.destination) return;
     
     const taskId = result.draggableId;
+    const task = tasks.find(t => t.id === taskId);
+    
+    if (!task || !task.id) return;
+    
     const sourceIndex = result.source.index;
     const destIndex = result.destination.index;
     const sourceStatusId = result.source.droppableId;
@@ -249,9 +253,11 @@ export default function ProjectDetail() {
       reordered.splice(destIndex, 0, moved);
       
       // Update order for all affected tasks
-      const updates = reordered.map((task, index) => 
-        base44.entities.Task.update(task.id, { order: index })
-      );
+      const updates = reordered
+        .filter(t => t && t.id)
+        .map((task, index) => 
+          base44.entities.Task.update(task.id, { order: index })
+        );
       await Promise.all(updates);
       queryClient.invalidateQueries({ queryKey: ['tasks', projectId] });
     }
