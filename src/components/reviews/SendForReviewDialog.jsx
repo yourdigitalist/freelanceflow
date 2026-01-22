@@ -150,6 +150,7 @@ export default function SendForReviewDialog({ open, onOpenChange, project, clien
         reviewTitle: title,
         recipients,
         shareToken: reviewData.share_token,
+        appUrl: window.location.origin,
       });
 
       toast.success('Review request sent successfully');

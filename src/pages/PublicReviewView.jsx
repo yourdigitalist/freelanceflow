@@ -11,8 +11,13 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
 export default function PublicReviewView() {
-  const urlParams = new URLSearchParams(window.location.search);
-  const token = urlParams.get('token');
+  // Get token from URL - handle both hash and query approaches
+  const url = new URL(window.location.href);
+  let token = url.searchParams.get('token');
+  if (!token) {
+    const hashParams = new URLSearchParams(window.location.hash.split('?')[1]);
+    token = hashParams.get('token');
+  }
   
   const [comment, setComment] = useState('');
   const [submitting, setSubmitting] = useState(false);

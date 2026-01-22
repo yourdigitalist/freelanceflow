@@ -9,13 +9,13 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { reviewTitle, recipients, shareToken } = await req.json();
+    const { reviewTitle, recipients, shareToken, appUrl } = await req.json();
 
-    if (!reviewTitle || !recipients || !shareToken) {
+    if (!reviewTitle || !recipients || !shareToken || !appUrl) {
       return Response.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    const reviewLink = `${Deno.env.get('APP_URL')}/PublicReviewView?token=${shareToken}`;
+    const reviewLink = `${appUrl}/#/PublicReviewView?token=${shareToken}`;
     
     const emailBody = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
