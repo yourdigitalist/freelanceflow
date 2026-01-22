@@ -17,6 +17,12 @@ import ProjectCard from '../components/dashboard/ProjectCard';
 import RecentActivity from '../components/dashboard/RecentActivity';
 
 export default function Dashboard() {
+  React.useEffect(() => {
+    base44.functions.invoke('initializeUser').catch(() => {
+      // Silently fail - user might already be initialized
+    });
+  }, []);
+
   const { data: clients = [] } = useQuery({
     queryKey: ['clients'],
     queryFn: () => base44.entities.Client.list(),
