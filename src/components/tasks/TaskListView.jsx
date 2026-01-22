@@ -33,7 +33,7 @@ const priorityLabels = {
   high: "High",
 };
 
-export default function TaskListView({ tasks, taskStatuses, onEditTask, onDeleteTask }) {
+export default function TaskListView({ tasks, taskStatuses, onEditTask, onDeleteTask, onAddTask }) {
   const [editingCell, setEditingCell] = useState(null);
   const [editValue, setEditValue] = useState('');
   const topLevelTasks = tasks.filter(t => !t.parent_task_id);
@@ -72,18 +72,19 @@ export default function TaskListView({ tasks, taskStatuses, onEditTask, onDelete
   };
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Title</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Priority</TableHead>
-            <TableHead>Estimated Hours</TableHead>
-            <TableHead>Due Date</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
-          </TableRow>
-        </TableHeader>
+    <div className="space-y-3">
+      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[35%]">Title</TableHead>
+              <TableHead className="w-[15%]">Status</TableHead>
+              <TableHead className="w-[12%]">Priority</TableHead>
+              <TableHead className="w-[12%]">Est. Hours</TableHead>
+              <TableHead className="w-[14%]">Due Date</TableHead>
+              <TableHead className="w-[12%] text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
         <TableBody>
           {topLevelTasks.length === 0 ? (
             <TableRow>
@@ -93,9 +94,12 @@ export default function TaskListView({ tasks, taskStatuses, onEditTask, onDelete
             </TableRow>
           ) : (
             topLevelTasks.map((task) => (
-              <TableRow key={task.id} className="hover:bg-slate-50">
+              <TableRow key={task.id} className={cn(
+                "group transition-colors",
+                editingCell?.taskId === task.id ? "bg-emerald-50/30" : "hover:bg-slate-50"
+              )}>
                 <TableCell 
-                  className="font-medium cursor-pointer"
+                  className="font-medium cursor-text hover:bg-slate-100/50 transition-colors"
                   onClick={() => handleCellEdit(task.id, 'title', task.title)}
                 >
                   {editingCell?.taskId === task.id && editingCell?.field === 'title' ? (
@@ -105,24 +109,24 @@ export default function TaskListView({ tasks, taskStatuses, onEditTask, onDelete
                       onBlur={() => handleSaveCell(task, 'title')}
                       onKeyPress={(e) => e.key === 'Enter' && handleSaveCell(task, 'title')}
                       autoFocus
-                      className="h-8"
+                      className="h-8 -my-1"
                     />
                   ) : (
-                    task.title
+                    <span className="block py-1">{task.title}</span>
                   )}
                 </TableCell>
-                <TableCell>
+                <TableCell className="w-[15%]">
                   <Select
                     value={task.status_id}
                     onValueChange={(value) => handleStatusChange(task, value)}
                   >
-                    <SelectTrigger className="h-8 w-full">
+                    <SelectTrigger className="h-8 w-full border-0 hover:bg-slate-100/50">
                       <div className="flex items-center gap-2">
                         <div 
-                          className="w-2 h-2 rounded-full"
+                          className="w-2 h-2 rounded-full flex-shrink-0"
                           style={{ backgroundColor: getStatusColor(task.status_id) }}
                         />
-                        <SelectValue />
+                        <span className="truncate">{getStatusName(task.status_id)}</span>
                       </div>
                     </SelectTrigger>
                     <SelectContent>
@@ -140,12 +144,12 @@ export default function TaskListView({ tasks, taskStatuses, onEditTask, onDelete
                     </SelectContent>
                   </Select>
                 </TableCell>
-                <TableCell>
+                <TableCell className="w-[12%]">
                   <Select
                     value={task.priority || 'medium'}
                     onValueChange={(value) => handlePriorityChange(task, value)}
                   >
-                    <SelectTrigger className="h-8 w-full">
+                    <SelectTrigger className="h-8 w-full border-0 hover:bg-slate-100/50">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -156,7 +160,7 @@ export default function TaskListView({ tasks, taskStatuses, onEditTask, onDelete
                   </Select>
                 </TableCell>
                 <TableCell 
-                  className="cursor-pointer"
+                  className="w-[12%] cursor-text hover:bg-slate-100/50 transition-colors"
                   onClick={() => handleCellEdit(task.id, 'estimated_hours', task.estimated_hours)}
                 >
                   {editingCell?.taskId === task.id && editingCell?.field === 'estimated_hours' ? (
@@ -169,14 +173,14 @@ export default function TaskListView({ tasks, taskStatuses, onEditTask, onDelete
                       onBlur={() => handleSaveCell(task, 'estimated_hours')}
                       onKeyPress={(e) => e.key === 'Enter' && handleSaveCell(task, 'estimated_hours')}
                       autoFocus
-                      className="h-8 w-20"
+                      className="h-8 -my-1"
                     />
                   ) : (
-                    task.estimated_hours ? `${task.estimated_hours}h` : '—'
+                    <span className="block py-1">{task.estimated_hours ? `${task.estimated_hours}h` : '—'}</span>
                   )}
                 </TableCell>
                 <TableCell 
-                  className="cursor-pointer"
+                  className="w-[14%] cursor-text hover:bg-slate-100/50 transition-colors"
                   onClick={() => handleCellEdit(task.id, 'due_date', task.due_date)}
                 >
                   {editingCell?.taskId === task.id && editingCell?.field === 'due_date' ? (
@@ -187,10 +191,10 @@ export default function TaskListView({ tasks, taskStatuses, onEditTask, onDelete
                       onBlur={() => handleSaveCell(task, 'due_date')}
                       onKeyPress={(e) => e.key === 'Enter' && handleSaveCell(task, 'due_date')}
                       autoFocus
-                      className="h-8 w-36"
+                      className="h-8 -my-1"
                     />
                   ) : (
-                    task.due_date || '—'
+                    <span className="block py-1">{task.due_date || '—'}</span>
                   )}
                 </TableCell>
                 <TableCell className="text-right">
@@ -224,5 +228,16 @@ export default function TaskListView({ tasks, taskStatuses, onEditTask, onDelete
         </TableBody>
       </Table>
     </div>
+    
+    <Button
+      variant="ghost"
+      size="sm"
+      onClick={() => onAddTask && onAddTask(taskStatuses[0]?.id)}
+      className="w-full justify-start text-slate-500 hover:text-slate-700 hover:bg-white border border-dashed border-slate-200 hover:border-slate-300 rounded-xl"
+    >
+      <Plus className="w-4 h-4 mr-2" />
+      Add task
+    </Button>
+  </div>
   );
 }

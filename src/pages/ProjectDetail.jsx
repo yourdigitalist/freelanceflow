@@ -477,6 +477,10 @@ export default function ProjectDetail() {
                 setTaskDialogOpen(true);
               }}
               onDeleteTask={setDeleteTask}
+              onAddTask={(statusId) => {
+                setEditingTask({ status_id: statusId });
+                setTaskDialogOpen(true);
+              }}
             />
           )}
         </div>
