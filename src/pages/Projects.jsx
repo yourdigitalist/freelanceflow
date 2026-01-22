@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
+import { Link } from 'react-router-dom';
 import { FolderKanban, Search, Filter, LayoutGrid, List, Folder, Trash2, Pencil } from 'lucide-react';
 import { createPageUrl } from '../utils';
 import {
@@ -221,12 +222,12 @@ export default function Projects() {
                       {project.name?.charAt(0)?.toUpperCase()}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <a 
-                        href={`#${createPageUrl(`ProjectDetail?id=${project.id}`)}`}
+                      <Link 
+                        to={createPageUrl(`ProjectDetail?id=${project.id}`)}
                         className="font-semibold text-slate-900 hover:text-emerald-600 block truncate"
                       >
                         {project.name}
-                      </a>
+                      </Link>
                       <div className="flex items-center gap-3 text-sm text-slate-500 mt-0.5">
                         <span>{client?.name}</span>
                         {project.folder && (
