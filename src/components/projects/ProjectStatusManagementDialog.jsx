@@ -37,10 +37,19 @@ export default function ProjectStatusManagementDialog({
   const [showTemplateSave, setShowTemplateSave] = useState(false);
 
   useEffect(() => {
-    if (open && currentStatuses.length > 0) {
-      setStatuses(currentStatuses.map(s => ({ ...s })));
+    if (open) {
+      if (currentStatuses.length > 0) {
+        // Make a clean copy without preserving IDs (to ensure fresh creation)
+        setStatuses(currentStatuses.map(({ name, key, color, order }) => ({
+          name,
+          key,
+          color,
+          order,
+          project_id: projectId
+        })));
+      }
     }
-  }, [open, currentStatuses]);
+  }, [open, currentStatuses, projectId]);
 
   const addStatus = () => {
     const newOrder = statuses.length;

@@ -162,8 +162,12 @@ export default function ProjectDetail() {
       const oldProjectStatuses = allTaskStatuses.filter(s => s.project_id === projectId);
       await Promise.all(oldProjectStatuses.map(s => base44.entities.TaskStatus.delete(s.id)));
       
-      // Create new statuses
-      await Promise.all(statuses.map(s => base44.entities.TaskStatus.create(s)));
+      // Create new statuses (without id field to avoid conflicts)
+      const newStatuses = statuses.map(({ id, ...rest }) => ({
+        ...rest,
+        project_id: projectId
+      }));
+      await Promise.all(newStatuses.map(s => base44.entities.TaskStatus.create(s)));
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['taskStatuses'] });
