@@ -21,15 +21,17 @@ export default function PersonalPreferences() {
     enabled: !!user,
   });
 
-  const preference = preferences[0] || { date_format: 'DD-MM-YYYY', time_format: '24h' };
+  const preference = preferences[0] || { date_format: 'DD-MM-YYYY', time_format: '24h', number_format: '1,000.00' };
 
   const [dateFormat, setDateFormat] = useState(preference.date_format || 'DD-MM-YYYY');
   const [timeFormat, setTimeFormat] = useState(preference.time_format || '24h');
+  const [numberFormat, setNumberFormat] = useState(preference.number_format || '1,000.00');
 
   useEffect(() => {
     if (preference) {
       setDateFormat(preference.date_format || 'DD-MM-YYYY');
       setTimeFormat(preference.time_format || '24h');
+      setNumberFormat(preference.number_format || '1,000.00');
     }
   }, [preference]);
 
@@ -48,7 +50,7 @@ export default function PersonalPreferences() {
   });
 
   const handleSave = () => {
-    saveMutation.mutate({ date_format: dateFormat, time_format: timeFormat });
+    saveMutation.mutate({ date_format: dateFormat, time_format: timeFormat, number_format: numberFormat });
   };
 
   return (
@@ -86,6 +88,20 @@ export default function PersonalPreferences() {
                 <SelectContent>
                   <SelectItem value="12h">12-hour (2:30 PM)</SelectItem>
                   <SelectItem value="24h">24-hour (14:30)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label>Number Format</Label>
+              <Select value={numberFormat} onValueChange={setNumberFormat}>
+                <SelectTrigger className="mt-2">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1,000.00">1,000.00 (US/UK)</SelectItem>
+                  <SelectItem value="1.000,00">1.000,00 (EU)</SelectItem>
+                  <SelectItem value="1 000,00">1 000,00 (FR/PL)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
