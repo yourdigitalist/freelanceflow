@@ -10,6 +10,7 @@ import TaskStatuses from './pages/TaskStatuses';
 import TimeTracking from './pages/TimeTracking';
 import ReviewRequests from './pages/ReviewRequests';
 import PublicReviewView from './pages/PublicReviewView';
+import Onboarding from './pages/Onboarding';
 import __Layout from './Layout.jsx';
 
 
@@ -26,6 +27,7 @@ export const PAGES = {
     "TimeTracking": TimeTracking,
     "ReviewRequests": ReviewRequests,
     "PublicReviewView": PublicReviewView,
+    "Onboarding": Onboarding,
 }
 
 export const pagesConfig = {
