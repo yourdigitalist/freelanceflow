@@ -8,6 +8,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Plus, Trash2, Save, List } from 'lucide-react';
 import {
   Select,
@@ -40,11 +41,12 @@ export default function ProjectStatusManagementDialog({
     if (open) {
       if (currentStatuses.length > 0) {
         // Make a clean copy without preserving IDs (to ensure fresh creation)
-        setStatuses(currentStatuses.map(({ name, key, color, order }) => ({
+        setStatuses(currentStatuses.map(({ name, key, color, order, is_done }) => ({
           name,
           key,
           color,
           order,
+          is_done: is_done || false,
           project_id: projectId
         })));
       }
@@ -60,6 +62,7 @@ export default function ProjectStatusManagementDialog({
         key: '',
         color: PRESET_COLORS[newOrder % PRESET_COLORS.length],
         order: newOrder,
+        is_done: false,
         project_id: projectId,
       }
     ]);
@@ -159,12 +162,25 @@ export default function ProjectStatusManagementDialog({
             <div className="space-y-3">
               {statuses.map((status, index) => (
                 <div key={index} className="flex gap-3 items-start p-3 bg-slate-50 rounded-lg">
-                  <div className="flex-1">
+                  <div className="flex-1 space-y-2">
                     <Input
                       placeholder="Status name (e.g., To Do)"
                       value={status.name}
                       onChange={(e) => updateStatus(index, 'name', e.target.value)}
                     />
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        id={`done-${index}`}
+                        checked={status.is_done || false}
+                        onCheckedChange={(checked) => updateStatus(index, 'is_done', checked)}
+                      />
+                      <label
+                        htmlFor={`done-${index}`}
+                        className="text-sm text-slate-600 cursor-pointer"
+                      >
+                        Mark as "Done" status
+                      </label>
+                    </div>
                   </div>
                   
                   <div className="flex flex-col gap-2">

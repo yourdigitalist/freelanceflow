@@ -95,10 +95,8 @@ export default function TaskListView({ tasks, taskStatuses, onEditTask, onDelete
     topLevelTasks = topLevelTasks.filter(t => t.priority === filterPriority);
   }
   if (hideDone) {
-    const doneStatus = taskStatuses.find(s => s.key === 'done');
-    if (doneStatus) {
-      topLevelTasks = topLevelTasks.filter(t => t.status_id !== doneStatus.id);
-    }
+    const doneStatusIds = taskStatuses.filter(s => s.is_done).map(s => s.id);
+    topLevelTasks = topLevelTasks.filter(t => !doneStatusIds.includes(t.status_id));
   }
 
   // Apply sorting
@@ -259,7 +257,7 @@ export default function TaskListView({ tasks, taskStatuses, onEditTask, onDelete
 
   const isDoneStatus = (statusId) => {
     const status = taskStatuses.find(s => s.id === statusId);
-    return status?.key === 'done';
+    return status?.is_done === true;
   };
 
   return (
