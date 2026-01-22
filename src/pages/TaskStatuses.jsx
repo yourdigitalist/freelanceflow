@@ -24,15 +24,7 @@ import {
 import PageHeader from '../components/shared/PageHeader';
 import { cn } from "@/lib/utils";
 
-const colorOptions = [
-  { value: 'bg-slate-100', label: 'Slate', preview: 'bg-slate-100' },
-  { value: 'bg-blue-50', label: 'Blue', preview: 'bg-blue-100' },
-  { value: 'bg-amber-50', label: 'Amber', preview: 'bg-amber-100' },
-  { value: 'bg-emerald-50', label: 'Emerald', preview: 'bg-emerald-100' },
-  { value: 'bg-purple-50', label: 'Purple', preview: 'bg-purple-100' },
-  { value: 'bg-rose-50', label: 'Rose', preview: 'bg-rose-100' },
-  { value: 'bg-cyan-50', label: 'Cyan', preview: 'bg-cyan-100' },
-];
+
 
 export default function TaskStatuses() {
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -41,7 +33,7 @@ export default function TaskStatuses() {
   const [formData, setFormData] = useState({
     name: '',
     key: '',
-    color: 'bg-slate-100',
+    color: '#94A3B8',
     order: 0,
   });
 
@@ -83,7 +75,7 @@ export default function TaskStatuses() {
     setFormData({
       name: '',
       key: '',
-      color: 'bg-slate-100',
+      color: '#94A3B8',
       order: statuses.length + 1,
     });
   };
@@ -93,7 +85,7 @@ export default function TaskStatuses() {
     setFormData({
       name: status.name,
       key: status.key,
-      color: status.color || 'bg-slate-100',
+      color: status.color || '#94A3B8',
       order: status.order,
     });
     setDialogOpen(true);
@@ -136,7 +128,8 @@ export default function TaskStatuses() {
             <div key={status.id} className="p-4 flex items-center gap-4 hover:bg-slate-50/50 transition-colors">
               <GripVertical className="w-5 h-5 text-slate-400" />
               <div 
-                className={cn("w-12 h-12 rounded-xl flex-shrink-0", status.color)}
+                className="w-12 h-12 rounded-xl flex-shrink-0 border border-slate-200"
+                style={{ backgroundColor: status.color || '#94A3B8' }}
               />
               <div className="flex-1">
                 <h3 className="font-medium text-slate-900">{status.name}</h3>
@@ -192,22 +185,22 @@ export default function TaskStatuses() {
             </div>
 
             <div>
-              <Label>Column Color</Label>
-              <div className="grid grid-cols-4 gap-2 mt-2">
-                {colorOptions.map((color) => (
-                  <button
-                    key={color.value}
-                    type="button"
-                    onClick={() => setFormData({ ...formData, color: color.value })}
-                    className={cn(
-                      "h-12 rounded-lg border-2 transition-all",
-                      color.preview,
-                      formData.color === color.value 
-                        ? "border-emerald-500 ring-2 ring-emerald-500/20" 
-                        : "border-transparent hover:border-slate-300"
-                    )}
-                  />
-                ))}
+              <Label htmlFor="color">Column Color</Label>
+              <div className="flex items-center gap-3 mt-2">
+                <Input
+                  id="color"
+                  type="color"
+                  value={formData.color}
+                  onChange={(e) => setFormData({ ...formData, color: e.target.value })}
+                  className="w-20 h-10 cursor-pointer"
+                />
+                <Input
+                  type="text"
+                  value={formData.color}
+                  onChange={(e) => setFormData({ ...formData, color: e.target.value })}
+                  placeholder="#94A3B8"
+                  className="flex-1"
+                />
               </div>
             </div>
 

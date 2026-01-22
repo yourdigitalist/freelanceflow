@@ -20,17 +20,21 @@ export default function TaskBoard({ tasks, taskStatuses, onDragEnd, onEditTask, 
                 ref={provided.innerRef}
                 {...provided.droppableProps}
                 className={cn(
-                  "rounded-2xl p-4 min-h-[400px] transition-colors",
-                  column.color,
+                  "rounded-2xl overflow-hidden min-h-[400px] transition-all bg-slate-50",
                   snapshot.isDraggingOver && "ring-2 ring-emerald-500/20"
                 )}
               >
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-semibold text-slate-700">{column.name}</h3>
-                  <span className="text-sm text-slate-500 bg-white/60 px-2 py-0.5 rounded-full">
-                    {getColumnTasks(column.id).length}
-                  </span>
-                </div>
+                <div 
+                  className="h-3" 
+                  style={{ backgroundColor: column.color || '#94A3B8' }}
+                />
+                <div className="p-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="font-semibold text-slate-700">{column.name}</h3>
+                    <span className="text-sm text-slate-500 bg-white/60 px-2 py-0.5 rounded-full">
+                      {getColumnTasks(column.id).length}
+                    </span>
+                  </div>
                 <div className="space-y-3">
                   {getColumnTasks(column.id).map((task, index) => (
                     <Draggable key={task.id} draggableId={task.id} index={index}>
@@ -52,6 +56,7 @@ export default function TaskBoard({ tasks, taskStatuses, onDragEnd, onEditTask, 
                     </Draggable>
                   ))}
                   {provided.placeholder}
+                  </div>
                 </div>
               </div>
             )}
