@@ -26,6 +26,7 @@ export default function InvoiceDialog({
   clients = [], 
   projects = [], 
   unbilledTime = [],
+  initialData = null,
   onSave 
 }) {
   const [formData, setFormData] = useState({
@@ -60,18 +61,18 @@ export default function InvoiceDialog({
       const nextNumber = `INV-${String(Date.now()).slice(-6)}`;
       setFormData({
         invoice_number: nextNumber,
-        client_id: '',
-        project_id: '',
+        client_id: initialData?.client_id || '',
+        project_id: initialData?.project_id || '',
         status: 'draft',
         issue_date: format(new Date(), 'yyyy-MM-dd'),
         due_date: format(addDays(new Date(), 30), 'yyyy-MM-dd'),
-        line_items: [{ description: '', quantity: 1, rate: 0, amount: 0 }],
+        line_items: initialData?.line_items || [{ description: '', quantity: 1, rate: 0, amount: 0 }],
         tax_rate: 0,
         notes: '',
         payment_terms: 'Payment due within 30 days.',
       });
     }
-  }, [invoice, open]);
+  }, [invoice, initialData, open]);
 
   const updateLineItem = (index, field, value) => {
     const newItems = [...formData.line_items];
@@ -120,6 +121,25 @@ export default function InvoiceDialog({
     }
   };
 
+  const importProjectBudget = () => {
+    if (!formData.project_id) return;
+    
+    const project = projects.find(p => p.id === formData.project_id);
+    
+    if (project && project.billing_type === 'fixed' && project.budget) {
+      const newItem = {
+        description: `Fixed Project Fee: ${project.name}`,
+        quantity: 1,
+        rate: project.budget,
+        amount: project.budget,
+      };
+      setFormData({
+        ...formData,
+        line_items: [...formData.line_items.filter(item => item.description), newItem],
+      });
+    }
+  };
+
   const subtotal = formData.line_items.reduce((sum, item) => sum + (item.amount || 0), 0);
   const taxAmount = subtotal * (formData.tax_rate / 100);
   const total = subtotal + taxAmount;
@@ -138,6 +158,8 @@ export default function InvoiceDialog({
   };
 
   const clientProjects = projects.filter(p => p.client_id === formData.client_id);
+  const selectedProject = projects.find(p => p.id === formData.project_id);
+  const canImportBudget = selectedProject?.billing_type === 'fixed' && selectedProject?.budget;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -243,11 +265,18 @@ export default function InvoiceDialog({
           <div>
             <div className="flex items-center justify-between mb-3">
               <Label>Line Items</Label>
-              {formData.project_id && (
-                <Button type="button" variant="outline" size="sm" onClick={importUnbilledTime}>
-                  Import Unbilled Time
-                </Button>
-              )}
+              <div className="flex gap-2">
+                {formData.project_id && canImportBudget && (
+                  <Button type="button" variant="outline" size="sm" onClick={importProjectBudget}>
+                    Import Project Budget
+                  </Button>
+                )}
+                {formData.project_id && !canImportBudget && (
+                  <Button type="button" variant="outline" size="sm" onClick={importUnbilledTime}>
+                    Import Unbilled Time
+                  </Button>
+                )}
+              </div>
             </div>
             <div className="space-y-3">
               {formData.line_items.map((item, index) => (

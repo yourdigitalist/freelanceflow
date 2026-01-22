@@ -10,6 +10,7 @@ import {
   DollarSign,
   Calendar,
   Pencil,
+  FileText,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { Button } from "@/components/ui/button";
@@ -20,6 +21,7 @@ import TaskBoard from '../components/tasks/TaskBoard';
 import TaskDialog from '../components/tasks/TaskDialog';
 import StatusDialog from '../components/tasks/StatusDialog';
 import ProjectDialog from '../components/projects/ProjectDialog';
+import InvoiceDialog from '../components/invoices/InvoiceDialog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -57,6 +59,7 @@ export default function ProjectDetail() {
   const [projectDialogOpen, setProjectDialogOpen] = useState(false);
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
   const [editingStatus, setEditingStatus] = useState(null);
+  const [invoiceDialogOpen, setInvoiceDialogOpen] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: project } = useQuery({
@@ -98,6 +101,16 @@ export default function ProjectDetail() {
     queryKey: ['timeEntries', projectId],
     queryFn: () => base44.entities.TimeEntry.filter({ project_id: projectId }),
     enabled: !!projectId,
+  });
+
+  const { data: allClients = [] } = useQuery({
+    queryKey: ['clients'],
+    queryFn: () => base44.entities.Client.list(),
+  });
+
+  const { data: allProjects = [] } = useQuery({
+    queryKey: ['projects'],
+    queryFn: () => base44.entities.Project.list(),
   });
 
   const createTaskMutation = useMutation({
@@ -151,6 +164,14 @@ export default function ProjectDetail() {
     },
   });
 
+  const createInvoiceMutation = useMutation({
+    mutationFn: (data) => base44.entities.Invoice.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['invoices'] });
+      setInvoiceDialogOpen(false);
+    },
+  });
+
   const handleTaskSave = async (data, subtasks = []) => {
     if (editingTask) {
       await updateTaskMutation.mutateAsync({ id: editingTask.id, data });
@@ -194,6 +215,25 @@ export default function ProjectDetail() {
   const totalHours = timeEntries.reduce((sum, entry) => sum + (entry.hours || 0), 0);
   const unbilledHours = timeEntries.filter(e => !e.billed && e.billable).reduce((sum, e) => sum + (e.hours || 0), 0);
 
+  const handleCreateInvoice = () => {
+    const initialInvoiceData = {
+      client_id: project.client_id,
+      project_id: projectId,
+    };
+
+    // If it's a fixed-price project with a budget, add a line item
+    if (project.billing_type === 'fixed' && project.budget) {
+      initialInvoiceData.line_items = [{
+        description: `Fixed Project Fee: ${project.name}`,
+        quantity: 1,
+        rate: project.budget,
+        amount: project.budget,
+      }];
+    }
+
+    setInvoiceDialogOpen(true);
+  };
+
   if (!project) {
     return (
       <div className="p-6 lg:p-8 flex items-center justify-center min-h-[60vh]">
@@ -236,6 +276,10 @@ export default function ProjectDetail() {
             <Button variant="outline" onClick={() => setProjectDialogOpen(true)}>
               <Pencil className="w-4 h-4 mr-2" />
               Edit
+            </Button>
+            <Button variant="outline" onClick={handleCreateInvoice}>
+              <FileText className="w-4 h-4 mr-2" />
+              Create Invoice
             </Button>
             <Link to={createPageUrl(`TimeTracking?project=${projectId}`)}>
               <Button className="bg-emerald-600 hover:bg-emerald-700">
@@ -360,6 +404,26 @@ export default function ProjectDetail() {
         project={project}
         clients={clients}
         onSave={(data) => updateProjectMutation.mutateAsync(data)}
+      />
+
+      {/* Invoice Dialog */}
+      <InvoiceDialog
+        open={invoiceDialogOpen}
+        onOpenChange={setInvoiceDialogOpen}
+        clients={allClients}
+        projects={allProjects}
+        unbilledTime={timeEntries.filter(t => !t.billed && t.billable)}
+        initialData={{
+          client_id: project.client_id,
+          project_id: projectId,
+          line_items: project.billing_type === 'fixed' && project.budget ? [{
+            description: `Fixed Project Fee: ${project.name}`,
+            quantity: 1,
+            rate: project.budget,
+            amount: project.budget,
+          }] : [{ description: '', quantity: 1, rate: 0, amount: 0 }],
+        }}
+        onSave={(data) => createInvoiceMutation.mutateAsync(data)}
       />
 
       {/* Delete Task Confirmation */}

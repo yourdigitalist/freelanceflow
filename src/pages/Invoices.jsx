@@ -300,6 +300,7 @@ export default function Invoices() {
         clients={clients}
         projects={projects}
         unbilledTime={unbilledTime}
+        initialData={null}
         onSave={handleSave}
       />
 
