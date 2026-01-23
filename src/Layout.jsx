@@ -19,6 +19,7 @@ import {
   Eye
 } from 'lucide-react';
 import { cn } from "@/lib/utils";
+import UserMenu from './components/layout/UserMenu';
 
 const navigation = [
   { name: 'Dashboard', icon: LayoutDashboard, page: 'Dashboard' },
@@ -218,15 +219,8 @@ export default function Layout({ children, currentPageName }) {
             })}
           </nav>
 
-          {/* Footer */}
-          {!sidebarCollapsed && (
-            <div className="px-4 py-4 border-t border-slate-100">
-              <div className="px-4 py-3 rounded-xl bg-gradient-to-br from-slate-50 to-slate-100">
-                <p className="text-xs font-medium text-slate-500">Free Plan</p>
-                <p className="text-xs text-slate-400 mt-0.5">Upgrade for more features</p>
-              </div>
-            </div>
-          )}
+          {/* User Menu */}
+          <UserMenu collapsed={sidebarCollapsed} />
         </div>
       </aside>
 

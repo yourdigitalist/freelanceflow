@@ -17,11 +17,35 @@ import ProjectCard from '../components/dashboard/ProjectCard';
 import RecentActivity from '../components/dashboard/RecentActivity';
 
 export default function Dashboard() {
+  const [checkingOnboarding, setCheckingOnboarding] = React.useState(true);
+  
   React.useEffect(() => {
-    base44.functions.invoke('initializeUser').catch(() => {
-      // Silently fail - user might already be initialized
-    });
+    const initAndCheckOnboarding = async () => {
+      try {
+        await base44.functions.invoke('initializeUser');
+        const user = await base44.auth.me();
+        
+        if (!user.onboarding_completed) {
+          window.location.href = createPageUrl('OnboardingWizard');
+          return;
+        }
+      } catch (error) {
+        // Ignore errors
+      } finally {
+        setCheckingOnboarding(false);
+      }
+    };
+    
+    initAndCheckOnboarding();
   }, []);
+
+  if (checkingOnboarding) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600" />
+      </div>
+    );
+  }
 
   const { data: clients = [] } = useQuery({
     queryKey: ['clients'],
