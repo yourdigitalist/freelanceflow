@@ -15,9 +15,9 @@ import { Button } from "@/components/ui/button";
 import StatCard from '../components/dashboard/StatCard';
 import ProjectCard from '../components/dashboard/ProjectCard';
 import RecentActivity from '../components/dashboard/RecentActivity';
+import AuthGuard from '../components/auth/AuthGuard';
 
 export default function Dashboard() {
-  const [checkingOnboarding, setCheckingOnboarding] = React.useState(true);
 
   const { data: clients = [] } = useQuery({
     queryKey: ['clients'],
