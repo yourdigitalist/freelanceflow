@@ -4,7 +4,9 @@ import CompanySettings from './pages/CompanySettings';
 import Dashboard from './pages/Dashboard';
 import InvoiceSettings from './pages/InvoiceSettings';
 import Invoices from './pages/Invoices';
+import Landing from './pages/Landing';
 import Onboarding from './pages/Onboarding';
+import OnboardingWizard from './pages/OnboardingWizard';
 import PersonalPreferences from './pages/PersonalPreferences';
 import ProjectDetail from './pages/ProjectDetail';
 import Projects from './pages/Projects';
@@ -13,8 +15,6 @@ import PublicReviewView from './pages/PublicReviewView';
 import ReviewRequests from './pages/ReviewRequests';
 import TaskStatuses from './pages/TaskStatuses';
 import TimeTracking from './pages/TimeTracking';
-import OnboardingWizard from './pages/OnboardingWizard';
-import Landing from './pages/Landing';
 import __Layout from './Layout.jsx';
 
 
@@ -25,7 +25,9 @@ export const PAGES = {
     "Dashboard": Dashboard,
     "InvoiceSettings": InvoiceSettings,
     "Invoices": Invoices,
+    "Landing": Landing,
     "Onboarding": Onboarding,
+    "OnboardingWizard": OnboardingWizard,
     "PersonalPreferences": PersonalPreferences,
     "ProjectDetail": ProjectDetail,
     "Projects": Projects,
@@ -34,8 +36,6 @@ export const PAGES = {
     "ReviewRequests": ReviewRequests,
     "TaskStatuses": TaskStatuses,
     "TimeTracking": TimeTracking,
-    "OnboardingWizard": OnboardingWizard,
-    "Landing": Landing,
 }
 
 export const pagesConfig = {

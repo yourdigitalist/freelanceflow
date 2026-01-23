@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import PageHeader from '../components/shared/PageHeader';
-import { Eye, Copy, ExternalLink, Loader2, Plus } from 'lucide-react';
+import { Copy, ExternalLink, MoreVertical, Bell, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -13,6 +15,9 @@ export default function ReviewRequests() {
   const queryClient = useQueryClient();
   const [copiedToken, setCopiedToken] = useState(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [selectedReviewId, setSelectedReviewId] = useState(null);
+  const [sendingReminder, setSendingReminder] = useState(null);
 
   const { data: reviews = [], isLoading } = useQuery({
     queryKey: ['reviewRequests'],
@@ -25,6 +30,36 @@ export default function ReviewRequests() {
   });
 
   const getClient = (clientId) => clientsList.find(c => c.id === clientId);
+
+  const deleteMutation = useMutation({
+    mutationFn: (reviewId) => base44.entities.ReviewRequest.delete(reviewId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['reviewRequests'] });
+      toast.success('Review request deleted');
+      setDeleteDialogOpen(false);
+      setSelectedReviewId(null);
+    },
+    onError: () => {
+      toast.error('Failed to delete review request');
+    },
+  });
+
+  const handleSendReminder = async (reviewId) => {
+    setSendingReminder(reviewId);
+    try {
+      await base44.functions.invoke('sendReviewReminder', { reviewId });
+      toast.success('Reminder sent successfully');
+    } catch (error) {
+      toast.error('Failed to send reminder');
+    } finally {
+      setSendingReminder(null);
+    }
+  };
+
+  const handleDeleteClick = (reviewId) => {
+    setSelectedReviewId(reviewId);
+    setDeleteDialogOpen(true);
+  };
 
   const statusColors = {
     pending: 'bg-yellow-50 text-yellow-700 border-yellow-200',
@@ -119,6 +154,29 @@ export default function ReviewRequests() {
                         <ExternalLink className="w-4 h-4" />
                       </a>
                     </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" size="sm">
+                          <MoreVertical className="w-4 h-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem 
+                          onClick={() => handleSendReminder(review.id)}
+                          disabled={sendingReminder === review.id}
+                        >
+                          <Bell className="w-4 h-4 mr-2" />
+                          {sendingReminder === review.id ? 'Sending...' : 'Send Reminder'}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          onClick={() => handleDeleteClick(review.id)}
+                          className="text-red-600"
+                        >
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </div>
 
@@ -151,6 +209,26 @@ export default function ReviewRequests() {
           setDialogOpen(false);
         }}
       />
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Review Request</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this review request? This action cannot be undone and the shareable link will no longer work.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deleteMutation.mutate(selectedReviewId)}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
