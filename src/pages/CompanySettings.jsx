@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/select';
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogCancel, AlertDialogAction } from '@/components/ui/alert-dialog';
 import { Building2, Save, Upload, AlertCircle } from 'lucide-react';
+import AvatarUpload from '../components/user/AvatarUpload';
 
 const CURRENCIES = ['USD', 'EUR', 'GBP', 'CAD', 'AUD'];
 const TIMEZONES = [
@@ -159,6 +160,17 @@ export default function CompanySettings() {
             e.preventDefault();
             updateMutation.mutate(formData);
           }} className="space-y-6">
+            <div>
+              <Label>Company Logo</Label>
+              <div className="mt-2">
+                <AvatarUpload
+                  currentAvatarUrl={formData.logo_url}
+                  userName={formData.company_name || 'Company'}
+                  onUploadSuccess={(url) => setFormData({ ...formData, logo_url: url })}
+                />
+              </div>
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label>Company Name</Label>
