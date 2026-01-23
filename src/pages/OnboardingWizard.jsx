@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -18,6 +18,10 @@ const steps = [
 ];
 
 export default function OnboardingWizard() {
+  useEffect(() => {
+    // Initialize user subscription on mount
+    base44.functions.invoke('initializeUser').catch(() => {});
+  }, []);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [currentStep, setCurrentStep] = useState(1);

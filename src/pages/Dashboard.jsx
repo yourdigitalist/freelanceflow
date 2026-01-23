@@ -20,9 +20,8 @@ export default function Dashboard() {
   const [checkingOnboarding, setCheckingOnboarding] = React.useState(true);
   
   React.useEffect(() => {
-    const initAndCheckOnboarding = async () => {
+    const checkOnboarding = async () => {
       try {
-        await base44.functions.invoke('initializeUser');
         const user = await base44.auth.me();
         
         if (!user.onboarding_completed) {
@@ -30,13 +29,14 @@ export default function Dashboard() {
           return;
         }
       } catch (error) {
-        // Ignore errors
+        // Redirect to landing if not authenticated
+        window.location.href = createPageUrl('Landing');
       } finally {
         setCheckingOnboarding(false);
       }
     };
     
-    initAndCheckOnboarding();
+    checkOnboarding();
   }, []);
 
   if (checkingOnboarding) {
