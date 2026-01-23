@@ -18,34 +18,6 @@ import RecentActivity from '../components/dashboard/RecentActivity';
 
 export default function Dashboard() {
   const [checkingOnboarding, setCheckingOnboarding] = React.useState(true);
-  
-  React.useEffect(() => {
-    const checkOnboarding = async () => {
-      try {
-        const user = await base44.auth.me();
-        
-        if (!user.onboarding_completed) {
-          window.location.href = createPageUrl('OnboardingWizard');
-          return;
-        }
-      } catch (error) {
-        // Redirect to landing if not authenticated
-        window.location.href = createPageUrl('Landing');
-      } finally {
-        setCheckingOnboarding(false);
-      }
-    };
-    
-    checkOnboarding();
-  }, []);
-
-  if (checkingOnboarding) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600" />
-      </div>
-    );
-  }
 
   const { data: clients = [] } = useQuery({
     queryKey: ['clients'],
@@ -95,6 +67,33 @@ export default function Dashboard() {
   // Get task counts per project
   const getProjectTaskCount = (projectId) => tasks.filter(t => t.project_id === projectId).length;
   const getProjectHours = (projectId) => timeEntries.filter(t => t.project_id === projectId).reduce((sum, e) => sum + (e.hours || 0), 0);
+
+  React.useEffect(() => {
+    const checkOnboarding = async () => {
+      try {
+        const user = await base44.auth.me();
+        
+        if (!user.onboarding_completed) {
+          window.location.href = createPageUrl('OnboardingWizard');
+          return;
+        }
+      } catch (error) {
+        window.location.href = createPageUrl('Landing');
+      } finally {
+        setCheckingOnboarding(false);
+      }
+    };
+    
+    checkOnboarding();
+  }, []);
+
+  if (checkingOnboarding) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600" />
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 lg:p-8 max-w-7xl mx-auto">
