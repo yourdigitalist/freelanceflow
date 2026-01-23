@@ -15,9 +15,9 @@ import { Button } from "@/components/ui/button";
 import StatCard from '../components/dashboard/StatCard';
 import ProjectCard from '../components/dashboard/ProjectCard';
 import RecentActivity from '../components/dashboard/RecentActivity';
+import AuthGuard from '../components/auth/AuthGuard';
 
 export default function Dashboard() {
-  const [checkingOnboarding, setCheckingOnboarding] = React.useState(true);
 
   const { data: clients = [] } = useQuery({
     queryKey: ['clients'],
@@ -68,34 +68,8 @@ export default function Dashboard() {
   const getProjectTaskCount = (projectId) => tasks.filter(t => t.project_id === projectId).length;
   const getProjectHours = (projectId) => timeEntries.filter(t => t.project_id === projectId).reduce((sum, e) => sum + (e.hours || 0), 0);
 
-  React.useEffect(() => {
-    const checkOnboarding = async () => {
-      try {
-        const user = await base44.auth.me();
-        
-        if (!user.onboarding_completed) {
-          window.location.href = createPageUrl('OnboardingWizard');
-          return;
-        }
-      } catch (error) {
-        // User not authenticated, redirect will happen via base44
-      } finally {
-        setCheckingOnboarding(false);
-      }
-    };
-    
-    checkOnboarding();
-  }, []);
-
-  if (checkingOnboarding) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600" />
-      </div>
-    );
-  }
-
   return (
+    <AuthGuard requireOnboarding={true}>
     <div className="p-6 lg:p-8 max-w-7xl mx-auto">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
@@ -195,5 +169,6 @@ export default function Dashboard() {
         </div>
       </div>
     </div>
+    </AuthGuard>
   );
 }
