@@ -53,6 +53,11 @@ export default function Layout({ children, currentPageName }) {
     localStorage.setItem('sidebarCollapsed', newValue.toString());
   };
 
+  // Don't show layout for landing and onboarding pages
+  if (currentPageName === 'Landing' || currentPageName === 'OnboardingWizard') {
+    return children;
+  }
+
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Mobile sidebar backdrop */}

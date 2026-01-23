@@ -36,8 +36,8 @@ export default function UserMenu({ collapsed }) {
     enabled: !!user,
   });
 
-  const handleLogout = () => {
-    base44.auth.logout();
+  const handleLogout = async () => {
+    await base44.auth.logout(createPageUrl('Landing'));
   };
 
   if (!user) return null;
