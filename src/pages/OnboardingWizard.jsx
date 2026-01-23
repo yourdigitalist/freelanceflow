@@ -20,33 +20,23 @@ const steps = [
 export default function OnboardingWizard() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [checking, setChecking] = useState(true);
   const [currentStep, setCurrentStep] = useState(1);
 
   useEffect(() => {
-    const initAndCheck = async () => {
+    const init = async () => {
       try {
-        const isAuth = await base44.auth.isAuthenticated();
-        if (!isAuth) {
-          navigate(createPageUrl('Landing'));
-          return;
-        }
-
         await base44.functions.invoke('initializeUser').catch(() => {});
 
         const user = await base44.auth.me();
-        if (user.onboarding_completed) {
+        if (user?.onboarding_completed) {
           navigate(createPageUrl('Dashboard'));
-          return;
         }
-
-        setChecking(false);
       } catch (error) {
-        navigate(createPageUrl('Landing'));
+        // User not authenticated, will be handled by base44
       }
     };
 
-    initAndCheck();
+    init();
   }, [navigate]);
   const [companyData, setCompanyData] = useState({
     company_name: '',
@@ -111,14 +101,6 @@ export default function OnboardingWizard() {
   const handleBack = () => {
     if (currentStep > 1) setCurrentStep(currentStep - 1);
   };
-
-  if (checking) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600" />
-      </div>
-    );
-  }
 
   if (!user) return null;
 
