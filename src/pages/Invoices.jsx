@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { FileText, Search, DollarSign, Clock, AlertCircle, CheckCircle, Filter, Pencil, Trash2, Eye } from 'lucide-react';
+import { FileText, Search, DollarSign, Clock, AlertCircle, CheckCircle, Filter, Pencil, Trash2, Eye, Download } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -172,6 +172,39 @@ export default function Invoices() {
     .filter(inv => inv.status === 'paid')
     .reduce((sum, inv) => sum + (inv.total || 0), 0);
 
+  const handleExportCSV = () => {
+    const headers = ['Invoice Number', 'Client', 'Project', 'Issue Date', 'Due Date', 'Subtotal', 'Tax Rate', 'Tax Amount', 'Total', 'Status', 'Notes', 'Payment Terms'];
+    const rows = filteredInvoices.map(invoice => [
+      invoice.invoice_number || '',
+      getClientName(invoice.client_id),
+      getProjectName(invoice.project_id) || '',
+      invoice.issue_date || '',
+      invoice.due_date || '',
+      invoice.subtotal || 0,
+      invoice.tax_rate || 0,
+      invoice.tax_amount || 0,
+      invoice.total || 0,
+      invoice.status || '',
+      (invoice.notes || '').replace(/"/g, '""'),
+      (invoice.payment_terms || '').replace(/"/g, '""')
+    ]);
+
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `invoices-${format(new Date(), 'yyyy-MM-dd')}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    a.remove();
+  };
+
   return (
     <div className="p-6 lg:p-8 max-w-7xl mx-auto">
       <PageHeader
@@ -218,8 +251,8 @@ export default function Invoices() {
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-wrap gap-4 mb-6">
+      {/* Filters and Export */}
+      <div className="flex flex-wrap gap-4 mb-6 items-center">
         <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger className="w-[180px]">
             <Filter className="w-4 h-4 mr-2" />
@@ -258,6 +291,16 @@ export default function Invoices() {
             ))}
           </SelectContent>
         </Select>
+
+        <Button
+          variant="outline"
+          onClick={handleExportCSV}
+          disabled={filteredInvoices.length === 0}
+          className="ml-auto"
+        >
+          <Download className="w-4 h-4 mr-2" />
+          Export CSV
+        </Button>
       </div>
 
       {/* Invoices Table */}

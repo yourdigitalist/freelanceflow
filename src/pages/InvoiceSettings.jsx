@@ -14,6 +14,21 @@ export default function InvoiceSettings() {
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const queryClient = useQueryClient();
 
+  const { data: user } = useQuery({
+    queryKey: ['currentUser'],
+    queryFn: () => base44.auth.me(),
+  });
+
+  const { data: companyProfile } = useQuery({
+    queryKey: ['companyProfile', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      const profiles = await base44.entities.CompanyProfile.filter({ user_id: user.id });
+      return profiles[0] || null;
+    },
+    enabled: !!user?.id,
+  });
+
   const { data: settings, isLoading } = useQuery({
     queryKey: ['invoiceSettings'],
     queryFn: async () => {
@@ -44,6 +59,18 @@ export default function InvoiceSettings() {
       setFormData(settings);
     }
   }, [settings]);
+
+  // Populate business info from company profile if not set in invoice settings
+  const businessInfo = {
+    business_name: formData.business_name || companyProfile?.company_name || '',
+    business_logo: formData.business_logo || companyProfile?.logo_url || '',
+    business_address: formData.business_address || 
+      [companyProfile?.street, companyProfile?.street2, 
+       [companyProfile?.city, companyProfile?.state, companyProfile?.zip].filter(Boolean).join(', '),
+       companyProfile?.country].filter(Boolean).join('\n') || '',
+    business_email: formData.business_email || companyProfile?.email || '',
+    business_phone: formData.business_phone || companyProfile?.phone || '',
+  };
 
   const saveMutation = useMutation({
     mutationFn: async (data) => {
@@ -99,73 +126,34 @@ export default function InvoiceSettings() {
       />
 
       <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-slate-200/60 p-6 space-y-6">
-        {/* Business Details */}
+        {/* Business Information - Read Only from Company Settings */}
         <div>
-          <h3 className="text-lg font-semibold text-slate-900 mb-4">Business Information</h3>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="business_name">Business Name</Label>
-              <Input
-                id="business_name"
-                value={formData.business_name}
-                onChange={(e) => setFormData({ ...formData, business_name: e.target.value })}
-                placeholder="Your Business Name"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="business_logo">Business Logo</Label>
-              <div className="flex items-center gap-4 mt-2">
-                {formData.business_logo && (
-                  <img
-                    src={formData.business_logo}
-                    alt="Business logo"
-                    className="h-16 w-16 object-contain border border-slate-200 rounded-lg"
-                  />
-                )}
-                <div className="flex-1">
-                  <Input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleLogoUpload}
-                    disabled={uploadingLogo}
-                    className="cursor-pointer"
-                  />
-                </div>
-                {uploadingLogo && <Loader2 className="w-5 h-5 animate-spin text-slate-400" />}
+          <h3 className="text-lg font-semibold text-slate-900 mb-2">Business Information</h3>
+          <p className="text-sm text-slate-500 mb-4">This information is pulled from your Company Settings and will appear on invoices.</p>
+          <div className="bg-slate-50 rounded-lg p-4 space-y-3">
+            {businessInfo.business_logo && (
+              <div>
+                <img src={businessInfo.business_logo} alt="Business logo" className="h-12 w-auto object-contain mb-2" />
               </div>
-            </div>
-
+            )}
             <div>
-              <Label htmlFor="business_address">Business Address</Label>
-              <Textarea
-                id="business_address"
-                value={formData.business_address}
-                onChange={(e) => setFormData({ ...formData, business_address: e.target.value })}
-                placeholder="123 Main St, Suite 100&#10;City, State ZIP"
-                rows={3}
-              />
+              <p className="text-sm font-medium text-slate-600">Business Name</p>
+              <p className="text-slate-900">{businessInfo.business_name || '—'}</p>
             </div>
-
+            {businessInfo.business_address && (
+              <div>
+                <p className="text-sm font-medium text-slate-600">Address</p>
+                <p className="text-slate-900 whitespace-pre-line">{businessInfo.business_address}</p>
+              </div>
+            )}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="business_email">Business Email</Label>
-                <Input
-                  id="business_email"
-                  type="email"
-                  value={formData.business_email}
-                  onChange={(e) => setFormData({ ...formData, business_email: e.target.value })}
-                  placeholder="contact@business.com"
-                />
+                <p className="text-sm font-medium text-slate-600">Email</p>
+                <p className="text-slate-900">{businessInfo.business_email || '—'}</p>
               </div>
               <div>
-                <Label htmlFor="business_phone">Business Phone</Label>
-                <Input
-                  id="business_phone"
-                  value={formData.business_phone}
-                  onChange={(e) => setFormData({ ...formData, business_phone: e.target.value })}
-                  placeholder="(555) 123-4567"
-                />
+                <p className="text-sm font-medium text-slate-600">Phone</p>
+                <p className="text-slate-900">{businessInfo.business_phone || '—'}</p>
               </div>
             </div>
           </div>

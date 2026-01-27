@@ -28,19 +28,12 @@ const navigation = [
   { name: 'Time', icon: Clock, page: 'TimeTracking' },
   { name: 'Invoices', icon: FileText, page: 'Invoices' },
   { name: 'Reviews', icon: Eye, page: 'ReviewRequests' },
-  { name: 'Settings', icon: Settings, hasSubmenu: true, submenuItems: [
-    { name: 'Invoice Settings', page: 'InvoiceSettings' },
-    { name: 'Personal Preferences', page: 'PersonalPreferences' },
-    { name: 'Company Settings', page: 'CompanySettings' },
-    { name: 'Billing', page: 'BillingSettings' }
-  ]},
 ];
 
 export default function Layout({ children, currentPageName }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => localStorage.getItem('sidebarCollapsed') === 'true');
   const [projectsExpanded, setProjectsExpanded] = useState(false);
-  const [settingsExpanded, setSettingsExpanded] = useState(false);
 
   const { data: projects = [] } = useQuery({
     queryKey: ['projects'],
@@ -100,7 +93,7 @@ export default function Layout({ children, currentPageName }) {
           {/* Navigation */}
           <nav className="flex-1 px-3 py-4 space-y-1">
             {navigation.map((item) => {
-              const isActive = currentPageName === item.page || (item.submenuItems && item.submenuItems.some(sub => sub.page === currentPageName));
+              const isActive = currentPageName === item.page;
               return (
                 <div key={item.name}>
                   {item.hasSubmenu && item.page ? (
@@ -147,53 +140,6 @@ export default function Layout({ children, currentPageName }) {
                               className="block px-3 py-1.5 text-sm text-slate-600 hover:text-emerald-600 rounded-lg hover:bg-slate-50 truncate"
                             >
                               {project.name}
-                            </Link>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                    ) : item.hasSubmenu && item.submenuItems ? (
-                    <div>
-                      <button
-                        onClick={() => setSettingsExpanded(!settingsExpanded)}
-                        className={cn(
-                          "flex items-center w-full gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
-                          isActive 
-                            ? "bg-emerald-50 text-emerald-700" 
-                            : "text-slate-600 hover:bg-slate-50 hover:text-slate-900",
-                          sidebarCollapsed ? "justify-center" : "justify-between"
-                        )}
-                        title={sidebarCollapsed ? item.name : ''}
-                      >
-                        <div className={cn("flex items-center gap-3", sidebarCollapsed && "justify-center")}>
-                          <item.icon className={cn(
-                            "w-5 h-5",
-                            isActive ? "text-emerald-600" : "text-slate-400"
-                          )} />
-                          {!sidebarCollapsed && item.name}
-                        </div>
-                        {!sidebarCollapsed && (
-                          <ChevronRight className={cn(
-                            "w-4 h-4 transition-transform",
-                            settingsExpanded && "rotate-90"
-                          )} />
-                        )}
-                      </button>
-                      {settingsExpanded && !sidebarCollapsed && (
-                        <div className="ml-8 mt-1 space-y-1">
-                          {item.submenuItems.map(subItem => (
-                            <Link
-                              key={subItem.page}
-                              to={createPageUrl(subItem.page)}
-                              onClick={() => setSidebarOpen(false)}
-                              className={cn(
-                                "block px-3 py-1.5 text-sm rounded-lg hover:bg-slate-50",
-                                currentPageName === subItem.page 
-                                  ? "text-emerald-600 bg-emerald-50" 
-                                  : "text-slate-600 hover:text-emerald-600"
-                              )}
-                            >
-                              {subItem.name}
                             </Link>
                           ))}
                         </div>

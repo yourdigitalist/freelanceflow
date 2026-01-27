@@ -15,6 +15,7 @@ import {
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogCancel, AlertDialogAction } from '@/components/ui/alert-dialog';
 import { Building2, Save, Upload, AlertCircle } from 'lucide-react';
 import AvatarUpload from '../components/user/AvatarUpload';
+import PhoneInput from '../components/shared/PhoneInput';
 
 const CURRENCIES = ['USD', 'EUR', 'GBP', 'CAD', 'AUD'];
 const TIMEZONES = [
@@ -108,7 +109,13 @@ export default function CompanySettings() {
               </div>
               <div>
                 <p className="text-sm font-medium text-slate-600">Phone</p>
-                <p className="text-lg text-slate-900 mt-1">{company.phone || '—'}</p>
+                <p className="text-lg text-slate-900 mt-1">
+                  {company.phone_country_code && company.phone ? `${company.phone_country_code} ${company.phone}` : company.phone || '—'}
+                </p>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-slate-600">Tax ID</p>
+                <p className="text-lg text-slate-900 mt-1">{company.tax_id || '—'}</p>
               </div>
               <div>
                 <p className="text-sm font-medium text-slate-600">Website</p>
@@ -193,11 +200,12 @@ export default function CompanySettings() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label>Phone</Label>
-                <Input
-                  value={formData.phone || ''}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  className="mt-2"
+                <PhoneInput
+                  label="Phone"
+                  phone={formData.phone}
+                  phoneCountryCode={formData.phone_country_code}
+                  onPhoneChange={(value) => setFormData({ ...formData, phone: value })}
+                  onCountryCodeChange={(value) => setFormData({ ...formData, phone_country_code: value })}
                 />
               </div>
               <div>

@@ -16,9 +16,9 @@ Deno.serve(async (req) => {
     const invoice = await base44.entities.Invoice.get(invoice_id);
     const client = await base44.entities.Client.get(invoice.client_id);
     
-    // Fetch invoice settings for business info
-    const settingsList = await base44.entities.InvoiceSettings.list();
-    const settings = settingsList[0] || {};
+    // Fetch company profile for business info
+    const companyProfiles = await base44.asServiceRole.entities.CompanyProfile.filter({ user_id: user.id });
+    const company = companyProfiles[0] || {};
 
     // Create PDF
     const doc = new jsPDF();
@@ -26,7 +26,7 @@ Deno.serve(async (req) => {
     // Business Logo/Name
     doc.setFontSize(24);
     doc.setFont(undefined, 'bold');
-    doc.text(settings.business_name || 'Your Business', 20, 25);
+    doc.text(company.company_name || 'Your Business', 20, 25);
 
     // Invoice title
     doc.setFontSize(10);
@@ -40,23 +40,38 @@ Deno.serve(async (req) => {
     doc.setFontSize(10);
     doc.text('From:', 20, yPos);
     yPos += 7;
-    if (settings.business_name) {
-      doc.text(settings.business_name, 20, yPos);
+    if (company.company_name) {
+      doc.text(company.company_name, 20, yPos);
       yPos += 5;
     }
-    if (settings.business_address) {
-      const addressLines = settings.business_address.split('\n');
-      addressLines.forEach(line => {
-        doc.text(line, 20, yPos);
-        yPos += 5;
-      });
-    }
-    if (settings.business_email) {
-      doc.text(settings.business_email, 20, yPos);
+    if (company.street) {
+      doc.text(company.street, 20, yPos);
       yPos += 5;
     }
-    if (settings.business_phone) {
-      doc.text(settings.business_phone, 20, yPos);
+    if (company.street2) {
+      doc.text(company.street2, 20, yPos);
+      yPos += 5;
+    }
+    const companyCity = [company.city, company.state, company.zip].filter(Boolean).join(', ');
+    if (companyCity) {
+      doc.text(companyCity, 20, yPos);
+      yPos += 5;
+    }
+    if (company.country) {
+      doc.text(company.country, 20, yPos);
+      yPos += 5;
+    }
+    if (company.email) {
+      doc.text(company.email, 20, yPos);
+      yPos += 5;
+    }
+    if (company.phone) {
+      const phone = company.phone_country_code ? `${company.phone_country_code} ${company.phone}` : company.phone;
+      doc.text(phone, 20, yPos);
+      yPos += 5;
+    }
+    if (company.tax_id) {
+      doc.text(`Tax ID: ${company.tax_id}`, 20, yPos);
       yPos += 5;
     }
 

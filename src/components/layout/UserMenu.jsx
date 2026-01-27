@@ -17,7 +17,9 @@ import {
   CreditCard, 
   Settings, 
   LogOut,
-  ChevronUp
+  ChevronUp,
+  FileText,
+  Bell
 } from 'lucide-react';
 import { cn } from "@/lib/utils";
 
@@ -80,15 +82,21 @@ export default function UserMenu({ collapsed }) {
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
-              <Link to={createPageUrl('BillingSettings')} className="cursor-pointer">
-                <CreditCard className="w-4 h-4 mr-2" />
-                Billing
+              <Link to={createPageUrl('InvoiceSettings')} className="cursor-pointer">
+                <FileText className="w-4 h-4 mr-2" />
+                Invoice Settings
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
               <Link to={createPageUrl('PersonalPreferences')} className="cursor-pointer">
-                <Settings className="w-4 h-4 mr-2" />
-                Preferences
+                <Bell className="w-4 h-4 mr-2" />
+                Personal Preferences
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link to={createPageUrl('BillingSettings')} className="cursor-pointer">
+                <CreditCard className="w-4 h-4 mr-2" />
+                Billing & Subscription
               </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
@@ -140,15 +148,21 @@ export default function UserMenu({ collapsed }) {
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem asChild>
-            <Link to={createPageUrl('BillingSettings')} className="cursor-pointer">
-              <CreditCard className="w-4 h-4 mr-2" />
-              Billing
+            <Link to={createPageUrl('InvoiceSettings')} className="cursor-pointer">
+              <FileText className="w-4 h-4 mr-2" />
+              Invoice Settings
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem asChild>
             <Link to={createPageUrl('PersonalPreferences')} className="cursor-pointer">
-              <Settings className="w-4 h-4 mr-2" />
-              Preferences
+              <Bell className="w-4 h-4 mr-2" />
+              Personal Preferences
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link to={createPageUrl('BillingSettings')} className="cursor-pointer">
+              <CreditCard className="w-4 h-4 mr-2" />
+              Billing & Subscription
             </Link>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
