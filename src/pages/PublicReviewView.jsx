@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
@@ -23,20 +23,26 @@ export default function PublicReviewView() {
   const [submitting, setSubmitting] = useState(false);
   const [visitorName, setVisitorName] = useState('');
   const [visitorEmail, setVisitorEmail] = useState('');
+  const queryClient = useQueryClient();
 
-  const { data: review, isLoading, error } = useQuery({
+  const { data: reviewData, isLoading, error } = useQuery({
     queryKey: ['publicReview', token],
     queryFn: async () => {
       if (!token) return null;
       try {
-        const reviews = await base44.entities.ReviewRequest.filter({ share_token: token });
-        return reviews[0];
+        const response = await base44.functions.invoke('getReviewByShareToken', { token });
+        return response.data;
       } catch (err) {
+        console.error('Failed to load review:', err);
         return null;
       }
     },
     enabled: !!token,
   });
+
+  const review = reviewData?.review;
+  const client = reviewData?.client;
+  const project = reviewData?.project;
 
   const handleAddComment = async () => {
     if (!comment.trim() || !visitorName.trim() || !visitorEmail.trim()) {
@@ -54,17 +60,16 @@ export default function PublicReviewView() {
         created_at: new Date().toISOString(),
       };
 
-      const updated = {
-        ...review,
-        comments: [...(review.comments || []), newComment],
-      };
+      const updatedComments = [...(review.comments || []), newComment];
 
-      await base44.entities.ReviewRequest.update(review.id, {
-        comments: updated.comments,
+      await base44.functions.invoke('updateReviewComment', {
+        reviewId: review.id,
+        comments: updatedComments,
       });
 
       setComment('');
       toast.success('Comment added');
+      queryClient.invalidateQueries({ queryKey: ['publicReview', token] });
     } catch (error) {
       toast.error('Failed to add comment');
     } finally {
@@ -74,10 +79,12 @@ export default function PublicReviewView() {
 
   const handleApprove = async () => {
     try {
-      await base44.entities.ReviewRequest.update(review.id, {
+      await base44.functions.invoke('updateReviewStatus', {
+        reviewId: review.id,
         status: 'approved',
       });
       toast.success('Document approved');
+      queryClient.invalidateQueries({ queryKey: ['publicReview', token] });
     } catch (error) {
       toast.error('Failed to approve');
     }
@@ -85,10 +92,12 @@ export default function PublicReviewView() {
 
   const handleReject = async () => {
     try {
-      await base44.entities.ReviewRequest.update(review.id, {
+      await base44.functions.invoke('updateReviewStatus', {
+        reviewId: review.id,
         status: 'rejected',
       });
       toast.success('Document rejected');
+      queryClient.invalidateQueries({ queryKey: ['publicReview', token] });
     } catch (error) {
       toast.error('Failed to reject');
     }

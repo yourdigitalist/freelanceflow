@@ -2,8 +2,18 @@ import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import PageHeader from '../components/shared/PageHeader';
-import { Eye, Copy, ExternalLink, Loader2, Plus } from 'lucide-react';
+import { Eye, Copy, ExternalLink, Loader2, Plus, Trash2, Send } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -13,6 +23,9 @@ export default function ReviewRequests() {
   const queryClient = useQueryClient();
   const [copiedToken, setCopiedToken] = useState(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [reviewToDelete, setReviewToDelete] = useState(null);
+  const [sendingReminder, setSendingReminder] = useState(null);
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
@@ -40,12 +53,53 @@ export default function ReviewRequests() {
     rejected: 'bg-red-50 text-red-700 border-red-200',
   };
 
+  const deleteMutation = useMutation({
+    mutationFn: (reviewId) => base44.entities.ReviewRequest.delete(reviewId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['reviewRequests'] });
+      toast.success('Review request deleted');
+      setDeleteDialogOpen(false);
+      setReviewToDelete(null);
+    },
+    onError: () => {
+      toast.error('Failed to delete review request');
+    },
+  });
+
   const copyShareLink = (token) => {
     const link = `${window.location.origin}/#/PublicReviewView?token=${token}`;
     navigator.clipboard.writeText(link);
     setCopiedToken(token);
     setTimeout(() => setCopiedToken(null), 2000);
     toast.success('Link copied to clipboard');
+  };
+
+  const handleDelete = (review) => {
+    setReviewToDelete(review);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleSendReminder = async (review) => {
+    const client = getClient(review.client_id);
+    if (!client?.email) {
+      toast.error('Client email not found');
+      return;
+    }
+
+    setSendingReminder(review.id);
+    try {
+      await base44.functions.invoke('sendReviewEmail', {
+        reviewTitle: review.title,
+        recipients: [client.email],
+        shareToken: review.share_token,
+        appUrl: window.location.origin,
+      });
+      toast.success('Reminder sent successfully');
+    } catch (error) {
+      toast.error('Failed to send reminder');
+    } finally {
+      setSendingReminder(null);
+    }
   };
 
   if (isLoading) return <div className="p-6 text-center">Loading reviews...</div>;
@@ -108,6 +162,19 @@ export default function ReviewRequests() {
                     <Button
                       variant="outline"
                       size="sm"
+                      onClick={() => handleSendReminder(review)}
+                      disabled={sendingReminder === review.id}
+                      title="Send reminder email"
+                    >
+                      {sendingReminder === review.id ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Send className="w-4 h-4" />
+                      )}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
                       onClick={() => copyShareLink(review.share_token)}
                       title="Copy shareable link"
                     >
@@ -125,6 +192,15 @@ export default function ReviewRequests() {
                       <a href={`#/PublicReviewView?token=${review.share_token}`} target="_blank" rel="noopener noreferrer">
                         <ExternalLink className="w-4 h-4" />
                       </a>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDelete(review)}
+                      title="Delete review request"
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    >
+                      <Trash2 className="w-4 h-4" />
                     </Button>
                   </div>
                 </div>
@@ -158,6 +234,26 @@ export default function ReviewRequests() {
           setDialogOpen(false);
         }}
       />
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Review Request</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete "{reviewToDelete?.title}"? This action cannot be undone and the shareable link will no longer work.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deleteMutation.mutate(reviewToDelete.id)}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
