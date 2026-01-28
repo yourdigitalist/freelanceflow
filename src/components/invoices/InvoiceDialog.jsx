@@ -227,7 +227,7 @@ export default function InvoiceDialog({
       const publicToken = crypto.randomUUID() + '-' + Date.now();
       const appUrl = window.location.origin;
       dataToSave.public_token = publicToken;
-      dataToSave.public_url = `${appUrl}/#/PublicInvoiceView?token=${publicToken}`;
+      dataToSave.public_url = `${appUrl}/#/public-invoice?token=${publicToken}`;
     }
 
     await onSave(dataToSave);
