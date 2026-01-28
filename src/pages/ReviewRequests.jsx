@@ -67,7 +67,7 @@ export default function ReviewRequests() {
   });
 
   const copyShareLink = (token) => {
-    const link = `${window.location.origin}/#/PublicReviewView?token=${token}`;
+    const link = `${window.location.origin}/PublicReviewView?token=${token}`;
     navigator.clipboard.writeText(link);
     setCopiedToken(token);
     setTimeout(() => setCopiedToken(null), 2000);
