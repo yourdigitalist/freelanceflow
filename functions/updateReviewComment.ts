@@ -1,10 +1,8 @@
-import { createBase44Client } from 'npm:@base44/sdk@0.8.6';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 Deno.serve(async (req) => {
   try {
-    const base44 = createBase44Client({
-      appId: Deno.env.get('BASE44_APP_ID'),
-    });
+    const base44 = createClientFromRequest(req);
     
     const { reviewId, comments } = await req.json();
 
