@@ -64,6 +64,7 @@ import PublicReviewView from './pages/PublicReviewView';
 import ReviewRequests from './pages/ReviewRequests';
 import TaskStatuses from './pages/TaskStatuses';
 import TimeTracking from './pages/TimeTracking';
+import PublicInvoice from './pages/PublicInvoice';
 import __Layout from './Layout.jsx';
 
 
@@ -85,11 +86,11 @@ export const PAGES = {
     "ReviewRequests": ReviewRequests,
     "TaskStatuses": TaskStatuses,
     "TimeTracking": TimeTracking,
+    "PublicInvoice": PublicInvoice,
 }
 
 export const pagesConfig = {
     mainPage: "BillingSettings",
     Pages: PAGES,
     Layout: __Layout,
-    publicPages: ["Landing", "PublicInvoiceView", "PublicReviewView"],
 };
