@@ -21,8 +21,8 @@ export default function PublicInvoice() {
   useEffect(() => {
     const loadInvoice = async () => {
       try {
-        const urlParams = new URLSearchParams(window.location.search);
-        const token = urlParams.get('token');
+        const hashParams = new URLSearchParams(window.location.hash.split('?')[1]);
+        const token = hashParams.get('token');
 
         if (!token) {
           setError('Invalid invoice link');
