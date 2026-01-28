@@ -15,7 +15,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    const reviewLink = `${appUrl}/#/PublicReviewView?token=${shareToken}`;
+    const reviewLink = `${appUrl}/PublicReviewView?token=${shareToken}`;
     
     const emailBody = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
