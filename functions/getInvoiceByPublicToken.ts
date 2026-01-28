@@ -30,7 +30,7 @@ Deno.serve(async (req) => {
     const [clients, projects, companyProfiles, invoiceSettings, personalPreferences] = await Promise.all([
       base44.asServiceRole.entities.Client.filter({ id: invoice.client_id }),
       invoice.project_id ? base44.asServiceRole.entities.Project.filter({ id: invoice.project_id }) : Promise.resolve([]),
-      base44.asServiceRole.entities.CompanyProfile.filter({ created_by: invoice.created_by }),
+      base44.asServiceRole.entities.CompanyProfile.filter({ user_id: invoice.created_by }),
       base44.asServiceRole.entities.InvoiceSettings.filter({ created_by: invoice.created_by }),
       base44.asServiceRole.entities.PersonalPreference.filter({ created_by: invoice.created_by })
     ]);
