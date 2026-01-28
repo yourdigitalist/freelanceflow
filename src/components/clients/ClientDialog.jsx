@@ -16,8 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import PhoneInput from 'react-phone-number-input';
-import 'react-phone-number-input/style.css';
+import PhoneInput from '../shared/PhoneInput';
 
 const avatarColors = [
   '#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4'
@@ -146,31 +145,16 @@ export default function ClientDialog({ open, onOpenChange, client, onSave }) {
             </div>
           </div>
 
-          <div>
-            <Label htmlFor="phone">Phone</Label>
-            <div className="[&_.PhoneInputInput]:border [&_.PhoneInputInput]:border-input [&_.PhoneInputInput]:rounded-md [&_.PhoneInputInput]:px-3 [&_.PhoneInputInput]:py-2 [&_.PhoneInputInput]:bg-transparent [&_.PhoneInputInput]:text-base [&_.PhoneInputInput]:shadow-sm [&_.PhoneInputInput]:transition-colors [&_.PhoneInputInput]:focus-visible:outline-none [&_.PhoneInputInput]:focus-visible:ring-1 [&_.PhoneInputInput]:focus-visible:ring-ring [&_.PhoneInputInput]:disabled:cursor-not-allowed [&_.PhoneInputInput]:disabled:opacity-50">
-              <PhoneInput
-                id="phone"
-                international
-                countryCallingCodeEditable={false}
-                defaultCountry="US"
-                value={formData.phone_country_code + (formData.phone ? formData.phone : '')}
-                onChange={(value) => {
-                  if (value) {
-                    const match = value.match(/^(\+\d{1,3})(.*)/);
-                    if (match) {
-                      setFormData({ 
-                        ...formData, 
-                        phone_country_code: match[1],
-                        phone: match[2].trim()
-                      });
-                    }
-                  }
-                }}
-                placeholder="Enter phone number"
-              />
-            </div>
-          </div>
+          <PhoneInput
+            label="Phone"
+            value={formData.phone}
+            countryCode={formData.phone_country_code}
+            onChange={(phone, countryCode) => setFormData({ 
+              ...formData, 
+              phone, 
+              phone_country_code: countryCode 
+            })}
+          />
 
           <div>
             <Label htmlFor="tax_id">Tax Identification Number</Label>
