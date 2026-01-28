@@ -72,11 +72,12 @@ export default function InvoicePreview({ open, onOpenChange, invoice, client, pr
   const replacePlaceholders = (template, currentInvoice, currentClient, currentProject, currentSettings) => {
     if (!template) return '';
     let text = template;
-    text = text.replace(/\[Client Name\]/g, currentClient?.name || 'Client');
+    const clientName = [currentClient?.first_name, currentClient?.last_name].filter(Boolean).join(' ') || currentClient?.company || 'Client';
+    text = text.replace(/\[Client Name\]/g, clientName);
     text = text.replace(/\[Invoice Number\]/g, currentInvoice?.invoice_number || '');
     text = text.replace(/\[Project Name\]/g, currentProject?.name || 'the project');
     text = text.replace(/\[Due Date\]/g, currentInvoice?.due_date ? format(parseISO(currentInvoice.due_date), 'MMMM d, yyyy') : '');
-    text = text.replace(/\[Business Name\]/g, currentSettings?.business_name || 'Your Business');
+    text = text.replace(/\[Business Name\]/g, currentSettings?.business_name || businessInfo?.business_name || 'Your Business');
     return text;
   };
 
@@ -102,14 +103,15 @@ export default function InvoicePreview({ open, onOpenChange, invoice, client, pr
   };
 
   const getEmailBody = () => {
+    const clientName = [client?.first_name, client?.last_name].filter(Boolean).join(' ') || client?.company || 'Client';
     if (emailType === 'reminder') {
       return invoiceSettings?.default_reminder_email_body
         ? replacePlaceholders(invoiceSettings.default_reminder_email_body, invoice, client, project, invoiceSettings)
-        : `Hi ${client?.name},\n\nThis is a friendly reminder that invoice ${invoice?.invoice_number} for ${project?.name || 'the project'} is due on ${invoice?.due_date ? format(parseISO(invoice.due_date), 'MMMM d, yyyy') : ''}.`;
+        : `Hi ${clientName},\n\nThis is a friendly reminder that invoice ${invoice?.invoice_number} for ${project?.name || 'the project'} is due on ${invoice?.due_date ? format(parseISO(invoice.due_date), 'MMMM d, yyyy') : ''}.`;
     }
     return invoiceSettings?.default_invoice_email_body
       ? replacePlaceholders(invoiceSettings.default_invoice_email_body, invoice, client, project, invoiceSettings)
-      : `Hi ${client?.name},\n\nHere is your invoice for ${project?.name || 'the project'}.\n\nPlease let us know if you have any questions.\n\nThanks,\n${invoiceSettings?.business_name || 'Your Business'}`;
+      : `Hi ${clientName},\n\nHere is your invoice for ${project?.name || 'the project'}.\n\nPlease let us know if you have any questions.\n\nThanks,\n${invoiceSettings?.business_name || businessInfo?.business_name || 'Your Business'}`;
   };
 
   return (
@@ -187,10 +189,18 @@ export default function InvoicePreview({ open, onOpenChange, invoice, client, pr
           <div className="grid grid-cols-2 gap-8 mb-8">
             <div>
               <h3 className="text-sm font-medium text-slate-500 mb-2">Bill To</h3>
-              <p className="font-semibold text-slate-900">{client?.name}</p>
-              {client?.company && <p className="text-slate-600">{client.company}</p>}
+              <p className="font-semibold text-slate-900">
+                {[client?.first_name, client?.last_name].filter(Boolean).join(' ') || client?.company || 'Client'}
+              </p>
+              {client?.company && client?.first_name && <p className="text-slate-600">{client.company}</p>}
               <p className="text-slate-600">{client?.email}</p>
-              {client?.address && <p className="text-slate-600">{client.address}</p>}
+              {[client?.street, client?.city, client?.state, client?.zip, client?.country].filter(Boolean).length > 0 && (
+                <p className="text-slate-600 mt-1">
+                  {[client?.street, client?.street2, 
+                    [client?.city, client?.state, client?.zip].filter(Boolean).join(', '),
+                    client?.country].filter(Boolean).join(', ')}
+                </p>
+              )}
             </div>
             <div className="text-right">
               <div className="mb-3">
