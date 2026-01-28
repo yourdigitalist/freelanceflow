@@ -49,21 +49,12 @@ export default function Layout({ children, currentPageName }) {
   };
 
   // Don't show layout for landing, onboarding, and public pages
-  if (currentPageName === 'Landing' || currentPageName === 'OnboardingWizard' || 
-      currentPageName === 'PublicInvoice' || currentPageName === 'PublicReviewView') {
+  const isPublicPage = currentPageName === 'Landing' || currentPageName === 'OnboardingWizard' || 
+      currentPageName === 'PublicInvoice' || currentPageName === 'PublicReviewView';
+  
+  if (isPublicPage) {
     return children;
   }
-
-  // Redirect to landing if not on a public page and not authenticated
-  useEffect(() => {
-    const checkAuth = async () => {
-      const isAuth = await base44.auth.isAuthenticated();
-      if (!isAuth) {
-        navigate(createPageUrl('Landing'));
-      }
-    };
-    checkAuth();
-  }, [navigate]);
 
   return (
     <AuthGuard>
