@@ -25,6 +25,7 @@ export default function SendEmailDialog({
 }) {
   const [subject, setSubject] = useState('');
   const [body, setBody] = useState('');
+  const [cc, setCc] = useState('');
   const [sending, setSending] = useState(false);
 
   const [mergeTags] = useState([
@@ -39,6 +40,7 @@ export default function SendEmailDialog({
     if (open && initialSubject && initialBody) {
       setSubject(initialSubject || '');
       setBody(initialBody || '');
+      setCc('');
     }
   }, [open, initialSubject, initialBody]);
 
@@ -131,11 +133,24 @@ export default function SendEmailDialog({
         </html>
       `;
 
+      // Send to primary recipient
       await base44.integrations.Core.SendEmail({
         to: client.email,
         subject: subject,
         body: htmlBody,
       });
+
+      // Send to CC recipients if any
+      if (cc.trim()) {
+        const ccEmails = cc.split(',').map(email => email.trim()).filter(Boolean);
+        for (const ccEmail of ccEmails) {
+          await base44.integrations.Core.SendEmail({
+            to: ccEmail,
+            subject: subject,
+            body: htmlBody,
+          });
+        }
+      }
 
       // Update invoice status to 'sent' when sending invoice email
       if (emailType === 'invoice') {
@@ -177,6 +192,16 @@ export default function SendEmailDialog({
               value={client?.email || ''}
               readOnly
               className="col-span-3 bg-slate-50"
+            />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="cc" className="text-right">CC</Label>
+            <Input
+              id="cc"
+              placeholder="email1@example.com, email2@example.com"
+              value={cc}
+              onChange={(e) => setCc(e.target.value)}
+              className="col-span-3"
             />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">

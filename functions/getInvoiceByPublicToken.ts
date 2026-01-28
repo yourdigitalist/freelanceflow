@@ -43,15 +43,13 @@ Deno.serve(async (req) => {
 
     // Build business info from company profile
     const businessInfo = {
-      business_name: settings?.business_name || companyProfile?.company_name || '',
-      business_logo: settings?.business_logo || companyProfile?.logo_url || '',
-      business_address: settings?.business_address || 
-        [companyProfile?.street, companyProfile?.street2, 
+      business_name: companyProfile?.company_name || '',
+      business_logo: companyProfile?.logo_url || '',
+      business_address: [companyProfile?.street, companyProfile?.street2, 
          [companyProfile?.city, companyProfile?.state, companyProfile?.zip].filter(Boolean).join(', '),
          companyProfile?.country].filter(Boolean).join('\n') || '',
-      business_email: settings?.business_email || companyProfile?.email || '',
-      business_phone: settings?.business_phone || 
-        (companyProfile?.phone_country_code && companyProfile?.phone ? 
+      business_email: companyProfile?.email || '',
+      business_phone: (companyProfile?.phone_country_code && companyProfile?.phone ? 
           `${companyProfile.phone_country_code} ${companyProfile.phone}` : companyProfile?.phone || ''),
       invoice_footer: settings?.invoice_footer || '',
     };
