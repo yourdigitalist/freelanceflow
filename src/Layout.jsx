@@ -46,8 +46,9 @@ export default function Layout({ children, currentPageName }) {
     localStorage.setItem('sidebarCollapsed', newValue.toString());
   };
 
-  // Don't show layout for landing and onboarding pages
-  if (currentPageName === 'Landing' || currentPageName === 'OnboardingWizard') {
+  // Don't show layout for landing, onboarding, and public pages
+  if (currentPageName === 'Landing' || currentPageName === 'OnboardingWizard' || 
+      currentPageName === 'PublicInvoiceView' || currentPageName === 'PublicReviewView') {
     return children;
   }
 
