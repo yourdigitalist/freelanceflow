@@ -95,25 +95,33 @@ export default function ProjectDetail() {
     enabled: !!project?.client_id,
   });
 
+  const { data: user } = useQuery({
+    queryKey: ['currentUser'],
+    queryFn: () => base44.auth.me(),
+  });
+
   const { data: clients = [] } = useQuery({
-    queryKey: ['clients'],
-    queryFn: () => base44.entities.Client.list(),
+    queryKey: ['clients', user?.email],
+    queryFn: () => base44.entities.Client.filter({ created_by: user.email }),
+    enabled: !!user?.email,
   });
 
   const { data: tasks = [] } = useQuery({
-    queryKey: ['tasks', projectId],
-    queryFn: () => base44.entities.Task.filter({ project_id: projectId }),
-    enabled: !!projectId,
+    queryKey: ['tasks', projectId, user?.email],
+    queryFn: () => base44.entities.Task.filter({ project_id: projectId, created_by: user.email }),
+    enabled: !!projectId && !!user?.email,
   });
 
   const { data: allTaskStatuses = [] } = useQuery({
-    queryKey: ['taskStatuses'],
-    queryFn: () => base44.entities.TaskStatus.list('order'),
+    queryKey: ['taskStatuses', user?.email],
+    queryFn: () => base44.entities.TaskStatus.filter({ created_by: user.email }, 'order'),
+    enabled: !!user?.email,
   });
 
   const { data: statusTemplates = [] } = useQuery({
-    queryKey: ['taskStatusTemplates'],
-    queryFn: () => base44.entities.TaskStatusTemplate.list(),
+    queryKey: ['taskStatusTemplates', user?.email],
+    queryFn: () => base44.entities.TaskStatusTemplate.filter({ created_by: user.email }),
+    enabled: !!user?.email,
   });
 
   // Get project-specific statuses or fall back to global
@@ -122,19 +130,21 @@ export default function ProjectDetail() {
   );
 
   const { data: timeEntries = [] } = useQuery({
-    queryKey: ['timeEntries', projectId],
-    queryFn: () => base44.entities.TimeEntry.filter({ project_id: projectId }),
-    enabled: !!projectId,
+    queryKey: ['timeEntries', projectId, user?.email],
+    queryFn: () => base44.entities.TimeEntry.filter({ project_id: projectId, created_by: user.email }),
+    enabled: !!projectId && !!user?.email,
   });
 
   const { data: allClients = [] } = useQuery({
-    queryKey: ['clients'],
-    queryFn: () => base44.entities.Client.list(),
+    queryKey: ['clients', user?.email],
+    queryFn: () => base44.entities.Client.filter({ created_by: user.email }),
+    enabled: !!user?.email,
   });
 
   const { data: allProjects = [] } = useQuery({
-    queryKey: ['projects'],
-    queryFn: () => base44.entities.Project.list(),
+    queryKey: ['projects', user?.email],
+    queryFn: () => base44.entities.Project.filter({ created_by: user.email }),
+    enabled: !!user?.email,
   });
 
   const createTaskMutation = useMutation({

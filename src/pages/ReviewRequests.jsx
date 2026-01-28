@@ -14,14 +14,21 @@ export default function ReviewRequests() {
   const [copiedToken, setCopiedToken] = useState(null);
   const [dialogOpen, setDialogOpen] = useState(false);
 
+  const { data: user } = useQuery({
+    queryKey: ['currentUser'],
+    queryFn: () => base44.auth.me(),
+  });
+
   const { data: reviews = [], isLoading } = useQuery({
-    queryKey: ['reviewRequests'],
-    queryFn: () => base44.entities.ReviewRequest.list('-updated_date', 50),
+    queryKey: ['reviewRequests', user?.email],
+    queryFn: () => base44.entities.ReviewRequest.filter({ created_by: user.email }, '-updated_date', 50),
+    enabled: !!user?.email,
   });
 
   const { data: clientsList = [] } = useQuery({
-    queryKey: ['clientsList'],
-    queryFn: () => base44.entities.Client.list(),
+    queryKey: ['clientsList', user?.email],
+    queryFn: () => base44.entities.Client.filter({ created_by: user.email }),
+    enabled: !!user?.email,
   });
 
   const getClient = (clientId) => clientsList.find(c => c.id === clientId);
