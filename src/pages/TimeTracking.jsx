@@ -43,19 +43,27 @@ export default function TimeTracking() {
   const [periodFilter, setPeriodFilter] = useState('all');
   const queryClient = useQueryClient();
 
+  const { data: user } = useQuery({
+    queryKey: ['currentUser'],
+    queryFn: () => base44.auth.me(),
+  });
+
   const { data: timeEntries = [], isLoading } = useQuery({
-    queryKey: ['timeEntries'],
-    queryFn: () => base44.entities.TimeEntry.list('-date'),
+    queryKey: ['timeEntries', user?.email],
+    queryFn: () => base44.entities.TimeEntry.filter({ created_by: user.email }, '-date'),
+    enabled: !!user?.email,
   });
 
   const { data: projects = [] } = useQuery({
-    queryKey: ['projects'],
-    queryFn: () => base44.entities.Project.list(),
+    queryKey: ['projects', user?.email],
+    queryFn: () => base44.entities.Project.filter({ created_by: user.email }),
+    enabled: !!user?.email,
   });
 
   const { data: tasks = [] } = useQuery({
-    queryKey: ['tasks'],
-    queryFn: () => base44.entities.Task.list(),
+    queryKey: ['tasks', user?.email],
+    queryFn: () => base44.entities.Task.filter({ created_by: user.email }),
+    enabled: !!user?.email,
   });
 
   const createMutation = useMutation({
