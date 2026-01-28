@@ -189,7 +189,7 @@ export default function ReviewRequests() {
                       size="sm"
                       asChild
                     >
-                      <a href={`#/PublicReviewView?token=${review.share_token}`} target="_blank" rel="noopener noreferrer">
+                      <a href={`/PublicReviewView?token=${review.share_token}`} target="_blank" rel="noopener noreferrer">
                         <ExternalLink className="w-4 h-4" />
                       </a>
                     </Button>
