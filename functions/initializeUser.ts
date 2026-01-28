@@ -14,24 +14,35 @@ Deno.serve(async (req) => {
       user_id: user.id,
     });
 
-    if (existingSubscription.length > 0) {
-      return Response.json({
-        success: true,
-        message: 'User already initialized',
+    // Get existing subscription if any
+    let subscription = existingSubscription.length > 0 ? existingSubscription[0] : null;
+
+    // Create free subscription for new user if not exists
+    if (!subscription) {
+      subscription = await base44.asServiceRole.entities.Subscription.create({
+        user_id: user.id,
+        plan: 'free',
+        status: 'active',
+        billing_email: user.email,
+        billing_cycle_start: new Date().toISOString().split('T')[0],
+        billing_cycle_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+          .toISOString()
+          .split('T')[0],
       });
     }
 
-    // Create free subscription for new user
-    const subscription = await base44.asServiceRole.entities.Subscription.create({
-      user_id: user.id,
-      plan: 'free',
-      status: 'active',
-      billing_email: user.email,
-      billing_cycle_start: new Date().toISOString().split('T')[0],
-      billing_cycle_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
-        .toISOString()
-        .split('T')[0],
+    // Check if user already has statuses
+    const existingStatuses = await base44.asServiceRole.entities.TaskStatus.filter({
+      created_by: user.email,
     });
+
+    if (existingStatuses.length > 0) {
+      return Response.json({
+        success: true,
+        subscription,
+        message: 'User already initialized',
+      });
+    }
 
     // Create default task statuses for new user
     const defaultStatuses = [

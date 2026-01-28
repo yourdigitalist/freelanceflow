@@ -41,14 +41,16 @@ export default function ProjectStatusManagementDialog({
   useEffect(() => {
     if (open) {
       if (currentStatuses.length > 0) {
-        // Make a clean copy without preserving IDs (to ensure fresh creation)
-        setStatuses(currentStatuses.map(({ name, key, color, order, is_done }) => ({
-          name,
-          key,
-          color,
-          order,
-          is_done: is_done || false,
-          project_id: projectId
+        // Preserve IDs and ownership for proper update/create/delete logic
+        setStatuses(currentStatuses.map((s) => ({
+          id: s.id,                    // ✅ KEEP THE ID
+          name: s.name,
+          key: s.key,
+          color: s.color,
+          order: s.order,
+          is_done: s.is_done || false,
+          project_id: projectId,
+          created_by: s.created_by     // ✅ KEEP OWNERSHIP
         })));
       }
     }
@@ -103,17 +105,24 @@ export default function ProjectStatusManagementDialog({
   };
 
   const handleSave = async () => {
-    // Validate
     const hasEmpty = statuses.some(s => !s.name.trim() || !s.key.trim());
     if (hasEmpty) {
       toast.error('All statuses must have a name');
       return;
     }
-
+    if (statuses.length === 0) {
+      toast.error('You must have at least one status');
+      return;
+    }
     setIsSaving(true);
-    onOpenChange(false);
-    await onSave(statuses);
-    setIsSaving(false);
+    try {
+      await onSave(statuses);
+      onOpenChange(false);
+    } catch (error) {
+      toast.error(`Failed to save: ${error.message}`);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleSaveAsTemplate = () => {

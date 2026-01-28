@@ -191,52 +191,57 @@ export default function ProjectDetail() {
 
   const saveStatusesMutation = useMutation({
     mutationFn: async (statuses) => {
-      // Optimistically update the UI
-      queryClient.setQueryData(['taskStatuses'], (old) => {
-        const filteredOld = old.filter(s => s.project_id !== projectId);
-        const newStatuses = statuses.map((s, i) => ({
-          ...s,
-          id: `temp-${i}`,
-          project_id: projectId
-        }));
-        return [...filteredOld, ...newStatuses];
-      });
-      // Get old project statuses
-      const oldProjectStatuses = allTaskStatuses.filter(s => s.project_id === projectId);
+      // Get current user
+      const currentUser = await base44.auth.me();
       
-      // Create mapping from old key to old id
-      const oldStatusKeyToId = {};
-      oldProjectStatuses.forEach(s => {
-        oldStatusKeyToId[s.key] = s.id;
+      // Get ALL existing statuses for this user
+      const allExistingStatuses = await base44.entities.TaskStatus.filter({ 
+        created_by: currentUser.email 
       });
       
-      // Delete old project statuses
-      await Promise.all(oldProjectStatuses.map(s => base44.entities.TaskStatus.delete(s.id)));
+      // Filter to just this project's statuses
+      const existingProjectStatuses = allExistingStatuses.filter(
+        s => s.project_id === projectId
+      );
       
-      // Create new statuses
-      const newStatuses = statuses.map(({ id, ...rest }) => ({
-        ...rest,
-        project_id: projectId
-      }));
-      const createdStatuses = await Promise.all(newStatuses.map(s => base44.entities.TaskStatus.create(s)));
+      const existingIds = new Set(existingProjectStatuses.map(s => s.id));
+      const incomingIds = new Set(statuses.filter(s => s.id).map(s => s.id));
       
-      // Create mapping from new key to new id
-      const newStatusKeyToId = {};
-      createdStatuses.forEach(s => {
-        newStatusKeyToId[s.key] = s.id;
-      });
+      // 1. UPDATE existing statuses that are still present
+      const updatePromises = statuses
+        .filter(s => s.id && existingIds.has(s.id))
+        .map(s => {
+          const { id, ...data } = s;
+          return base44.entities.TaskStatus.update(id, {
+            ...data,
+            created_by: currentUser.email,
+            project_id: projectId
+          });
+        });
       
-      // Update tasks to use new status IDs based on matching keys
-      const tasksToUpdate = tasks.filter(t => oldProjectStatuses.some(os => os.id === t.status_id));
-      await Promise.all(tasksToUpdate.map(task => {
-        const oldStatus = oldProjectStatuses.find(os => os.id === task.status_id);
-        if (oldStatus && newStatusKeyToId[oldStatus.key]) {
-          return base44.entities.Task.update(task.id, { status_id: newStatusKeyToId[oldStatus.key] });
-        } else if (createdStatuses.length > 0) {
-          // Fallback to first status if key not found
-          return base44.entities.Task.update(task.id, { status_id: createdStatuses[0].id });
-        }
-      }));
+      // 2. CREATE new statuses (no ID or temp ID)
+      const createPromises = statuses
+        .filter(s => !s.id || !existingIds.has(s.id))
+        .map(s => {
+          const { id, ...data } = s; // Remove temp/undefined ID
+          return base44.entities.TaskStatus.create({
+            ...data,
+            created_by: currentUser.email,
+            project_id: projectId
+          });
+        });
+      
+      // 3. DELETE removed statuses
+      const deletePromises = existingProjectStatuses
+        .filter(s => !incomingIds.has(s.id))
+        .map(s => base44.entities.TaskStatus.delete(s.id));
+      
+      // Execute all operations in parallel
+      await Promise.all([
+        ...updatePromises,
+        ...createPromises,
+        ...deletePromises
+      ]);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['taskStatuses'] });
