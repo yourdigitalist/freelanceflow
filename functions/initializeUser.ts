@@ -52,8 +52,8 @@ Deno.serve(async (req) => {
       ];
 
       const createdStatuses = await Promise.all(
-        defaultStatuses.map(status =>
-          base44.asServiceRole.entities.TaskStatus.create({
+  defaultStatuses.map(status =>
+    base44.entities.TaskStatus.create({  
             ...status,
             created_by: user.email,
             project_id: null,
