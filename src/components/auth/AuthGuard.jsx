@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
 
 export default function AuthGuard({ children }) {
   const [isAuthenticated, setIsAuthenticated] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -11,12 +13,12 @@ export default function AuthGuard({ children }) {
       setIsAuthenticated(authenticated);
       
       if (!authenticated) {
-        window.location.href = createPageUrl('Landing');
+        navigate(createPageUrl('Landing'));
       }
     };
 
     checkAuth();
-  }, []);
+  }, [navigate]);
 
   // Show loading while checking authentication
   if (isAuthenticated === null) {

@@ -59,7 +59,7 @@ export default function SendEmailDialog({
     setSending(true);
     try {
       // Generate styled HTML email with invoice link
-      const invoiceViewUrl = invoice.public_url || `${window.location.origin}/#/PublicInvoice?token=${invoice.public_token}`;
+      const invoiceViewUrl = invoice.public_url || `${window.location.origin}/PublicInvoice?token=${invoice.public_token}`;
       
       const settings = await base44.entities.InvoiceSettings.list().then(list => list[0]);
       const businessName = settings?.business_name || 'Your Business';
