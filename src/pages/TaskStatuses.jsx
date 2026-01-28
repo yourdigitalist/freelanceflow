@@ -48,7 +48,7 @@ export default function TaskStatuses() {
   // Filter statuses by current user
   const { data: statuses = [] } = useQuery({
     queryKey: ['taskStatuses', user?.email],
-    queryFn: () => base44.entities.TaskStatus.filter({ created_by: user.email }, 'order'),
+    queryFn: () => base44.entities.TaskStatus.filter({ created_by: user?.email }, 'order'),
     enabled: !!user?.email,
   });
 

@@ -243,16 +243,22 @@ export default function ProjectDetail() {
       
       // 3. Reassign tasks from deleted statuses to first available status
       if (deletedStatusIds.size > 0) {
-        // Get first available status (prefer updated, then created)
-        const firstAvailableStatus = updatedStatuses[0] || createdStatuses[0];
+        // Find the best status to reassign tasks to
+        // Prefer: first non-done status, or first status if all are done
+        let targetStatus = updatedStatuses.find(s => !s.is_done) || createdStatuses.find(s => !s.is_done);
+        if (!targetStatus) {
+          targetStatus = updatedStatuses[0] || createdStatuses[0];
+        }
         
-        if (firstAvailableStatus && firstAvailableStatus.id) {
+        if (targetStatus && targetStatus.id) {
           const tasksToReassign = tasks.filter(t => deletedStatusIds.has(t.status_id));
-          await Promise.all(
-            tasksToReassign.map(task => 
-              base44.entities.Task.update(task.id, { status_id: firstAvailableStatus.id })
-            )
-          );
+          if (tasksToReassign.length > 0) {
+            await Promise.all(
+              tasksToReassign.map(task => 
+                base44.entities.Task.update(task.id, { status_id: targetStatus.id })
+              )
+            );
+          }
         }
       }
       
