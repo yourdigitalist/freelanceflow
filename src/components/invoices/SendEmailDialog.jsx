@@ -142,6 +142,14 @@ export default function SendEmailDialog({
         await base44.entities.Invoice.update(invoice.id, { status: 'sent' });
       }
 
+      // Track reminder sent
+      if (emailType === 'reminder') {
+        await base44.entities.Invoice.update(invoice.id, {
+          last_reminder_sent: new Date().toISOString(),
+          reminder_count: (invoice.reminder_count || 0) + 1
+        });
+      }
+
       toast.success(`Email sent to ${client.email}`);
       onOpenChange(false);
     } catch (error) {

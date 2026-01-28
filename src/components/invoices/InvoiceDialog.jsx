@@ -50,6 +50,7 @@ export default function InvoiceDialog({
     due_date: format(addDays(new Date(), 30), 'yyyy-MM-dd'),
     line_items: [{ description: '', quantity: 1, rate: 0, amount: 0 }],
     tax_rate: 0,
+    tax_name: '',
     notes: '',
     payment_terms: 'Payment due within 30 days.',
   });
@@ -64,6 +65,13 @@ export default function InvoiceDialog({
     },
   });
 
+  const { data: taxRates = [] } = useQuery({
+    queryKey: ['taxRates'],
+    queryFn: () => base44.entities.TaxRate.list(),
+  });
+
+  const [showEditWarning, setShowEditWarning] = useState(false);
+
   useEffect(() => {
     if (invoice) {
       setFormData({
@@ -75,11 +83,16 @@ export default function InvoiceDialog({
         due_date: invoice.due_date || format(addDays(new Date(), 30), 'yyyy-MM-dd'),
         line_items: invoice.line_items || [{ description: '', quantity: 1, rate: 0, amount: 0 }],
         tax_rate: invoice.tax_rate || 0,
+        tax_name: invoice.tax_name || '',
         notes: invoice.notes || '',
         payment_terms: invoice.payment_terms || 'Payment due within 30 days.',
       });
+      if (invoice.status === 'sent' && open) {
+        setShowEditWarning(true);
+      }
     } else {
       const nextNumber = `INV-${String(Date.now()).slice(-6)}`;
+      const defaultTax = taxRates.find(t => t.id === invoiceSettings?.default_tax_rate_id);
       setFormData({
         invoice_number: nextNumber,
         client_id: initialData?.client_id || '',
@@ -88,12 +101,14 @@ export default function InvoiceDialog({
         issue_date: format(new Date(), 'yyyy-MM-dd'),
         due_date: format(addDays(new Date(), 30), 'yyyy-MM-dd'),
         line_items: initialData?.line_items || [{ description: '', quantity: 1, rate: 0, amount: 0 }],
-        tax_rate: invoiceSettings?.default_tax_rate || 0,
+        tax_rate: defaultTax?.rate || 0,
+        tax_name: defaultTax?.name || '',
         notes: '',
         payment_terms: invoiceSettings?.default_payment_terms || 'Payment due within 30 days.',
       });
+      setShowEditWarning(false);
     }
-  }, [invoice, initialData, invoiceSettings, open]);
+  }, [invoice, initialData, invoiceSettings, taxRates, open]);
 
   const updateLineItem = (index, field, value) => {
     const newItems = [...formData.line_items];
@@ -372,16 +387,30 @@ export default function InvoiceDialog({
               <span className="font-medium">${subtotal.toFixed(2)}</span>
             </div>
             <div className="flex justify-between w-full max-w-xs items-center gap-2">
-              <span className="text-slate-600">Tax (%)</span>
-              <Input
-                type="number"
-                min="0"
-                max="100"
-                step="0.5"
-                className="w-20 text-right"
-                value={formData.tax_rate}
-                onChange={(e) => setFormData({ ...formData, tax_rate: parseFloat(e.target.value) || 0 })}
-              />
+              <span className="text-slate-600">Tax</span>
+              <Select
+                value={formData.tax_name}
+                onValueChange={(value) => {
+                  const selectedTax = taxRates.find(t => t.name === value);
+                  setFormData({
+                    ...formData,
+                    tax_rate: selectedTax?.rate || 0,
+                    tax_name: selectedTax?.name || ''
+                  });
+                }}
+              >
+                <SelectTrigger className="w-32">
+                  <SelectValue placeholder="No Tax" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={null}>No Tax</SelectItem>
+                  {taxRates.map((tax) => (
+                    <SelectItem key={tax.id} value={tax.name}>
+                      {tax.name} ({tax.rate}%)
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <span className="font-medium w-24 text-right">${taxAmount.toFixed(2)}</span>
             </div>
             <div className="flex justify-between w-full max-w-xs pt-2 border-t border-slate-200">
@@ -423,6 +452,23 @@ export default function InvoiceDialog({
           </div>
         </form>
       </DialogContent>
+
+      {/* Edit Warning Dialog */}
+      <AlertDialog open={showEditWarning} onOpenChange={setShowEditWarning}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Warning: Invoice Already Sent</AlertDialogTitle>
+            <AlertDialogDescription>
+              This invoice has already been sent to the client. Any changes you make will not be reflected in the version they received unless you send it again.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setShowEditWarning(false)}>
+              I Understand
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Import Mode Dialog */}
       <AlertDialog open={importMode === 'prompt'} onOpenChange={() => setImportMode(null)}>

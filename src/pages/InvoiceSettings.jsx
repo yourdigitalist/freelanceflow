@@ -1,17 +1,30 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
+import { useNavigate } from 'react-router-dom';
+import { createPageUrl } from '../utils';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Settings, Upload, Loader2 } from 'lucide-react';
+import { Settings, Upload, Loader2, Plus, Trash2, Edit, ExternalLink } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import PageHeader from '../components/shared/PageHeader';
 import { toast } from 'sonner';
 
 export default function InvoiceSettings() {
+  const navigate = useNavigate();
   const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [taxDialogOpen, setTaxDialogOpen] = useState(false);
+  const [editingTax, setEditingTax] = useState(null);
+  const [taxFormData, setTaxFormData] = useState({ name: '', rate: 0 });
   const queryClient = useQueryClient();
 
   const { data: user } = useQuery({
@@ -37,19 +50,19 @@ export default function InvoiceSettings() {
     },
   });
 
+  const { data: taxRates = [] } = useQuery({
+    queryKey: ['taxRates'],
+    queryFn: () => base44.entities.TaxRate.list(),
+  });
+
   const [formData, setFormData] = useState({
-    business_name: '',
-    business_logo: '',
-    business_address: '',
-    business_email: '',
-    business_phone: '',
     invoice_footer: '',
     default_payment_terms: 'Payment due within 30 days.',
-    default_tax_rate: 0,
-    default_invoice_email_subject: '',
-    default_invoice_email_body: '',
-    default_reminder_email_subject: '',
-    default_reminder_email_body: '',
+    default_tax_rate_id: '',
+    default_invoice_email_subject: 'Invoice [Invoice Number] from [Business Name]',
+    default_invoice_email_body: 'Hi [Client Name],\n\nHere is your invoice for [Project Name]. Please let us know if you have any questions.\n\nThanks,\n[Business Name]',
+    default_reminder_email_subject: 'Reminder: Invoice [Invoice Number] Due Soon',
+    default_reminder_email_body: 'Hi [Client Name],\n\nThis is a friendly reminder that invoice [Invoice Number] for [Project Name] is due on [Due Date].\n\nPlease let us know if you have any questions.\n\nThanks,\n[Business Name]',
     enable_reminders: false,
     reminder_days_before_due: 7,
   });
@@ -102,6 +115,45 @@ export default function InvoiceSettings() {
     }
   };
 
+  const createTaxMutation = useMutation({
+    mutationFn: (data) => base44.entities.TaxRate.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['taxRates'] });
+      setTaxDialogOpen(false);
+      setEditingTax(null);
+      setTaxFormData({ name: '', rate: 0 });
+      toast.success('Tax rate saved');
+    },
+  });
+
+  const updateTaxMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.TaxRate.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['taxRates'] });
+      setTaxDialogOpen(false);
+      setEditingTax(null);
+      setTaxFormData({ name: '', rate: 0 });
+      toast.success('Tax rate updated');
+    },
+  });
+
+  const deleteTaxMutation = useMutation({
+    mutationFn: (id) => base44.entities.TaxRate.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['taxRates'] });
+      toast.success('Tax rate deleted');
+    },
+  });
+
+  const handleTaxSubmit = (e) => {
+    e.preventDefault();
+    if (editingTax) {
+      updateTaxMutation.mutate({ id: editingTax.id, data: taxFormData });
+    } else {
+      createTaxMutation.mutate(taxFormData);
+    }
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     saveMutation.mutate(formData);
@@ -128,7 +180,18 @@ export default function InvoiceSettings() {
       <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-slate-200/60 p-6 space-y-6">
         {/* Business Information - Read Only from Company Settings */}
         <div>
-          <h3 className="text-lg font-semibold text-slate-900 mb-2">Business Information</h3>
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-lg font-semibold text-slate-900">Business Information</h3>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => navigate(createPageUrl('CompanySettings'))}
+            >
+              <Edit className="w-4 h-4 mr-2" />
+              Edit Company Info
+            </Button>
+          </div>
           <p className="text-sm text-slate-500 mb-4">This information is pulled from your Company Settings and will appear on invoices.</p>
           <div className="bg-slate-50 rounded-lg p-4 space-y-3">
             {businessInfo.business_logo && (
@@ -175,17 +238,72 @@ export default function InvoiceSettings() {
             </div>
 
             <div>
-              <Label htmlFor="default_tax_rate">Default Tax Rate (%)</Label>
-              <Input
-                id="default_tax_rate"
-                type="number"
-                min="0"
-                max="100"
-                step="0.5"
-                value={formData.default_tax_rate}
-                onChange={(e) => setFormData({ ...formData, default_tax_rate: parseFloat(e.target.value) || 0 })}
-                placeholder="0"
-              />
+              <Label htmlFor="default_tax_rate">Tax Rates</Label>
+              <div className="space-y-3 mt-2">
+                {taxRates.map((tax) => (
+                  <div key={tax.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                    <div>
+                      <p className="font-medium text-slate-900">{tax.name}</p>
+                      <p className="text-sm text-slate-600">{tax.rate}%</p>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setEditingTax(tax);
+                          setTaxFormData({ name: tax.name, rate: tax.rate });
+                          setTaxDialogOpen(true);
+                        }}
+                      >
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => deleteTaxMutation.mutate(tax.id)}
+                      >
+                        <Trash2 className="w-4 h-4 text-red-500" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setEditingTax(null);
+                    setTaxFormData({ name: '', rate: 0 });
+                    setTaxDialogOpen(true);
+                  }}
+                  className="w-full"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Tax Rate
+                </Button>
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="default_tax">Default Tax</Label>
+              <Select
+                value={formData.default_tax_rate_id || ''}
+                onValueChange={(value) => setFormData({ ...formData, default_tax_rate_id: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select default tax" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={null}>No Tax</SelectItem>
+                  {taxRates.map((tax) => (
+                    <SelectItem key={tax.id} value={tax.id}>
+                      {tax.name} ({tax.rate}%)
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div>
@@ -296,6 +414,48 @@ Thanks,
           </Button>
         </div>
       </form>
+
+      {/* Tax Rate Dialog */}
+      <Dialog open={taxDialogOpen} onOpenChange={setTaxDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{editingTax ? 'Edit Tax Rate' : 'Add Tax Rate'}</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleTaxSubmit} className="space-y-4">
+            <div>
+              <Label htmlFor="tax_name">Tax Name</Label>
+              <Input
+                id="tax_name"
+                value={taxFormData.name}
+                onChange={(e) => setTaxFormData({ ...taxFormData, name: e.target.value })}
+                placeholder="e.g., VAT, GST, Sales Tax"
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="tax_rate">Rate (%)</Label>
+              <Input
+                id="tax_rate"
+                type="number"
+                min="0"
+                max="100"
+                step="0.5"
+                value={taxFormData.rate}
+                onChange={(e) => setTaxFormData({ ...taxFormData, rate: parseFloat(e.target.value) || 0 })}
+                required
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button type="button" variant="outline" onClick={() => setTaxDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" className="bg-emerald-600 hover:bg-emerald-700">
+                {editingTax ? 'Update' : 'Add'} Tax Rate
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

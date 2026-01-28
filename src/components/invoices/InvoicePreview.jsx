@@ -26,6 +26,21 @@ export default function InvoicePreview({ open, onOpenChange, invoice, client, pr
   const [sendEmailDialogOpen, setSendEmailDialogOpen] = useState(false);
   const [emailType, setEmailType] = useState('invoice');
   
+  const { data: user } = useQuery({
+    queryKey: ['currentUser'],
+    queryFn: () => base44.auth.me(),
+  });
+
+  const { data: companyProfile } = useQuery({
+    queryKey: ['companyProfile', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      const profiles = await base44.entities.CompanyProfile.filter({ user_id: user.id });
+      return profiles[0] || null;
+    },
+    enabled: !!user?.id,
+  });
+
   const { data: invoiceSettings } = useQuery({
     queryKey: ['invoiceSettings'],
     queryFn: async () => {
@@ -33,6 +48,20 @@ export default function InvoicePreview({ open, onOpenChange, invoice, client, pr
       return list[0] || null;
     },
   });
+
+  const businessInfo = {
+    business_name: companyProfile?.company_name || '',
+    business_logo: companyProfile?.logo_url || '',
+    business_address: [
+      companyProfile?.street,
+      companyProfile?.street2,
+      [companyProfile?.city, companyProfile?.state, companyProfile?.zip].filter(Boolean).join(', '),
+      companyProfile?.country
+    ].filter(Boolean).join('\n'),
+    business_email: companyProfile?.email || '',
+    business_phone: companyProfile?.phone ? 
+      (companyProfile.phone_country_code ? `${companyProfile.phone_country_code} ${companyProfile.phone}` : companyProfile.phone) : '',
+  };
 
   if (!invoice) return null;
 
@@ -100,11 +129,19 @@ export default function InvoicePreview({ open, onOpenChange, invoice, client, pr
                     <Mail className="w-4 h-4 mr-2" />
                     Send Invoice
                   </Button>
-                  {invoice.status === 'sent' && (
-                    <Button variant="outline" size="sm" onClick={handleSendReminder}>
-                      <Mail className="w-4 h-4 mr-2" />
-                      Send Reminder
-                    </Button>
+                  {(invoice.status === 'sent' || invoice.status === 'overdue') && (
+                    <div className="relative group">
+                      <Button variant="outline" size="sm" onClick={handleSendReminder}>
+                        <Mail className="w-4 h-4 mr-2" />
+                        Send Reminder
+                      </Button>
+                      {invoice.last_reminder_sent && (
+                        <div className="absolute hidden group-hover:block top-full mt-1 right-0 bg-slate-900 text-white text-xs rounded px-2 py-1 whitespace-nowrap z-10">
+                          Last sent: {new Date(invoice.last_reminder_sent).toLocaleDateString()}
+                          {invoice.reminder_count > 0 && ` (${invoice.reminder_count} total)`}
+                        </div>
+                      )}
+                    </div>
                   )}
                 </>
               )}
@@ -116,24 +153,24 @@ export default function InvoicePreview({ open, onOpenChange, invoice, client, pr
           {/* Header */}
           <div className="flex justify-between items-start mb-8">
             <div>
-              {invoiceSettings?.business_logo && (
+              {businessInfo.business_logo && (
                 <img 
-                  src={invoiceSettings.business_logo} 
+                  src={businessInfo.business_logo} 
                   alt="Business logo" 
                   className="h-12 mb-3 object-contain"
                 />
               )}
-              {invoiceSettings?.business_name && (
-                <h2 className="text-lg font-semibold text-slate-900 mb-1">{invoiceSettings.business_name}</h2>
+              {businessInfo.business_name && (
+                <h2 className="text-lg font-semibold text-slate-900 mb-1">{businessInfo.business_name}</h2>
               )}
-              {invoiceSettings?.business_address && (
-                <p className="text-sm text-slate-600 whitespace-pre-line mb-2">{invoiceSettings.business_address}</p>
+              {businessInfo.business_address && (
+                <p className="text-sm text-slate-600 whitespace-pre-line mb-2">{businessInfo.business_address}</p>
               )}
-              {(invoiceSettings?.business_email || invoiceSettings?.business_phone) && (
+              {(businessInfo.business_email || businessInfo.business_phone) && (
                 <p className="text-sm text-slate-600">
-                  {invoiceSettings.business_email}
-                  {invoiceSettings.business_email && invoiceSettings.business_phone && ' | '}
-                  {invoiceSettings.business_phone}
+                  {businessInfo.business_email}
+                  {businessInfo.business_email && businessInfo.business_phone && ' | '}
+                  {businessInfo.business_phone}
                 </p>
               )}
             </div>
@@ -211,7 +248,7 @@ export default function InvoicePreview({ open, onOpenChange, invoice, client, pr
               </div>
               {invoice.tax_rate > 0 && (
                 <div className="flex justify-between py-2">
-                  <span className="text-slate-600">Tax ({invoice.tax_rate}%)</span>
+                  <span className="text-slate-600">{invoice.tax_name || 'Tax'} ({invoice.tax_rate}%)</span>
                   <span className="font-medium text-slate-900">${invoice.tax_amount?.toFixed(2)}</span>
                 </div>
               )}
