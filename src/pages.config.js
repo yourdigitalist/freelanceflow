@@ -91,4 +91,5 @@ export const pagesConfig = {
     mainPage: "BillingSettings",
     Pages: PAGES,
     Layout: __Layout,
+    publicPages: ["Landing", "PublicInvoiceView", "PublicReviewView"],
 };
