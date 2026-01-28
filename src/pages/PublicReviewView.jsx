@@ -1,53 +1,74 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { Download, FileText, Send, Check, X, MessageCircle } from 'lucide-react';
+import { Download, FileText, Send, Check, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
 export default function PublicReviewView() {
-  // Get token from URL - handle both hash and query approaches
-  const url = new URL(window.location.href);
-  let token = url.searchParams.get('token');
-  if (!token) {
-    const hashParams = new URLSearchParams(window.location.hash.split('?')[1]);
-    token = hashParams.get('token');
-  }
-  
+  const [reviewData, setReviewData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [comment, setComment] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [visitorName, setVisitorName] = useState('');
   const [visitorEmail, setVisitorEmail] = useState('');
-  const queryClient = useQueryClient();
 
-  const { data: reviewData, isLoading, error } = useQuery({
-    queryKey: ['publicReview', token],
-    queryFn: async () => {
-      if (!token) return null;
+  useEffect(() => {
+    const loadReview = async () => {
       try {
-        const response = await fetch(`${import.meta.env.VITE_BASE44_FUNCTIONS_URL}/getReviewByShareToken`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ token }),
-        });
-        if (!response.ok) throw new Error('Failed to fetch review');
-        return await response.json();
+        const searchParams = new URLSearchParams(window.location.search);
+        let token = searchParams.get('token');
+        
+        if (!token) {
+          const hashParams = new URLSearchParams(window.location.hash.split('?')[1]);
+          token = hashParams.get('token');
+        }
+
+        if (!token) {
+          setError('Invalid review link');
+          setLoading(false);
+          return;
+        }
+
+        const response = await base44.functions.invoke('getReviewByShareToken', { token });
+        setReviewData(response.data);
+        setLoading(false);
       } catch (err) {
-        console.error('Failed to load review:', err);
-        return null;
+        setError(err.response?.data?.error || 'Review not found');
+        setLoading(false);
       }
-    },
-    enabled: !!token,
-  });
+    };
+
+    loadReview();
+  }, []);
 
   const review = reviewData?.review;
   const client = reviewData?.client;
   const project = reviewData?.project;
+
+  const reloadReview = async () => {
+    try {
+      const searchParams = new URLSearchParams(window.location.search);
+      let token = searchParams.get('token');
+      
+      if (!token) {
+        const hashParams = new URLSearchParams(window.location.hash.split('?')[1]);
+        token = hashParams.get('token');
+      }
+
+      if (token) {
+        const response = await base44.functions.invoke('getReviewByShareToken', { token });
+        setReviewData(response.data);
+      }
+    } catch (err) {
+      console.error('Failed to reload review:', err);
+    }
+  };
 
   const handleAddComment = async () => {
     if (!comment.trim() || !visitorName.trim() || !visitorEmail.trim()) {
@@ -67,15 +88,14 @@ export default function PublicReviewView() {
 
       const updatedComments = [...(review.comments || []), newComment];
 
-      await fetch(`${import.meta.env.VITE_BASE44_FUNCTIONS_URL}/updateReviewComment`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reviewId: review.id, comments: updatedComments }),
+      await base44.functions.invoke('updateReviewComment', {
+        reviewId: review.id,
+        comments: updatedComments,
       });
 
       setComment('');
       toast.success('Comment added');
-      queryClient.invalidateQueries({ queryKey: ['publicReview', token] });
+      await reloadReview();
     } catch (error) {
       toast.error('Failed to add comment');
     } finally {
@@ -85,13 +105,12 @@ export default function PublicReviewView() {
 
   const handleApprove = async () => {
     try {
-      await fetch(`${import.meta.env.VITE_BASE44_FUNCTIONS_URL}/updateReviewStatus`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reviewId: review.id, status: 'approved' }),
+      await base44.functions.invoke('updateReviewStatus', {
+        reviewId: review.id,
+        status: 'approved',
       });
       toast.success('Document approved');
-      queryClient.invalidateQueries({ queryKey: ['publicReview', token] });
+      await reloadReview();
     } catch (error) {
       toast.error('Failed to approve');
     }
@@ -99,36 +118,37 @@ export default function PublicReviewView() {
 
   const handleReject = async () => {
     try {
-      await fetch(`${import.meta.env.VITE_BASE44_FUNCTIONS_URL}/updateReviewStatus`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reviewId: review.id, status: 'rejected' }),
+      await base44.functions.invoke('updateReviewStatus', {
+        reviewId: review.id,
+        status: 'rejected',
       });
       toast.success('Document rejected');
-      queryClient.invalidateQueries({ queryKey: ['publicReview', token] });
+      await reloadReview();
     } catch (error) {
       toast.error('Failed to reject');
     }
   };
 
-  if (isLoading) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
-        <div className="text-slate-600">Loading review...</div>
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-emerald-500 border-t-transparent"></div>
       </div>
     );
   }
 
-  if (!review || error) {
+  if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
-        <Card className="p-8 text-center max-w-md">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
+        <div className="text-center">
           <h1 className="text-2xl font-bold text-slate-900 mb-2">Review Not Found</h1>
-          <p className="text-slate-600">This review request is no longer available or the link is invalid.</p>
-        </Card>
+          <p className="text-slate-600">{error}</p>
+        </div>
       </div>
     );
   }
+
+  if (!reviewData || !review) return null;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-8 px-4">
