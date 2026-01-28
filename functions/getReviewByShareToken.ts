@@ -44,6 +44,7 @@ Deno.serve(async (req) => {
         status: review.status,
         due_date: review.due_date,
         comments: review.comments || [],
+        file_comments: review.file_comments || [],
         version: review.version || 1,
         created_date: review.created_date,
       },
@@ -51,6 +52,7 @@ Deno.serve(async (req) => {
         first_name: client.first_name,
         last_name: client.last_name,
         company: client.company,
+        email: client.email,
       } : null,
       project: project ? {
         name: project.name,

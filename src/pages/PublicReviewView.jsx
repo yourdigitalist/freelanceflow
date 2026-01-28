@@ -4,19 +4,25 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { Download, FileText, Send, Check, X } from 'lucide-react';
+import { Download, FileText, Send, Check, X, Eye, MessageCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import ImageViewer from '../components/reviews/ImageViewer';
 
 export default function PublicReviewView() {
   const [reviewData, setReviewData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [comment, setComment] = useState('');
+  const [generalComment, setGeneralComment] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [viewerOpen, setViewerOpen] = useState(false);
+  const [selectedFileIndex, setSelectedFileIndex] = useState(0);
+  
+  // Visitor info - pre-filled from client data
   const [visitorName, setVisitorName] = useState('');
   const [visitorEmail, setVisitorEmail] = useState('');
+  const [visitorInfoSaved, setVisitorInfoSaved] = useState(false);
 
   useEffect(() => {
     const loadReview = async () => {
@@ -37,6 +43,26 @@ export default function PublicReviewView() {
 
         const response = await base44.functions.invoke('getReviewByShareToken', { token });
         setReviewData(response.data);
+        
+        // Pre-fill visitor info from client data
+        const client = response.data?.client;
+        if (client) {
+          const fullName = [client.first_name, client.last_name].filter(Boolean).join(' ');
+          setVisitorName(fullName);
+          setVisitorEmail(client.email || '');
+          
+          // Check if visitor info was already saved in localStorage
+          const savedName = localStorage.getItem('reviewVisitorName');
+          const savedEmail = localStorage.getItem('reviewVisitorEmail');
+          if (savedName && savedEmail) {
+            setVisitorName(savedName);
+            setVisitorEmail(savedEmail);
+            setVisitorInfoSaved(true);
+          } else if (fullName && client.email) {
+            setVisitorInfoSaved(true);
+          }
+        }
+        
         setLoading(false);
       } catch (err) {
         setError(err.response?.data?.error || 'Review not found');
@@ -70,9 +96,57 @@ export default function PublicReviewView() {
     }
   };
 
-  const handleAddComment = async () => {
-    if (!comment.trim() || !visitorName.trim() || !visitorEmail.trim()) {
-      toast.error('Please fill in all fields');
+  const saveVisitorInfo = () => {
+    if (!visitorName.trim() || !visitorEmail.trim()) {
+      toast.error('Please enter your name and email');
+      return;
+    }
+    localStorage.setItem('reviewVisitorName', visitorName);
+    localStorage.setItem('reviewVisitorEmail', visitorEmail);
+    setVisitorInfoSaved(true);
+    toast.success('Info saved! You can now add comments');
+  };
+
+  const handleAddFileComment = async (commentData) => {
+    if (!visitorInfoSaved) {
+      toast.error('Please save your info first');
+      return;
+    }
+
+    try {
+      const newComment = {
+        id: Date.now().toString(),
+        author: visitorName,
+        author_email: visitorEmail,
+        text: commentData.text,
+        file_index: commentData.file_index,
+        coordinates: commentData.coordinates,
+        created_at: new Date().toISOString(),
+        resolved: false,
+      };
+
+      const updatedFileComments = [...(review.file_comments || []), newComment];
+
+      await base44.functions.invoke('updateReviewFileComments', {
+        reviewId: review.id,
+        fileComments: updatedFileComments,
+      });
+
+      toast.success('Comment added');
+      await reloadReview();
+    } catch (error) {
+      toast.error('Failed to add comment');
+    }
+  };
+
+  const handleAddGeneralComment = async () => {
+    if (!generalComment.trim()) {
+      toast.error('Please enter a comment');
+      return;
+    }
+
+    if (!visitorInfoSaved) {
+      toast.error('Please save your info first');
       return;
     }
 
@@ -82,7 +156,7 @@ export default function PublicReviewView() {
         id: Date.now().toString(),
         author: visitorName,
         author_email: visitorEmail,
-        text: comment,
+        text: generalComment,
         created_at: new Date().toISOString(),
       };
 
@@ -93,7 +167,7 @@ export default function PublicReviewView() {
         comments: updatedComments,
       });
 
-      setComment('');
+      setGeneralComment('');
       toast.success('Comment added');
       await reloadReview();
     } catch (error) {
@@ -129,6 +203,15 @@ export default function PublicReviewView() {
     }
   };
 
+  const openViewer = (index) => {
+    if (!visitorInfoSaved) {
+      toast.error('Please save your info before reviewing files');
+      return;
+    }
+    setSelectedFileIndex(index);
+    setViewerOpen(true);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
@@ -149,6 +232,9 @@ export default function PublicReviewView() {
   }
 
   if (!reviewData || !review) return null;
+
+  const allFileComments = review.file_comments || [];
+  const generalComments = review.comments || [];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-8 px-4">
@@ -183,43 +269,119 @@ export default function PublicReviewView() {
           </div>
         </div>
 
+        {/* Visitor Info */}
+        {!visitorInfoSaved && (
+          <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-6 mb-6">
+            <h3 className="font-semibold text-slate-900 mb-4">👤 Who's reviewing?</h3>
+            <p className="text-sm text-slate-600 mb-4">
+              Enter your info once to start adding comments to files
+            </p>
+            <div className="grid sm:grid-cols-2 gap-3 mb-4">
+              <Input
+                placeholder="Your name *"
+                value={visitorName}
+                onChange={(e) => setVisitorName(e.target.value)}
+              />
+              <Input
+                type="email"
+                placeholder="Your email *"
+                value={visitorEmail}
+                onChange={(e) => setVisitorEmail(e.target.value)}
+              />
+            </div>
+            <Button
+              onClick={saveVisitorInfo}
+              className="bg-emerald-600 hover:bg-emerald-700"
+            >
+              Save & Continue
+            </Button>
+          </div>
+        )}
+
+        {visitorInfoSaved && (
+          <div className="bg-white border border-emerald-200 rounded-lg p-3 mb-6 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Check className="w-4 h-4 text-emerald-600" />
+              <span className="text-sm text-slate-700">
+                Reviewing as <strong>{visitorName}</strong> ({visitorEmail})
+              </span>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setVisitorInfoSaved(false)}
+              className="text-slate-500 hover:text-slate-700"
+            >
+              Change
+            </Button>
+          </div>
+        )}
+
         {/* Files */}
         {review.file_urls?.length > 0 && (
           <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-6">
             <h2 className="text-lg font-semibold text-slate-900 mb-4">Files for Review</h2>
             <div className="space-y-2">
-              {review.file_urls.map((file, idx) => (
-                <a
-                  key={idx}
-                  href={file.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-3 p-4 border border-slate-200 rounded-lg hover:border-emerald-300 hover:bg-emerald-50 transition-colors"
-                >
-                  <FileText className="w-5 h-5 text-slate-400" />
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-slate-900 truncate">{file.filename}</p>
-                    <p className="text-xs text-slate-500">
-                      {format(new Date(file.uploaded_date), 'MMM d, yyyy')}
-                    </p>
+              {review.file_urls.map((file, idx) => {
+                const fileCommentsCount = allFileComments.filter(c => c.file_index === idx).length;
+                return (
+                  <div
+                    key={idx}
+                    className="flex items-center gap-3 p-4 border border-slate-200 rounded-lg hover:border-emerald-300 hover:bg-emerald-50 transition-colors group"
+                  >
+                    <FileText className="w-5 h-5 text-slate-400 group-hover:text-emerald-600" />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-slate-900 truncate">{file.filename}</p>
+                      <div className="flex items-center gap-3 mt-1">
+                        <p className="text-xs text-slate-500">
+                          {format(new Date(file.uploaded_date), 'MMM d, yyyy')}
+                        </p>
+                        {fileCommentsCount > 0 && (
+                          <div className="flex items-center gap-1 text-xs text-blue-600">
+                            <MessageCircle className="w-3 h-3" />
+                            <span>{fileCommentsCount} comment{fileCommentsCount !== 1 ? 's' : ''}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => openViewer(idx)}
+                        className="group-hover:border-emerald-600 group-hover:text-emerald-600"
+                      >
+                        <Eye className="w-4 h-4 mr-1" />
+                        Review
+                      </Button>
+                      <a
+                        href={file.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        download
+                      >
+                        <Button variant="ghost" size="sm">
+                          <Download className="w-4 h-4" />
+                        </Button>
+                      </a>
+                    </div>
                   </div>
-                  <Download className="w-4 h-4 text-slate-400" />
-                </a>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}
 
-        {/* Comments Section */}
+        {/* General Comments Section */}
         <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-6">
           <h2 className="text-lg font-semibold text-slate-900 mb-4">
-            Comments ({review.comments?.length || 0})
+            General Comments ({generalComments.length})
           </h2>
 
-          {/* Existing Comments */}
-          {review.comments?.length > 0 && (
+          {/* Existing General Comments */}
+          {generalComments.length > 0 && (
             <div className="space-y-3 mb-6">
-              {review.comments.map((c) => (
+              {generalComments.map((c) => (
                 <div key={c.id} className="bg-slate-50 rounded-lg p-4 border border-slate-200">
                   <div className="flex items-start justify-between mb-2">
                     <div>
@@ -236,58 +398,64 @@ export default function PublicReviewView() {
             </div>
           )}
 
-          {/* Add Comment Form */}
-          <div className="border-t border-slate-200 pt-4">
-            <h3 className="font-medium text-slate-900 mb-4">Add Your Feedback</h3>
-            <div className="space-y-3">
-              <Input
-                placeholder="Your name *"
-                value={visitorName}
-                onChange={(e) => setVisitorName(e.target.value)}
-              />
-              <Input
-                type="email"
-                placeholder="Your email *"
-                value={visitorEmail}
-                onChange={(e) => setVisitorEmail(e.target.value)}
-              />
-              <Textarea
-                placeholder="Your comment or feedback *"
-                value={comment}
-                onChange={(e) => setComment(e.target.value)}
-                rows={4}
-              />
-              <Button
-                onClick={handleAddComment}
-                disabled={submitting}
-                className="bg-emerald-600 hover:bg-emerald-700 w-full"
-              >
-                <Send className="w-4 h-4 mr-2" />
-                {submitting ? 'Sending...' : 'Add Comment'}
-              </Button>
+          {/* Add General Comment Form */}
+          {visitorInfoSaved && (
+            <div className="border-t border-slate-200 pt-4">
+              <h3 className="font-medium text-slate-900 mb-4">Add Overall Feedback</h3>
+              <div className="space-y-3">
+                <Textarea
+                  placeholder="Share your overall thoughts about this review..."
+                  value={generalComment}
+                  onChange={(e) => setGeneralComment(e.target.value)}
+                  rows={4}
+                />
+                <Button
+                  onClick={handleAddGeneralComment}
+                  disabled={submitting || !generalComment.trim()}
+                  className="bg-emerald-600 hover:bg-emerald-700 w-full"
+                >
+                  <Send className="w-4 h-4 mr-2" />
+                  {submitting ? 'Sending...' : 'Add General Comment'}
+                </Button>
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Actions */}
-        <div className="flex gap-3">
-          <Button
-            onClick={handleApprove}
-            className="flex-1 bg-green-600 hover:bg-green-700"
-          >
-            <Check className="w-4 h-4 mr-2" />
-            Approve
-          </Button>
-          <Button
-            onClick={handleReject}
-            variant="outline"
-            className="flex-1 text-red-600 hover:text-red-700 hover:bg-red-50"
-          >
-            <X className="w-4 h-4 mr-2" />
-            Reject
-          </Button>
-        </div>
+        {visitorInfoSaved && (
+          <div className="flex gap-3">
+            <Button
+              onClick={handleApprove}
+              className="flex-1 bg-green-600 hover:bg-green-700"
+            >
+              <Check className="w-4 h-4 mr-2" />
+              Approve
+            </Button>
+            <Button
+              onClick={handleReject}
+              variant="outline"
+              className="flex-1 text-red-600 hover:text-red-700 hover:bg-red-50 hover:border-red-600"
+            >
+              <X className="w-4 h-4 mr-2" />
+              Reject
+            </Button>
+          </div>
+        )}
       </div>
+
+      {/* Image Viewer Modal */}
+      {viewerOpen && (
+        <ImageViewer
+          files={review.file_urls}
+          initialIndex={selectedFileIndex}
+          onClose={() => setViewerOpen(false)}
+          comments={allFileComments}
+          onAddComment={handleAddFileComment}
+          visitorName={visitorName}
+          visitorEmail={visitorEmail}
+        />
+      )}
     </div>
   );
 }
