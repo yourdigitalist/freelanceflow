@@ -357,8 +357,9 @@ export default function InvoiceSettings() {
                     <DropdownMenuItem onClick={() => {
                       const textarea = document.getElementById('default_invoice_email_body');
                       const cursorPos = textarea.selectionStart;
-                      const textBefore = formData.default_invoice_email_body.substring(0, cursorPos);
-                      const textAfter = formData.default_invoice_email_body.substring(cursorPos);
+                      const currentText = formData.default_invoice_email_body || '';
+                      const textBefore = currentText.substring(0, cursorPos);
+                      const textAfter = currentText.substring(cursorPos);
                       setFormData({ ...formData, default_invoice_email_body: textBefore + '[Client Name]' + textAfter });
                     }}>
                       [Client Name]
@@ -366,8 +367,9 @@ export default function InvoiceSettings() {
                     <DropdownMenuItem onClick={() => {
                       const textarea = document.getElementById('default_invoice_email_body');
                       const cursorPos = textarea.selectionStart;
-                      const textBefore = formData.default_invoice_email_body.substring(0, cursorPos);
-                      const textAfter = formData.default_invoice_email_body.substring(cursorPos);
+                      const currentText = formData.default_invoice_email_body || '';
+                      const textBefore = currentText.substring(0, cursorPos);
+                      const textAfter = currentText.substring(cursorPos);
                       setFormData({ ...formData, default_invoice_email_body: textBefore + '[Invoice Number]' + textAfter });
                     }}>
                       [Invoice Number]
@@ -375,8 +377,9 @@ export default function InvoiceSettings() {
                     <DropdownMenuItem onClick={() => {
                       const textarea = document.getElementById('default_invoice_email_body');
                       const cursorPos = textarea.selectionStart;
-                      const textBefore = formData.default_invoice_email_body.substring(0, cursorPos);
-                      const textAfter = formData.default_invoice_email_body.substring(cursorPos);
+                      const currentText = formData.default_invoice_email_body || '';
+                      const textBefore = currentText.substring(0, cursorPos);
+                      const textAfter = currentText.substring(cursorPos);
                       setFormData({ ...formData, default_invoice_email_body: textBefore + '[Project Name]' + textAfter });
                     }}>
                       [Project Name]
@@ -384,8 +387,9 @@ export default function InvoiceSettings() {
                     <DropdownMenuItem onClick={() => {
                       const textarea = document.getElementById('default_invoice_email_body');
                       const cursorPos = textarea.selectionStart;
-                      const textBefore = formData.default_invoice_email_body.substring(0, cursorPos);
-                      const textAfter = formData.default_invoice_email_body.substring(cursorPos);
+                      const currentText = formData.default_invoice_email_body || '';
+                      const textBefore = currentText.substring(0, cursorPos);
+                      const textAfter = currentText.substring(cursorPos);
                       setFormData({ ...formData, default_invoice_email_body: textBefore + '[Due Date]' + textAfter });
                     }}>
                       [Due Date]
@@ -393,8 +397,9 @@ export default function InvoiceSettings() {
                     <DropdownMenuItem onClick={() => {
                       const textarea = document.getElementById('default_invoice_email_body');
                       const cursorPos = textarea.selectionStart;
-                      const textBefore = formData.default_invoice_email_body.substring(0, cursorPos);
-                      const textAfter = formData.default_invoice_email_body.substring(cursorPos);
+                      const currentText = formData.default_invoice_email_body || '';
+                      const textBefore = currentText.substring(0, cursorPos);
+                      const textAfter = currentText.substring(cursorPos);
                       setFormData({ ...formData, default_invoice_email_body: textBefore + '[Business Name]' + textAfter });
                     }}>
                       [Business Name]
@@ -434,8 +439,9 @@ export default function InvoiceSettings() {
                     <DropdownMenuItem onClick={() => {
                       const textarea = document.getElementById('default_reminder_email_body');
                       const cursorPos = textarea.selectionStart;
-                      const textBefore = formData.default_reminder_email_body.substring(0, cursorPos);
-                      const textAfter = formData.default_reminder_email_body.substring(cursorPos);
+                      const currentText = formData.default_reminder_email_body || '';
+                      const textBefore = currentText.substring(0, cursorPos);
+                      const textAfter = currentText.substring(cursorPos);
                       setFormData({ ...formData, default_reminder_email_body: textBefore + '[Client Name]' + textAfter });
                     }}>
                       [Client Name]
@@ -443,8 +449,9 @@ export default function InvoiceSettings() {
                     <DropdownMenuItem onClick={() => {
                       const textarea = document.getElementById('default_reminder_email_body');
                       const cursorPos = textarea.selectionStart;
-                      const textBefore = formData.default_reminder_email_body.substring(0, cursorPos);
-                      const textAfter = formData.default_reminder_email_body.substring(cursorPos);
+                      const currentText = formData.default_reminder_email_body || '';
+                      const textBefore = currentText.substring(0, cursorPos);
+                      const textAfter = currentText.substring(cursorPos);
                       setFormData({ ...formData, default_reminder_email_body: textBefore + '[Invoice Number]' + textAfter });
                     }}>
                       [Invoice Number]
@@ -452,8 +459,9 @@ export default function InvoiceSettings() {
                     <DropdownMenuItem onClick={() => {
                       const textarea = document.getElementById('default_reminder_email_body');
                       const cursorPos = textarea.selectionStart;
-                      const textBefore = formData.default_reminder_email_body.substring(0, cursorPos);
-                      const textAfter = formData.default_reminder_email_body.substring(cursorPos);
+                      const currentText = formData.default_reminder_email_body || '';
+                      const textBefore = currentText.substring(0, cursorPos);
+                      const textAfter = currentText.substring(cursorPos);
                       setFormData({ ...formData, default_reminder_email_body: textBefore + '[Project Name]' + textAfter });
                     }}>
                       [Project Name]
@@ -461,8 +469,9 @@ export default function InvoiceSettings() {
                     <DropdownMenuItem onClick={() => {
                       const textarea = document.getElementById('default_reminder_email_body');
                       const cursorPos = textarea.selectionStart;
-                      const textBefore = formData.default_reminder_email_body.substring(0, cursorPos);
-                      const textAfter = formData.default_reminder_email_body.substring(cursorPos);
+                      const currentText = formData.default_reminder_email_body || '';
+                      const textBefore = currentText.substring(0, cursorPos);
+                      const textAfter = currentText.substring(cursorPos);
                       setFormData({ ...formData, default_reminder_email_body: textBefore + '[Due Date]' + textAfter });
                     }}>
                       [Due Date]
@@ -470,8 +479,9 @@ export default function InvoiceSettings() {
                     <DropdownMenuItem onClick={() => {
                       const textarea = document.getElementById('default_reminder_email_body');
                       const cursorPos = textarea.selectionStart;
-                      const textBefore = formData.default_reminder_email_body.substring(0, cursorPos);
-                      const textAfter = formData.default_reminder_email_body.substring(cursorPos);
+                      const currentText = formData.default_reminder_email_body || '';
+                      const textBefore = currentText.substring(0, cursorPos);
+                      const textAfter = currentText.substring(cursorPos);
                       setFormData({ ...formData, default_reminder_email_body: textBefore + '[Business Name]' + textAfter });
                     }}>
                       [Business Name]
