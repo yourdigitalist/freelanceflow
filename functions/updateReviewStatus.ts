@@ -1,0 +1,25 @@
+import { createBase44Client } from 'npm:@base44/sdk@0.8.6';
+
+Deno.serve(async (req) => {
+  try {
+    const base44 = createBase44Client({
+      appId: Deno.env.get('BASE44_APP_ID'),
+    });
+    
+    const { reviewId, status } = await req.json();
+
+    if (!reviewId || !status) {
+      return Response.json({ error: 'Missing required fields' }, { status: 400 });
+    }
+
+    // Update review status
+    await base44.asServiceRole.entities.ReviewRequest.update(reviewId, {
+      status,
+    });
+
+    return Response.json({ success: true });
+  } catch (error) {
+    console.error('updateReviewStatus error:', error);
+    return Response.json({ error: error.message }, { status: 500 });
+  }
+});
