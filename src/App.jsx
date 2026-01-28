@@ -6,14 +6,10 @@ import { pagesConfig } from './pages.config'
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider } from '@/lib/AuthContext';
-import AuthGuard from '@/components/auth/AuthGuard';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
 const MainPage = mainPageKey ? Pages[mainPageKey] : <></>;
-
-// Define pages that don't require authentication
-const PUBLIC_PAGES = ['Landing', 'PublicInvoice', 'PublicReviewView'];
 
 const LayoutWrapper = ({ children, currentPageName }) => Layout ?
   <Layout currentPageName={currentPageName}>{children}</Layout>
@@ -29,17 +25,9 @@ function App() {
           <Routes>
             {/* Main page route */}
             <Route path="/" element={
-              PUBLIC_PAGES.includes(mainPageKey) ? (
-                <LayoutWrapper currentPageName={mainPageKey}>
-                  <MainPage />
-                </LayoutWrapper>
-              ) : (
-                <AuthGuard>
-                  <LayoutWrapper currentPageName={mainPageKey}>
-                    <MainPage />
-                  </LayoutWrapper>
-                </AuthGuard>
-              )
+              <LayoutWrapper currentPageName={mainPageKey}>
+                <MainPage />
+              </LayoutWrapper>
             } />
             
             {/* All other page routes */}
@@ -48,17 +36,9 @@ function App() {
                 key={path}
                 path={`/${path}`}
                 element={
-                  PUBLIC_PAGES.includes(path) ? (
-                    <LayoutWrapper currentPageName={path}>
-                      <Page />
-                    </LayoutWrapper>
-                  ) : (
-                    <AuthGuard>
-                      <LayoutWrapper currentPageName={path}>
-                        <Page />
-                      </LayoutWrapper>
-                    </AuthGuard>
-                  )
+                  <LayoutWrapper currentPageName={path}>
+                    <Page />
+                  </LayoutWrapper>
                 }
               />
             ))}
