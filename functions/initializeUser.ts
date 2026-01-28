@@ -33,6 +33,23 @@ Deno.serve(async (req) => {
         .split('T')[0],
     });
 
+    // Create default task statuses for new user
+    const defaultStatuses = [
+      { name: 'To Do', key: 'todo', color: '#94a3b8', order: 0, is_done: false },
+      { name: 'In Progress', key: 'in_progress', color: '#3b82f6', order: 1, is_done: false },
+      { name: 'Review', key: 'review', color: '#f59e0b', order: 2, is_done: false },
+      { name: 'Completed', key: 'completed', color: '#10b981', order: 3, is_done: true },
+    ];
+
+    await Promise.all(
+      defaultStatuses.map(status =>
+        base44.asServiceRole.entities.TaskStatus.create({
+          ...status,
+          created_by: user.email,
+        })
+      )
+    );
+
     // Update user with onboarding step
     await base44.auth.updateMe({
       onboarding_step: 'company_info',

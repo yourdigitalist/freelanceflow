@@ -146,22 +146,32 @@ export default function PublicInvoiceView() {
           {/* Line Items */}
           <div className="mb-8">
             <table className="w-full">
-              {invoice.show_column_headers && (
-                <thead>
-                  <tr className="border-b-2 border-slate-300">
+              <thead>
+                <tr className="border-b-2 border-slate-300">
+                  {invoice.show_item_column && (
                     <th className="text-left py-4 text-sm font-semibold text-slate-700 uppercase tracking-wide">Item</th>
+                  )}
+                  {invoice.show_quantity_column && (
                     <th className="text-right py-4 text-sm font-semibold text-slate-700 uppercase tracking-wide w-20">Quantity</th>
+                  )}
+                  {invoice.show_rate_column && (
                     <th className="text-right py-4 text-sm font-semibold text-slate-700 uppercase tracking-wide w-28">Rate</th>
-                    <th className="text-right py-4 text-sm font-semibold text-slate-700 uppercase tracking-wide w-32">Amount</th>
-                  </tr>
-                </thead>
-              )}
+                  )}
+                  <th className="text-right py-4 text-sm font-semibold text-slate-700 uppercase tracking-wide w-32">Amount</th>
+                </tr>
+              </thead>
               <tbody>
                 {invoice.line_items?.map((item, index) => (
                   <tr key={index} className="border-b border-slate-100">
-                    <td className="py-4 text-slate-900">{item.description}</td>
-                    <td className="py-4 text-right text-slate-600">{item.quantity}</td>
-                    <td className="py-4 text-right text-slate-600">${formatNumber(item.rate, numberFormat)}</td>
+                    {invoice.show_item_column && (
+                      <td className="py-4 text-slate-900">{item.description}</td>
+                    )}
+                    {invoice.show_quantity_column && (
+                      <td className="py-4 text-right text-slate-600">{item.quantity}</td>
+                    )}
+                    {invoice.show_rate_column && (
+                      <td className="py-4 text-right text-slate-600">${formatNumber(item.rate, numberFormat)}</td>
+                    )}
                     <td className="py-4 text-right font-semibold text-slate-900">${formatNumber(item.amount, numberFormat)}</td>
                   </tr>
                 ))}

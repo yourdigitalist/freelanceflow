@@ -53,7 +53,9 @@ export default function InvoiceDialog({
     tax_name: '',
     notes: '',
     payment_terms: 'Payment due within 30 days.',
-    show_column_headers: true,
+    show_item_column: true,
+    show_quantity_column: true,
+    show_rate_column: true,
   });
   const [saving, setSaving] = useState(false);
 
@@ -87,7 +89,9 @@ export default function InvoiceDialog({
         tax_name: invoice.tax_name || '',
         notes: invoice.notes || '',
         payment_terms: invoice.payment_terms || 'Payment due within 30 days.',
-        show_column_headers: invoice.show_column_headers !== undefined ? invoice.show_column_headers : true,
+        show_item_column: invoice.show_item_column !== undefined ? invoice.show_item_column : true,
+        show_quantity_column: invoice.show_quantity_column !== undefined ? invoice.show_quantity_column : true,
+        show_rate_column: invoice.show_rate_column !== undefined ? invoice.show_rate_column : true,
       });
       if (invoice.status === 'sent' && open) {
         setShowEditWarning(true);
@@ -107,7 +111,9 @@ export default function InvoiceDialog({
         tax_name: defaultTax?.name || '',
         notes: '',
         payment_terms: invoiceSettings?.default_payment_terms || 'Payment due within 30 days.',
-        show_column_headers: true,
+        show_item_column: true,
+        show_quantity_column: true,
+        show_rate_column: true,
       });
       setShowEditWarning(false);
     }
@@ -351,9 +357,39 @@ export default function InvoiceDialog({
             </div>
             <div className="space-y-3">
               <div className="flex gap-2 items-center px-3 text-sm font-medium text-slate-600">
-                <div className="flex-1">Item</div>
-                <div className="w-20">Quantity</div>
-                <div className="w-24">Rate</div>
+                <div className="flex-1 flex items-center gap-2">
+                  Item
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, show_item_column: !formData.show_item_column })}
+                    className={`p-1 rounded hover:bg-slate-100 transition-colors ${formData.show_item_column ? 'text-emerald-600' : 'text-slate-400'}`}
+                    title={formData.show_item_column ? 'Hide Item column' : 'Show Item column'}
+                  >
+                    <Eye className="w-4 h-4" />
+                  </button>
+                </div>
+                <div className="w-20 flex items-center gap-2">
+                  Quantity
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, show_quantity_column: !formData.show_quantity_column })}
+                    className={`p-1 rounded hover:bg-slate-100 transition-colors ${formData.show_quantity_column ? 'text-emerald-600' : 'text-slate-400'}`}
+                    title={formData.show_quantity_column ? 'Hide Quantity column' : 'Show Quantity column'}
+                  >
+                    <Eye className="w-4 h-4" />
+                  </button>
+                </div>
+                <div className="w-24 flex items-center gap-2">
+                  Rate
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, show_rate_column: !formData.show_rate_column })}
+                    className={`p-1 rounded hover:bg-slate-100 transition-colors ${formData.show_rate_column ? 'text-emerald-600' : 'text-slate-400'}`}
+                    title={formData.show_rate_column ? 'Hide Rate column' : 'Show Rate column'}
+                  >
+                    <Eye className="w-4 h-4" />
+                  </button>
+                </div>
                 <div className="w-24 text-right">Amount</div>
                 <div className="w-9"></div>
               </div>
@@ -405,18 +441,7 @@ export default function InvoiceDialog({
                 Add Line Item
               </Button>
             </div>
-            <div className="flex items-center gap-2 mt-3">
-              <input
-                type="checkbox"
-                id="show_column_headers"
-                checked={formData.show_column_headers}
-                onChange={(e) => setFormData({ ...formData, show_column_headers: e.target.checked })}
-                className="rounded border-slate-300"
-              />
-              <Label htmlFor="show_column_headers" className="text-sm text-slate-600 cursor-pointer">
-                Show column headers (Item, Quantity, Rate) in public invoice view
-              </Label>
-            </div>
+
           </div>
 
           {/* Totals */}

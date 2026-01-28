@@ -100,15 +100,16 @@ export default function ProjectDialog({ open, onOpenChange, project, clients = [
           </div>
 
           <div>
-            <Label htmlFor="client">Client *</Label>
+            <Label htmlFor="client">Client (optional)</Label>
             <Select
               value={formData.client_id}
               onValueChange={(value) => setFormData({ ...formData, client_id: value })}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Select a client" />
+                <SelectValue placeholder="Select a client (optional)" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value={null}>No Client</SelectItem>
                 {clients.map(client => (
                   <SelectItem key={client.id} value={client.id}>
                     {[client.first_name, client.last_name].filter(Boolean).join(' ') || client.company || 'Unnamed Client'}

@@ -68,7 +68,9 @@ Deno.serve(async (req) => {
         notes: invoice.notes,
         payment_terms: invoice.payment_terms,
         status: invoice.status,
-        show_column_headers: invoice.show_column_headers !== undefined ? invoice.show_column_headers : true,
+        show_item_column: invoice.show_item_column !== undefined ? invoice.show_item_column : true,
+        show_quantity_column: invoice.show_quantity_column !== undefined ? invoice.show_quantity_column : true,
+        show_rate_column: invoice.show_rate_column !== undefined ? invoice.show_rate_column : true,
       },
       client: client ? {
         first_name: client.first_name,
