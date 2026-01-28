@@ -39,9 +39,17 @@ export default function TaskStatuses() {
 
   const queryClient = useQueryClient();
 
+  // Get current user first
+  const { data: user } = useQuery({
+    queryKey: ['currentUser'],
+    queryFn: () => base44.auth.me(),
+  });
+
+  // Filter statuses by current user
   const { data: statuses = [] } = useQuery({
-    queryKey: ['taskStatuses'],
-    queryFn: () => base44.entities.TaskStatus.list(),
+    queryKey: ['taskStatuses', user?.email],
+    queryFn: () => base44.entities.TaskStatus.filter({ created_by: user?.email }, 'order'),
+    enabled: !!user?.email,
   });
 
   const createMutation = useMutation({

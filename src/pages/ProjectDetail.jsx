@@ -191,52 +191,79 @@ export default function ProjectDetail() {
 
   const saveStatusesMutation = useMutation({
     mutationFn: async (statuses) => {
-      // Optimistically update the UI
-      queryClient.setQueryData(['taskStatuses'], (old) => {
-        const filteredOld = old.filter(s => s.project_id !== projectId);
-        const newStatuses = statuses.map((s, i) => ({
-          ...s,
-          id: `temp-${i}`,
-          project_id: projectId
-        }));
-        return [...filteredOld, ...newStatuses];
-      });
-      // Get old project statuses
-      const oldProjectStatuses = allTaskStatuses.filter(s => s.project_id === projectId);
+      // Get current user
+      const currentUser = await base44.auth.me();
       
-      // Create mapping from old key to old id
-      const oldStatusKeyToId = {};
-      oldProjectStatuses.forEach(s => {
-        oldStatusKeyToId[s.key] = s.id;
+      // Get ALL existing statuses for this user
+      const allExistingStatuses = await base44.entities.TaskStatus.filter({ 
+        created_by: currentUser.email 
       });
       
-      // Delete old project statuses
-      await Promise.all(oldProjectStatuses.map(s => base44.entities.TaskStatus.delete(s.id)));
+      // Filter to just this project's statuses
+      const existingProjectStatuses = allExistingStatuses.filter(
+        s => s.project_id === projectId
+      );
       
-      // Create new statuses
-      const newStatuses = statuses.map(({ id, ...rest }) => ({
-        ...rest,
-        project_id: projectId
-      }));
-      const createdStatuses = await Promise.all(newStatuses.map(s => base44.entities.TaskStatus.create(s)));
+      const existingIds = new Set(existingProjectStatuses.map(s => s.id));
+      const incomingIds = new Set(statuses.filter(s => s.id).map(s => s.id));
       
-      // Create mapping from new key to new id
-      const newStatusKeyToId = {};
-      createdStatuses.forEach(s => {
-        newStatusKeyToId[s.key] = s.id;
-      });
+      // Identify statuses to delete
+      const statusesToDelete = existingProjectStatuses.filter(s => !incomingIds.has(s.id));
+      const deletedStatusIds = new Set(statusesToDelete.map(s => s.id));
       
-      // Update tasks to use new status IDs based on matching keys
-      const tasksToUpdate = tasks.filter(t => oldProjectStatuses.some(os => os.id === t.status_id));
-      await Promise.all(tasksToUpdate.map(task => {
-        const oldStatus = oldProjectStatuses.find(os => os.id === task.status_id);
-        if (oldStatus && newStatusKeyToId[oldStatus.key]) {
-          return base44.entities.Task.update(task.id, { status_id: newStatusKeyToId[oldStatus.key] });
-        } else if (createdStatuses.length > 0) {
-          // Fallback to first status if key not found
-          return base44.entities.Task.update(task.id, { status_id: createdStatuses[0].id });
+      // 1. UPDATE existing statuses that are still present
+      const updatePromises = statuses
+        .filter(s => s.id && existingIds.has(s.id))
+        .map(s => {
+          const { id, ...data } = s;
+          return base44.entities.TaskStatus.update(id, {
+            ...data,
+            created_by: currentUser.email,
+            project_id: projectId
+          });
+        });
+      
+      // Execute updates first
+      const updatedStatuses = await Promise.all(updatePromises);
+      
+      // 2. CREATE new statuses (no ID or temp ID)
+      const createPromises = statuses
+        .filter(s => !s.id || !existingIds.has(s.id))
+        .map(s => {
+          const { id, ...data } = s; // Remove temp/undefined ID
+          return base44.entities.TaskStatus.create({
+            ...data,
+            created_by: currentUser.email,
+            project_id: projectId
+          });
+        });
+      
+      // Execute creates
+      const createdStatuses = await Promise.all(createPromises);
+      
+      // 3. Reassign tasks from deleted statuses to first available status
+      if (deletedStatusIds.size > 0) {
+        // Find the best status to reassign tasks to
+        // Prefer: first non-done status, or first status if all are done
+        let targetStatus = updatedStatuses.find(s => !s.is_done) || createdStatuses.find(s => !s.is_done);
+        if (!targetStatus) {
+          targetStatus = updatedStatuses[0] || createdStatuses[0];
         }
-      }));
+        
+        if (targetStatus && targetStatus.id) {
+          const tasksToReassign = tasks.filter(t => deletedStatusIds.has(t.status_id));
+          if (tasksToReassign.length > 0) {
+            await Promise.all(
+              tasksToReassign.map(task => 
+                base44.entities.Task.update(task.id, { status_id: targetStatus.id })
+              )
+            );
+          }
+        }
+      }
+      
+      // 4. DELETE removed statuses (after reassigning tasks)
+      await Promise.all(statusesToDelete.map(s => base44.entities.TaskStatus.delete(s.id)));
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['taskStatuses'] });
