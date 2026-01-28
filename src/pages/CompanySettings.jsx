@@ -16,12 +16,8 @@ import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, A
 import { Building2, Save, Upload, AlertCircle } from 'lucide-react';
 import AvatarUpload from '../components/user/AvatarUpload';
 import PhoneInput from '../components/shared/PhoneInput';
-
-const CURRENCIES = ['USD', 'EUR', 'GBP', 'CAD', 'AUD'];
-const TIMEZONES = [
-  'UTC', 'America/New_York', 'America/Chicago', 'America/Denver', 'America/Los_Angeles',
-  'Europe/London', 'Europe/Paris', 'Europe/Berlin', 'Asia/Tokyo', 'Asia/Shanghai', 'Australia/Sydney',
-];
+import { CURRENCY_OPTIONS } from '../components/shared/currencies';
+import { TIMEZONE_OPTIONS } from '../components/shared/timezones';
 
 export default function CompanySettings() {
   const queryClient = useQueryClient();
@@ -282,9 +278,9 @@ export default function CompanySettings() {
                   <SelectTrigger className="mt-2">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
-                    {CURRENCIES.map(curr => (
-                      <SelectItem key={curr} value={curr}>{curr}</SelectItem>
+                  <SelectContent className="max-h-[300px]">
+                    {CURRENCY_OPTIONS.map(curr => (
+                      <SelectItem key={curr.value} value={curr.value}>{curr.label}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -297,9 +293,9 @@ export default function CompanySettings() {
                   <SelectTrigger className="mt-2">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
-                    {TIMEZONES.map(tz => (
-                      <SelectItem key={tz} value={tz}>{tz}</SelectItem>
+                  <SelectContent className="max-h-[300px]">
+                    {TIMEZONE_OPTIONS.map(tz => (
+                      <SelectItem key={tz.value} value={tz.value}>{tz.label}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
