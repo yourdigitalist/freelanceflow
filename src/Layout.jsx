@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from './utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
@@ -35,6 +35,7 @@ export default function Layout({ children, currentPageName }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => localStorage.getItem('sidebarCollapsed') === 'true');
   const [projectsExpanded, setProjectsExpanded] = useState(false);
+  const navigate = useNavigate();
 
   const { data: projects = [] } = useQuery({
     queryKey: ['projects'],
@@ -52,6 +53,17 @@ export default function Layout({ children, currentPageName }) {
       currentPageName === 'PublicInvoice' || currentPageName === 'PublicReviewView') {
     return children;
   }
+
+  // Redirect to landing if not on a public page and not authenticated
+  useEffect(() => {
+    const checkAuth = async () => {
+      const isAuth = await base44.auth.isAuthenticated();
+      if (!isAuth) {
+        navigate(createPageUrl('Landing'));
+      }
+    };
+    checkAuth();
+  }, [navigate]);
 
   return (
     <AuthGuard>

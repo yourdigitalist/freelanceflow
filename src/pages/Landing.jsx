@@ -17,7 +17,6 @@ export default function Landing() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Only redirect authenticated users, don't interfere with public page access
     const checkAuth = async () => {
       const isAuth = await base44.auth.isAuthenticated();
       if (isAuth) {
@@ -29,11 +28,7 @@ export default function Landing() {
         }
       }
     };
-    
-    // Only run redirect logic if we're actually on the landing page route
-    if (window.location.hash === '#/Landing' || window.location.hash === '#/' || window.location.hash === '') {
-      checkAuth();
-    }
+    checkAuth();
   }, [navigate]);
 
   const handleSignIn = () => {
