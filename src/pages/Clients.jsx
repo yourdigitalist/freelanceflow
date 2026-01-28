@@ -27,14 +27,21 @@ export default function Clients() {
   const [viewMode, setViewMode] = useState('grid');
   const queryClient = useQueryClient();
 
+  const { data: user } = useQuery({
+    queryKey: ['currentUser'],
+    queryFn: () => base44.auth.me(),
+  });
+
   const { data: clients = [], isLoading } = useQuery({
-    queryKey: ['clients'],
-    queryFn: () => base44.entities.Client.list('-created_date'),
+    queryKey: ['clients', user?.email],
+    queryFn: () => base44.entities.Client.filter({ created_by: user.email }, '-created_date'),
+    enabled: !!user?.email,
   });
 
   const { data: projects = [] } = useQuery({
-    queryKey: ['projects'],
-    queryFn: () => base44.entities.Project.list(),
+    queryKey: ['projects', user?.email],
+    queryFn: () => base44.entities.Project.filter({ created_by: user.email }),
+    enabled: !!user?.email,
   });
 
   const createMutation = useMutation({
