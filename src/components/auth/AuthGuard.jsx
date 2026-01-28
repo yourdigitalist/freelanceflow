@@ -1,45 +1,35 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { createPageUrl } from '../../utils';
+import { createPageUrl } from '@/utils';
 
-export default function AuthGuard({ children, requireOnboarding = true }) {
-  const [checking, setChecking] = useState(true);
-  const navigate = useNavigate();
+export default function AuthGuard({ children }) {
+  const [isAuthenticated, setIsAuthenticated] = useState(null);
 
   useEffect(() => {
     const checkAuth = async () => {
-      try {
-        const isAuth = await base44.auth.isAuthenticated();
-        
-        if (!isAuth) {
-          navigate(createPageUrl('Landing'));
-          return;
-        }
-
-        if (requireOnboarding) {
-          const user = await base44.auth.me();
-          if (!user.onboarding_completed) {
-            navigate(createPageUrl('OnboardingWizard'));
-            return;
-          }
-        }
-        
-        setChecking(false);
-      } catch (error) {
-        navigate(createPageUrl('Landing'));
+      const authenticated = await base44.auth.isAuthenticated();
+      setIsAuthenticated(authenticated);
+      
+      if (!authenticated) {
+        window.location.href = createPageUrl('Landing');
       }
     };
 
     checkAuth();
-  }, [navigate, requireOnboarding]);
+  }, []);
 
-  if (checking) {
+  // Show loading while checking authentication
+  if (isAuthenticated === null) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600" />
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-emerald-500 border-t-transparent"></div>
       </div>
     );
+  }
+
+  // If not authenticated, don't render children (redirect will happen)
+  if (!isAuthenticated) {
+    return null;
   }
 
   return children;

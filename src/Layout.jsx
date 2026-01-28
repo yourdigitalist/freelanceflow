@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import UserMenu from './components/layout/UserMenu';
+import AuthGuard from './components/auth/AuthGuard';
 
 const navigation = [
   { name: 'Dashboard', icon: LayoutDashboard, page: 'Dashboard' },
@@ -53,6 +54,7 @@ export default function Layout({ children, currentPageName }) {
   }
 
   return (
+    <AuthGuard>
     <div className="min-h-screen bg-slate-50">
       {/* Mobile sidebar backdrop */}
       {sidebarOpen && (
@@ -200,5 +202,6 @@ export default function Layout({ children, currentPageName }) {
         </main>
       </div>
     </div>
+    </AuthGuard>
   );
 }

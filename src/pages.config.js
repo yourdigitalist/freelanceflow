@@ -59,12 +59,12 @@ import OnboardingWizard from './pages/OnboardingWizard';
 import PersonalPreferences from './pages/PersonalPreferences';
 import ProjectDetail from './pages/ProjectDetail';
 import Projects from './pages/Projects';
+import PublicInvoice from './pages/PublicInvoice';
 import PublicInvoiceView from './pages/PublicInvoiceView';
 import PublicReviewView from './pages/PublicReviewView';
 import ReviewRequests from './pages/ReviewRequests';
 import TaskStatuses from './pages/TaskStatuses';
 import TimeTracking from './pages/TimeTracking';
-import PublicInvoice from './pages/PublicInvoice';
 import __Layout from './Layout.jsx';
 
 
@@ -81,12 +81,12 @@ export const PAGES = {
     "PersonalPreferences": PersonalPreferences,
     "ProjectDetail": ProjectDetail,
     "Projects": Projects,
+    "PublicInvoice": PublicInvoice,
     "PublicInvoiceView": PublicInvoiceView,
     "PublicReviewView": PublicReviewView,
     "ReviewRequests": ReviewRequests,
     "TaskStatuses": TaskStatuses,
     "TimeTracking": TimeTracking,
-    "PublicInvoice": PublicInvoice,
 }
 
 export const pagesConfig = {
