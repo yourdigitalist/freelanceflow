@@ -8,7 +8,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Settings, Upload, Loader2, Plus, Trash2, Edit, ExternalLink } from 'lucide-react';
+import { Settings, Upload, Loader2, Plus, Trash2, Edit, ExternalLink, ChevronDown } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Dialog,
@@ -337,17 +343,70 @@ export default function InvoiceSettings() {
               />
             </div>
             <div>
-              <Label htmlFor="default_invoice_email_body">Default Invoice Email Body</Label>
+              <div className="flex items-center justify-between mb-2">
+                <Label htmlFor="default_invoice_email_body">Default Invoice Email Body</Label>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button type="button" variant="outline" size="sm">
+                      <Plus className="w-3 h-3 mr-1" />
+                      Insert Placeholder
+                      <ChevronDown className="w-3 h-3 ml-1" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => {
+                      const textarea = document.getElementById('default_invoice_email_body');
+                      const cursorPos = textarea.selectionStart;
+                      const textBefore = formData.default_invoice_email_body.substring(0, cursorPos);
+                      const textAfter = formData.default_invoice_email_body.substring(cursorPos);
+                      setFormData({ ...formData, default_invoice_email_body: textBefore + '[Client Name]' + textAfter });
+                    }}>
+                      [Client Name]
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => {
+                      const textarea = document.getElementById('default_invoice_email_body');
+                      const cursorPos = textarea.selectionStart;
+                      const textBefore = formData.default_invoice_email_body.substring(0, cursorPos);
+                      const textAfter = formData.default_invoice_email_body.substring(cursorPos);
+                      setFormData({ ...formData, default_invoice_email_body: textBefore + '[Invoice Number]' + textAfter });
+                    }}>
+                      [Invoice Number]
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => {
+                      const textarea = document.getElementById('default_invoice_email_body');
+                      const cursorPos = textarea.selectionStart;
+                      const textBefore = formData.default_invoice_email_body.substring(0, cursorPos);
+                      const textAfter = formData.default_invoice_email_body.substring(cursorPos);
+                      setFormData({ ...formData, default_invoice_email_body: textBefore + '[Project Name]' + textAfter });
+                    }}>
+                      [Project Name]
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => {
+                      const textarea = document.getElementById('default_invoice_email_body');
+                      const cursorPos = textarea.selectionStart;
+                      const textBefore = formData.default_invoice_email_body.substring(0, cursorPos);
+                      const textAfter = formData.default_invoice_email_body.substring(cursorPos);
+                      setFormData({ ...formData, default_invoice_email_body: textBefore + '[Due Date]' + textAfter });
+                    }}>
+                      [Due Date]
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => {
+                      const textarea = document.getElementById('default_invoice_email_body');
+                      const cursorPos = textarea.selectionStart;
+                      const textBefore = formData.default_invoice_email_body.substring(0, cursorPos);
+                      const textAfter = formData.default_invoice_email_body.substring(cursorPos);
+                      setFormData({ ...formData, default_invoice_email_body: textBefore + '[Business Name]' + textAfter });
+                    }}>
+                      [Business Name]
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
               <Textarea
                 id="default_invoice_email_body"
                 value={formData.default_invoice_email_body}
                 onChange={(e) => setFormData({ ...formData, default_invoice_email_body: e.target.value })}
-                placeholder="Hi [Client Name],
-
-Here is your invoice for [Project Name]. Please let us know if you have any questions.
-
-Thanks,
-[Business Name]"
+                placeholder="Hi [Client Name],&#10;&#10;Here is your invoice for [Project Name]. Please let us know if you have any questions.&#10;&#10;Thanks,&#10;[Business Name]"
                 rows={6}
               />
             </div>
@@ -361,19 +420,70 @@ Thanks,
               />
             </div>
             <div>
-              <Label htmlFor="default_reminder_email_body">Default Reminder Email Body</Label>
+              <div className="flex items-center justify-between mb-2">
+                <Label htmlFor="default_reminder_email_body">Default Reminder Email Body</Label>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button type="button" variant="outline" size="sm">
+                      <Plus className="w-3 h-3 mr-1" />
+                      Insert Placeholder
+                      <ChevronDown className="w-3 h-3 ml-1" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => {
+                      const textarea = document.getElementById('default_reminder_email_body');
+                      const cursorPos = textarea.selectionStart;
+                      const textBefore = formData.default_reminder_email_body.substring(0, cursorPos);
+                      const textAfter = formData.default_reminder_email_body.substring(cursorPos);
+                      setFormData({ ...formData, default_reminder_email_body: textBefore + '[Client Name]' + textAfter });
+                    }}>
+                      [Client Name]
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => {
+                      const textarea = document.getElementById('default_reminder_email_body');
+                      const cursorPos = textarea.selectionStart;
+                      const textBefore = formData.default_reminder_email_body.substring(0, cursorPos);
+                      const textAfter = formData.default_reminder_email_body.substring(cursorPos);
+                      setFormData({ ...formData, default_reminder_email_body: textBefore + '[Invoice Number]' + textAfter });
+                    }}>
+                      [Invoice Number]
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => {
+                      const textarea = document.getElementById('default_reminder_email_body');
+                      const cursorPos = textarea.selectionStart;
+                      const textBefore = formData.default_reminder_email_body.substring(0, cursorPos);
+                      const textAfter = formData.default_reminder_email_body.substring(cursorPos);
+                      setFormData({ ...formData, default_reminder_email_body: textBefore + '[Project Name]' + textAfter });
+                    }}>
+                      [Project Name]
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => {
+                      const textarea = document.getElementById('default_reminder_email_body');
+                      const cursorPos = textarea.selectionStart;
+                      const textBefore = formData.default_reminder_email_body.substring(0, cursorPos);
+                      const textAfter = formData.default_reminder_email_body.substring(cursorPos);
+                      setFormData({ ...formData, default_reminder_email_body: textBefore + '[Due Date]' + textAfter });
+                    }}>
+                      [Due Date]
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => {
+                      const textarea = document.getElementById('default_reminder_email_body');
+                      const cursorPos = textarea.selectionStart;
+                      const textBefore = formData.default_reminder_email_body.substring(0, cursorPos);
+                      const textAfter = formData.default_reminder_email_body.substring(cursorPos);
+                      setFormData({ ...formData, default_reminder_email_body: textBefore + '[Business Name]' + textAfter });
+                    }}>
+                      [Business Name]
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
               <Textarea
                 id="default_reminder_email_body"
                 value={formData.default_reminder_email_body}
                 onChange={(e) => setFormData({ ...formData, default_reminder_email_body: e.target.value })}
-                placeholder="Hi [Client Name],
-
-This is a friendly reminder that invoice [Invoice Number] for [Project Name] is due on [Due Date].
-
-Please let us know if you have any questions.
-
-Thanks,
-[Business Name]"
+                placeholder="Hi [Client Name],&#10;&#10;This is a friendly reminder that invoice [Invoice Number] for [Project Name] is due on [Due Date].&#10;&#10;Please let us know if you have any questions.&#10;&#10;Thanks,&#10;[Business Name]"
                 rows={6}
               />
             </div>

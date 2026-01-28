@@ -53,6 +53,7 @@ export default function InvoiceDialog({
     tax_name: '',
     notes: '',
     payment_terms: 'Payment due within 30 days.',
+    show_column_headers: true,
   });
   const [saving, setSaving] = useState(false);
 
@@ -86,6 +87,7 @@ export default function InvoiceDialog({
         tax_name: invoice.tax_name || '',
         notes: invoice.notes || '',
         payment_terms: invoice.payment_terms || 'Payment due within 30 days.',
+        show_column_headers: invoice.show_column_headers !== undefined ? invoice.show_column_headers : true,
       });
       if (invoice.status === 'sent' && open) {
         setShowEditWarning(true);
@@ -105,6 +107,7 @@ export default function InvoiceDialog({
         tax_name: defaultTax?.name || '',
         notes: '',
         payment_terms: invoiceSettings?.default_payment_terms || 'Payment due within 30 days.',
+        show_column_headers: true,
       });
       setShowEditWarning(false);
     }
@@ -137,7 +140,7 @@ export default function InvoiceDialog({
 
   const [importMode, setImportMode] = useState(null);
 
-  const importUnbilledTime = (mode = 'combined') => {
+  const importUnbilledTime = async (mode = 'combined') => {
     if (!formData.project_id) return;
     
     const projectTime = unbilledTime.filter(t => t.project_id === formData.project_id && t.billable && !t.billed);
@@ -157,8 +160,15 @@ export default function InvoiceDialog({
         amount: totalHours * rate,
       }];
     } else {
+      // Fetch task names for each time entry
+      const taskIds = [...new Set(projectTime.filter(t => t.task_id).map(t => t.task_id))];
+      const tasks = taskIds.length > 0 
+        ? await Promise.all(taskIds.map(id => base44.entities.Task.filter({ id }).then(res => res[0])))
+        : [];
+      const taskMap = Object.fromEntries(tasks.filter(Boolean).map(t => [t.id, t]));
+      
       newItems = projectTime.map(t => ({
-        description: t.description || 'Professional services',
+        description: t.task_id && taskMap[t.task_id] ? taskMap[t.task_id].title : (t.description || 'Professional services'),
         quantity: t.hours || 0,
         rate: rate,
         amount: (t.hours || 0) * rate,
@@ -340,6 +350,13 @@ export default function InvoiceDialog({
               </div>
             </div>
             <div className="space-y-3">
+              <div className="flex gap-2 items-center px-3 text-sm font-medium text-slate-600">
+                <div className="flex-1">Item</div>
+                <div className="w-20">Quantity</div>
+                <div className="w-24">Rate</div>
+                <div className="w-24 text-right">Amount</div>
+                <div className="w-9"></div>
+              </div>
               {formData.line_items.map((item, index) => (
                 <div key={index} className="flex gap-2 items-start p-3 bg-slate-50 rounded-lg">
                   <div className="flex-1">
@@ -387,6 +404,18 @@ export default function InvoiceDialog({
                 <Plus className="w-4 h-4 mr-2" />
                 Add Line Item
               </Button>
+            </div>
+            <div className="flex items-center gap-2 mt-3">
+              <input
+                type="checkbox"
+                id="show_column_headers"
+                checked={formData.show_column_headers}
+                onChange={(e) => setFormData({ ...formData, show_column_headers: e.target.checked })}
+                className="rounded border-slate-300"
+              />
+              <Label htmlFor="show_column_headers" className="text-sm text-slate-600 cursor-pointer">
+                Show column headers (Item, Quantity, Rate) in public invoice view
+              </Label>
             </div>
           </div>
 

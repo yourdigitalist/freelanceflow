@@ -24,17 +24,19 @@ Deno.serve(async (req) => {
     }
 
     // Fetch related data
-    const [clients, projects, companyProfiles, invoiceSettings] = await Promise.all([
+    const [clients, projects, companyProfiles, invoiceSettings, personalPreferences] = await Promise.all([
       base44.asServiceRole.entities.Client.filter({ id: invoice.client_id }),
       invoice.project_id ? base44.asServiceRole.entities.Project.filter({ id: invoice.project_id }) : Promise.resolve([]),
       base44.asServiceRole.entities.CompanyProfile.filter({ user_id: invoice.created_by }),
-      base44.asServiceRole.entities.InvoiceSettings.filter({ created_by: invoice.created_by })
+      base44.asServiceRole.entities.InvoiceSettings.filter({ created_by: invoice.created_by }),
+      base44.asServiceRole.entities.PersonalPreference.filter({ created_by: invoice.created_by })
     ]);
 
     const client = clients[0];
     const project = projects[0] || null;
     const companyProfile = companyProfiles[0] || null;
     const settings = invoiceSettings[0] || null;
+    const preferences = personalPreferences[0] || null;
 
     // Build business info from company profile
     const businessInfo = {
@@ -66,6 +68,7 @@ Deno.serve(async (req) => {
         notes: invoice.notes,
         payment_terms: invoice.payment_terms,
         status: invoice.status,
+        show_column_headers: invoice.show_column_headers !== undefined ? invoice.show_column_headers : true,
       },
       client: client ? {
         first_name: client.first_name,
@@ -83,6 +86,7 @@ Deno.serve(async (req) => {
         name: project.name,
       } : null,
       businessInfo,
+      numberFormat: preferences?.number_format || '1,000.00',
     });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });

@@ -3,6 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { format, parseISO } from 'date-fns';
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { formatNumber } from '@/components/shared/formatNumber';
 
 const statusColors = {
   draft: "bg-slate-100 text-slate-700",
@@ -62,7 +63,7 @@ export default function PublicInvoiceView() {
 
   if (!invoiceData) return null;
 
-  const { invoice, client, project, businessInfo } = invoiceData;
+  const { invoice, client, project, businessInfo, numberFormat } = invoiceData;
 
   const clientName = [client?.first_name, client?.last_name].filter(Boolean).join(' ') || client?.company || 'Client';
   const clientAddress = [
@@ -145,21 +146,23 @@ export default function PublicInvoiceView() {
           {/* Line Items */}
           <div className="mb-8">
             <table className="w-full">
-              <thead>
-                <tr className="border-b-2 border-slate-300">
-                  <th className="text-left py-4 text-sm font-semibold text-slate-700 uppercase tracking-wide">Description</th>
-                  <th className="text-right py-4 text-sm font-semibold text-slate-700 uppercase tracking-wide w-20">Qty</th>
-                  <th className="text-right py-4 text-sm font-semibold text-slate-700 uppercase tracking-wide w-28">Rate</th>
-                  <th className="text-right py-4 text-sm font-semibold text-slate-700 uppercase tracking-wide w-32">Amount</th>
-                </tr>
-              </thead>
+              {invoice.show_column_headers && (
+                <thead>
+                  <tr className="border-b-2 border-slate-300">
+                    <th className="text-left py-4 text-sm font-semibold text-slate-700 uppercase tracking-wide">Item</th>
+                    <th className="text-right py-4 text-sm font-semibold text-slate-700 uppercase tracking-wide w-20">Quantity</th>
+                    <th className="text-right py-4 text-sm font-semibold text-slate-700 uppercase tracking-wide w-28">Rate</th>
+                    <th className="text-right py-4 text-sm font-semibold text-slate-700 uppercase tracking-wide w-32">Amount</th>
+                  </tr>
+                </thead>
+              )}
               <tbody>
                 {invoice.line_items?.map((item, index) => (
                   <tr key={index} className="border-b border-slate-100">
                     <td className="py-4 text-slate-900">{item.description}</td>
                     <td className="py-4 text-right text-slate-600">{item.quantity}</td>
-                    <td className="py-4 text-right text-slate-600">${item.rate?.toFixed(2)}</td>
-                    <td className="py-4 text-right font-semibold text-slate-900">${item.amount?.toFixed(2)}</td>
+                    <td className="py-4 text-right text-slate-600">${formatNumber(item.rate, numberFormat)}</td>
+                    <td className="py-4 text-right font-semibold text-slate-900">${formatNumber(item.amount, numberFormat)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -171,17 +174,17 @@ export default function PublicInvoiceView() {
             <div className="w-80">
               <div className="flex justify-between py-3 text-lg">
                 <span className="text-slate-600">Subtotal</span>
-                <span className="font-semibold text-slate-900">${invoice.subtotal?.toFixed(2)}</span>
+                <span className="font-semibold text-slate-900">${formatNumber(invoice.subtotal, numberFormat)}</span>
               </div>
               {invoice.tax_rate > 0 && (
                 <div className="flex justify-between py-3 text-lg">
                   <span className="text-slate-600">Tax ({invoice.tax_rate}%)</span>
-                  <span className="font-semibold text-slate-900">${invoice.tax_amount?.toFixed(2)}</span>
+                  <span className="font-semibold text-slate-900">${formatNumber(invoice.tax_amount, numberFormat)}</span>
                 </div>
               )}
               <div className="flex justify-between py-4 border-t-2 border-slate-300 mt-2">
                 <span className="font-bold text-xl text-slate-900">Total</span>
-                <span className="font-bold text-2xl text-emerald-600">${invoice.total?.toFixed(2)}</span>
+                <span className="font-bold text-2xl text-emerald-600">${formatNumber(invoice.total, numberFormat)}</span>
               </div>
             </div>
           </div>

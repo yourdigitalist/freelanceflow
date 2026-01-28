@@ -137,8 +137,8 @@ export default function SendEmailDialog({
         body: htmlBody,
       });
 
-      // Update invoice status to 'sent' if it's currently 'draft'
-      if (invoice.status === 'draft' && emailType === 'invoice') {
+      // Update invoice status to 'sent' when sending invoice email
+      if (emailType === 'invoice') {
         await base44.entities.Invoice.update(invoice.id, { status: 'sent' });
       }
 
