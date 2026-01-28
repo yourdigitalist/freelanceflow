@@ -190,7 +190,7 @@ export default function PublicInvoiceView() {
           </div>
 
           {/* Notes and Payment Terms */}
-          {(invoice.notes || invoice.payment_terms || settings?.invoice_footer) && (
+          {(invoice.notes || invoice.payment_terms || businessInfo?.invoice_footer) && (
             <div className="border-t border-slate-200 pt-8 space-y-6">
               {invoice.notes && (
                 <div>
