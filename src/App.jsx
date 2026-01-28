@@ -6,10 +6,14 @@ import { pagesConfig } from './pages.config'
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider } from '@/lib/AuthContext';
+import AuthGuard from '@/components/auth/AuthGuard';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
 const MainPage = mainPageKey ? Pages[mainPageKey] : <></>;
+
+// Pages that should be publicly accessible without authentication
+const PUBLIC_PAGES = ['Landing', 'PublicInvoice', 'PublicReviewView', 'OnboardingWizard'];
 
 const LayoutWrapper = ({ children, currentPageName }) => Layout ?
   <Layout currentPageName={currentPageName}>{children}</Layout>
@@ -23,11 +27,19 @@ function App() {
         <Router>
           <NavigationTracker />
           <Routes>
-            {/* Main page route */}
+            {/* Root route */}
             <Route path="/" element={
-              <LayoutWrapper currentPageName={mainPageKey}>
-                <MainPage />
-              </LayoutWrapper>
+              PUBLIC_PAGES.includes(mainPageKey) ? (
+                <LayoutWrapper currentPageName={mainPageKey}>
+                  <MainPage />
+                </LayoutWrapper>
+              ) : (
+                <AuthGuard>
+                  <LayoutWrapper currentPageName={mainPageKey}>
+                    <MainPage />
+                  </LayoutWrapper>
+                </AuthGuard>
+              )
             } />
             
             {/* All other page routes */}
@@ -36,9 +48,19 @@ function App() {
                 key={path}
                 path={`/${path}`}
                 element={
-                  <LayoutWrapper currentPageName={path}>
-                    <Page />
-                  </LayoutWrapper>
+                  PUBLIC_PAGES.includes(path) ? (
+                    // Public pages - no auth required
+                    <LayoutWrapper currentPageName={path}>
+                      <Page />
+                    </LayoutWrapper>
+                  ) : (
+                    // Private pages - require authentication
+                    <AuthGuard>
+                      <LayoutWrapper currentPageName={path}>
+                        <Page />
+                      </LayoutWrapper>
+                    </AuthGuard>
+                  )
                 }
               />
             ))}
