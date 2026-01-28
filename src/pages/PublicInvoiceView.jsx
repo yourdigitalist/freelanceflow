@@ -13,10 +13,7 @@ const statusColors = {
 };
 
 export default function PublicInvoiceView() {
-  const [invoice, setInvoice] = useState(null);
-  const [client, setClient] = useState(null);
-  const [project, setProject] = useState(null);
-  const [settings, setSettings] = useState(null);
+  const [invoiceData, setInvoiceData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -24,31 +21,19 @@ export default function PublicInvoiceView() {
     const loadInvoice = async () => {
       try {
         const urlParams = new URLSearchParams(window.location.search);
-        const invoiceId = urlParams.get('id');
+        const token = urlParams.get('token');
 
-        if (!invoiceId) {
-          setError('Invoice not found');
+        if (!token) {
+          setError('Invalid invoice link');
           setLoading(false);
           return;
         }
 
-        const invoiceData = await base44.asServiceRole.entities.Invoice.get(invoiceId);
-        setInvoice(invoiceData);
-
-        const clientData = await base44.asServiceRole.entities.Client.get(invoiceData.client_id);
-        setClient(clientData);
-
-        if (invoiceData.project_id) {
-          const projectData = await base44.asServiceRole.entities.Project.get(invoiceData.project_id);
-          setProject(projectData);
-        }
-
-        const settingsList = await base44.asServiceRole.entities.InvoiceSettings.list();
-        setSettings(settingsList[0] || null);
-
+        const response = await base44.functions.invoke('getInvoiceByPublicToken', { token });
+        setInvoiceData(response.data);
         setLoading(false);
       } catch (err) {
-        setError('Failed to load invoice');
+        setError(err.response?.data?.error || 'Invoice not found');
         setLoading(false);
       }
     };
@@ -75,6 +60,10 @@ export default function PublicInvoiceView() {
     );
   }
 
+  if (!invoiceData) return null;
+
+  const { invoice, client, project, businessInfo } = invoiceData;
+
   const clientName = [client?.first_name, client?.last_name].filter(Boolean).join(' ') || client?.company || 'Client';
   const clientAddress = [
     client?.street,
@@ -90,24 +79,24 @@ export default function PublicInvoiceView() {
           {/* Header */}
           <div className="flex justify-between items-start mb-8 pb-8 border-b border-slate-200">
             <div>
-              {settings?.business_logo && (
+              {businessInfo?.business_logo && (
                 <img 
-                  src={settings.business_logo} 
+                  src={businessInfo.business_logo} 
                   alt="Business logo" 
                   className="h-16 mb-4 object-contain"
                 />
               )}
-              {settings?.business_name && (
-                <h2 className="text-xl font-semibold text-slate-900 mb-2">{settings.business_name}</h2>
+              {businessInfo?.business_name && (
+                <h2 className="text-xl font-semibold text-slate-900 mb-2">{businessInfo.business_name}</h2>
               )}
-              {settings?.business_address && (
-                <p className="text-sm text-slate-600 whitespace-pre-line mb-2">{settings.business_address}</p>
+              {businessInfo?.business_address && (
+                <p className="text-sm text-slate-600 whitespace-pre-line mb-2">{businessInfo.business_address}</p>
               )}
-              {(settings?.business_email || settings?.business_phone) && (
+              {(businessInfo?.business_email || businessInfo?.business_phone) && (
                 <p className="text-sm text-slate-600">
-                  {settings.business_email}
-                  {settings.business_email && settings.business_phone && ' | '}
-                  {settings.business_phone}
+                  {businessInfo.business_email}
+                  {businessInfo.business_email && businessInfo.business_phone && ' | '}
+                  {businessInfo.business_phone}
                 </p>
               )}
             </div>
@@ -212,9 +201,9 @@ export default function PublicInvoiceView() {
                   <p className="text-slate-600">{invoice.payment_terms}</p>
                 </div>
               )}
-              {settings?.invoice_footer && (
+              {businessInfo?.invoice_footer && (
                 <div className="text-center pt-6 border-t border-slate-100">
-                  <p className="text-sm text-slate-500">{settings.invoice_footer}</p>
+                  <p className="text-sm text-slate-500">{businessInfo.invoice_footer}</p>
                 </div>
               )}
             </div>
