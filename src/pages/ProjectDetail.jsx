@@ -207,6 +207,10 @@ export default function ProjectDetail() {
       const existingIds = new Set(existingProjectStatuses.map(s => s.id));
       const incomingIds = new Set(statuses.filter(s => s.id).map(s => s.id));
       
+      // Identify statuses to delete
+      const statusesToDelete = existingProjectStatuses.filter(s => !incomingIds.has(s.id));
+      const deletedStatusIds = new Set(statusesToDelete.map(s => s.id));
+      
       // 1. UPDATE existing statuses that are still present
       const updatePromises = statuses
         .filter(s => s.id && existingIds.has(s.id))
@@ -218,6 +222,9 @@ export default function ProjectDetail() {
             project_id: projectId
           });
         });
+      
+      // Execute updates first
+      const updatedStatuses = await Promise.all(updatePromises);
       
       // 2. CREATE new statuses (no ID or temp ID)
       const createPromises = statuses
@@ -231,17 +238,26 @@ export default function ProjectDetail() {
           });
         });
       
-      // 3. DELETE removed statuses
-      const deletePromises = existingProjectStatuses
-        .filter(s => !incomingIds.has(s.id))
-        .map(s => base44.entities.TaskStatus.delete(s.id));
+      // Execute creates
+      const createdStatuses = await Promise.all(createPromises);
       
-      // Execute all operations in parallel
-      await Promise.all([
-        ...updatePromises,
-        ...createPromises,
-        ...deletePromises
-      ]);
+      // 3. Reassign tasks from deleted statuses to first available status
+      if (deletedStatusIds.size > 0) {
+        // Get first available status (prefer updated, then created)
+        const firstAvailableStatus = updatedStatuses[0] || createdStatuses[0];
+        
+        if (firstAvailableStatus && firstAvailableStatus.id) {
+          const tasksToReassign = tasks.filter(t => deletedStatusIds.has(t.status_id));
+          await Promise.all(
+            tasksToReassign.map(task => 
+              base44.entities.Task.update(task.id, { status_id: firstAvailableStatus.id })
+            )
+          );
+        }
+      }
+      
+      // 4. DELETE removed statuses (after reassigning tasks)
+      await Promise.all(statusesToDelete.map(s => base44.entities.TaskStatus.delete(s.id)));
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['taskStatuses'] });
