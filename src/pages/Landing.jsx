@@ -17,18 +17,23 @@ export default function Landing() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check if user is already authenticated
-    base44.auth.isAuthenticated().then(isAuth => {
+    // Only redirect authenticated users, don't interfere with public page access
+    const checkAuth = async () => {
+      const isAuth = await base44.auth.isAuthenticated();
       if (isAuth) {
-        base44.auth.me().then(user => {
-          if (!user.onboarding_completed) {
-            navigate(createPageUrl('OnboardingWizard'));
-          } else {
-            navigate(createPageUrl('Dashboard'));
-          }
-        });
+        const user = await base44.auth.me();
+        if (!user.onboarding_completed) {
+          navigate(createPageUrl('OnboardingWizard'));
+        } else {
+          navigate(createPageUrl('Dashboard'));
+        }
       }
-    });
+    };
+    
+    // Only run redirect logic if we're actually on the landing page route
+    if (window.location.hash === '#/Landing' || window.location.hash === '#/' || window.location.hash === '') {
+      checkAuth();
+    }
   }, [navigate]);
 
   const handleSignIn = () => {
