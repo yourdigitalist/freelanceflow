@@ -43,16 +43,19 @@ export default function InvoiceSettings() {
   });
 
   const { data: settings, isLoading } = useQuery({
-    queryKey: ['invoiceSettings'],
+    queryKey: ['invoiceSettings', user?.email],
     queryFn: async () => {
-      const list = await base44.entities.InvoiceSettings.list();
+      if (!user?.email) return null;
+      const list = await base44.entities.InvoiceSettings.filter({ created_by: user.email });
       return list[0] || null;
     },
+    enabled: !!user?.email,
   });
 
   const { data: taxRates = [] } = useQuery({
-    queryKey: ['taxRates'],
-    queryFn: () => base44.entities.TaxRate.list(),
+    queryKey: ['taxRates', user?.email],
+    queryFn: () => base44.entities.TaxRate.filter({ created_by: user.email }),
+    enabled: !!user?.email,
   });
 
   const [formData, setFormData] = useState({

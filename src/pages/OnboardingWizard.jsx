@@ -9,6 +9,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Sparkles, Building2, Bell, CheckCircle2 } from 'lucide-react';
 import { createPageUrl } from '../utils';
 import AvatarUpload from '../components/user/AvatarUpload';
+import PhoneInput from '../components/shared/PhoneInput';
+import { CURRENCY_OPTIONS } from '../components/shared/currencies';
+import { TIMEZONE_OPTIONS } from '../components/shared/timezones';
 import { toast } from 'sonner';
 
 const steps = [
@@ -51,8 +54,14 @@ export default function OnboardingWizard() {
   const [companyData, setCompanyData] = useState({
     company_name: '',
     street: '',
+    street2: '',
     city: '',
+    state: '',
+    zip: '',
     country: '',
+    phone: '',
+    phone_country_code: '+1',
+    email: '',
     currency: 'USD',
     timezone: 'UTC',
   });
@@ -91,8 +100,10 @@ export default function OnboardingWizard() {
 
   const handleNext = async () => {
     if (currentStep === 1) {
-      if (!companyData.company_name) {
-        toast.error('Please enter your company name');
+      // Validate mandatory fields
+      if (!companyData.company_name || !companyData.street || !companyData.city || 
+          !companyData.zip || !companyData.country || !companyData.phone || !companyData.email) {
+        toast.error('Please fill in all required fields');
         return;
       }
       try {
@@ -174,70 +185,129 @@ export default function OnboardingWizard() {
                     value={companyData.company_name}
                     onChange={(e) => setCompanyData({ ...companyData, company_name: e.target.value })}
                     placeholder="Acme Inc."
+                    required
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="street">Street Address</Label>
+                  <Label htmlFor="street">Street Address *</Label>
                   <Input
                     id="street"
                     value={companyData.street}
                     onChange={(e) => setCompanyData({ ...companyData, street: e.target.value })}
                     placeholder="123 Main St"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="street2">Street Address Line 2</Label>
+                  <Input
+                    id="street2"
+                    value={companyData.street2}
+                    onChange={(e) => setCompanyData({ ...companyData, street2: e.target.value })}
+                    placeholder="Apt, Suite, Building (optional)"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="city">City</Label>
+                    <Label htmlFor="city">City *</Label>
                     <Input
                       id="city"
                       value={companyData.city}
                       onChange={(e) => setCompanyData({ ...companyData, city: e.target.value })}
                       placeholder="San Francisco"
+                      required
                     />
                   </div>
                   <div>
-                    <Label htmlFor="country">Country</Label>
+                    <Label htmlFor="state">State/Province</Label>
                     <Input
-                      id="country"
-                      value={companyData.country}
-                      onChange={(e) => setCompanyData({ ...companyData, country: e.target.value })}
-                      placeholder="USA"
+                      id="state"
+                      value={companyData.state}
+                      onChange={(e) => setCompanyData({ ...companyData, state: e.target.value })}
+                      placeholder="CA"
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="currency">Default Currency</Label>
+                    <Label htmlFor="zip">ZIP/Postal Code *</Label>
+                    <Input
+                      id="zip"
+                      value={companyData.zip}
+                      onChange={(e) => setCompanyData({ ...companyData, zip: e.target.value })}
+                      placeholder="94102"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="country">Country *</Label>
+                    <Input
+                      id="country"
+                      value={companyData.country}
+                      onChange={(e) => setCompanyData({ ...companyData, country: e.target.value })}
+                      placeholder="USA"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="phone">Business Phone *</Label>
+                  <PhoneInput
+                    value={companyData.phone}
+                    countryCode={companyData.phone_country_code}
+                    onChange={(phone, countryCode) => setCompanyData({ 
+                      ...companyData, 
+                      phone, 
+                      phone_country_code: countryCode 
+                    })}
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="email">Business Email *</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={companyData.email}
+                    onChange={(e) => setCompanyData({ ...companyData, email: e.target.value })}
+                    placeholder="hello@acme.com"
+                    required
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="currency">Default Currency *</Label>
                     <Select value={companyData.currency} onValueChange={(val) => setCompanyData({ ...companyData, currency: val })}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="USD">USD - US Dollar</SelectItem>
-                        <SelectItem value="EUR">EUR - Euro</SelectItem>
-                        <SelectItem value="GBP">GBP - British Pound</SelectItem>
-                        <SelectItem value="CAD">CAD - Canadian Dollar</SelectItem>
-                        <SelectItem value="AUD">AUD - Australian Dollar</SelectItem>
+                      <SelectContent className="max-h-[300px]">
+                        {CURRENCY_OPTIONS.map((curr) => (
+                          <SelectItem key={curr.value} value={curr.value}>
+                            {curr.label}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
                   <div>
-                    <Label htmlFor="timezone">Timezone</Label>
+                    <Label htmlFor="timezone">Timezone *</Label>
                     <Select value={companyData.timezone} onValueChange={(val) => setCompanyData({ ...companyData, timezone: val })}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="UTC">UTC</SelectItem>
-                        <SelectItem value="America/New_York">Eastern Time</SelectItem>
-                        <SelectItem value="America/Chicago">Central Time</SelectItem>
-                        <SelectItem value="America/Denver">Mountain Time</SelectItem>
-                        <SelectItem value="America/Los_Angeles">Pacific Time</SelectItem>
-                        <SelectItem value="Europe/London">London</SelectItem>
-                        <SelectItem value="Europe/Paris">Paris</SelectItem>
+                      <SelectContent className="max-h-[300px]">
+                        {TIMEZONE_OPTIONS.map((tz) => (
+                          <SelectItem key={tz.value} value={tz.value}>
+                            {tz.label}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
