@@ -1,79 +1,88 @@
-import React from 'react';
-import { Input } from '@/components/ui/input';
+import React, { useState } from 'react';
 import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { Check, ChevronsUpDown, Search } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { COUNTRY_CODES } from './countryCodes';
 
-const COUNTRY_CODES = [
-  { code: '+1', country: 'US/Canada', format: '(XXX) XXX-XXXX' },
-  { code: '+44', country: 'UK', format: 'XXXX XXX XXXX' },
-  { code: '+33', country: 'France', format: 'X XX XX XX XX' },
-  { code: '+49', country: 'Germany', format: 'XXX XXXXXXXX' },
-  { code: '+61', country: 'Australia', format: 'XXX XXX XXX' },
-  { code: '+81', country: 'Japan', format: 'XX XXXX XXXX' },
-  { code: '+86', country: 'China', format: 'XXX XXXX XXXX' },
-  { code: '+91', country: 'India', format: 'XXXXX XXXXX' },
-];
+export default function PhoneInput({ 
+  value = '', 
+  countryCode = '+1', 
+  onChange, 
+  label,
+  required = false 
+}) {
+  const [open, setOpen] = useState(false);
+  const [selectedCountry, setSelectedCountry] = useState(
+    COUNTRY_CODES.find(c => c.dial_code === countryCode) || COUNTRY_CODES[0]
+  );
 
-const formatPhoneNumber = (value, countryCode) => {
-  const cleaned = value.replace(/\D/g, '');
-  
-  if (countryCode === '+1') {
-    if (cleaned.length <= 3) return cleaned;
-    if (cleaned.length <= 6) return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3)}`;
-    return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6, 10)}`;
-  }
-  
-  if (countryCode === '+44') {
-    if (cleaned.length <= 4) return cleaned;
-    if (cleaned.length <= 7) return `${cleaned.slice(0, 4)} ${cleaned.slice(4)}`;
-    return `${cleaned.slice(0, 4)} ${cleaned.slice(4, 7)} ${cleaned.slice(7, 11)}`;
-  }
-  
-  if (countryCode === '+33') {
-    if (cleaned.length <= 1) return cleaned;
-    const parts = [];
-    for (let i = 0; i < cleaned.length; i += 2) {
-      parts.push(cleaned.slice(i, i + 2));
-    }
-    return parts.join(' ');
-  }
-  
-  return cleaned;
-};
+  const handleCountrySelect = (country) => {
+    setSelectedCountry(country);
+    setOpen(false);
+    onChange(value, country.dial_code);
+  };
 
-export default function PhoneInput({ label, phone, phoneCountryCode, onPhoneChange, onCountryCodeChange }) {
-  const handlePhoneInput = (e) => {
-    const formatted = formatPhoneNumber(e.target.value, phoneCountryCode || '+1');
-    onPhoneChange(formatted);
+  const handlePhoneChange = (e) => {
+    const input = e.target.value.replace(/[^\d\s()-]/g, '');
+    onChange(input, selectedCountry.dial_code);
   };
 
   return (
-    <div>
-      {label && <Label>{label}</Label>}
-      <div className="flex gap-2 mt-2">
-        <Select value={phoneCountryCode || '+1'} onValueChange={onCountryCodeChange}>
-          <SelectTrigger className="w-[140px]">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {COUNTRY_CODES.map(({ code, country }) => (
-              <SelectItem key={code} value={code}>
-                {code} {country}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+    <div className="space-y-2">
+      {label && <Label>{label} {required && <span className="text-red-500">*</span>}</Label>}
+      <div className="flex gap-2">
+        <Popover open={open} onOpenChange={setOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              role="combobox"
+              aria-expanded={open}
+              className="w-[140px] justify-between"
+            >
+              <span className="flex items-center gap-2 overflow-hidden">
+                <span className="text-lg">{selectedCountry.emoji}</span>
+                <span className="text-sm">{selectedCountry.dial_code}</span>
+              </span>
+              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-[320px] p-0" align="start">
+            <Command>
+              <CommandInput placeholder="Search countries..." />
+              <CommandList>
+                <CommandEmpty>No country found.</CommandEmpty>
+                <CommandGroup>
+                  {COUNTRY_CODES.map((country) => (
+                    <CommandItem
+                      key={country.code}
+                      value={`${country.name} ${country.dial_code}`}
+                      onSelect={() => handleCountrySelect(country)}
+                      className="flex items-center justify-between"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">{country.emoji}</span>
+                        <span className="text-sm">{country.name}</span>
+                      </div>
+                      <span className="text-sm text-slate-500">{country.dial_code}</span>
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
+
         <Input
-          value={phone || ''}
-          onChange={handlePhoneInput}
-          placeholder={COUNTRY_CODES.find(c => c.code === (phoneCountryCode || '+1'))?.format || 'Phone number'}
+          type="tel"
+          value={value}
+          onChange={handlePhoneChange}
+          placeholder="(123) 456-7890"
           className="flex-1"
+          required={required}
         />
       </div>
     </div>
