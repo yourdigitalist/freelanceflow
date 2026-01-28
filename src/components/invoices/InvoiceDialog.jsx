@@ -198,12 +198,22 @@ export default function InvoiceDialog({
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
+    
+    // Generate public token if creating new invoice
     const dataToSave = {
       ...formData,
       subtotal,
       tax_amount: taxAmount,
       total,
     };
+
+    if (!invoice) {
+      const publicToken = crypto.randomUUID() + '-' + Date.now();
+      const appUrl = window.location.origin;
+      dataToSave.public_token = publicToken;
+      dataToSave.public_url = `${appUrl}/#/PublicInvoiceView?token=${publicToken}`;
+    }
+
     await onSave(dataToSave);
     setSaving(false);
   };
