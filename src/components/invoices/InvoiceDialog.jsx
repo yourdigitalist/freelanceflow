@@ -16,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, Eye } from 'lucide-react';
 import { format, addDays } from 'date-fns';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
