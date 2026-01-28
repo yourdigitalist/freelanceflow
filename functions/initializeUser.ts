@@ -9,28 +9,22 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Check if user already has a subscription
+    console.log('Initializing user:', user.email);
+
+    // Check existing subscription
     const existingSubscription = await base44.asServiceRole.entities.Subscription.filter({
       user_id: user.id,
     });
 
-    // Check if user already has DEFAULT statuses (no project_id)
+    // Check existing statuses
     const existingStatuses = await base44.asServiceRole.entities.TaskStatus.filter({
       created_by: user.email,
     });
     
-    // Filter to only global statuses (no project_id)
     const globalStatuses = existingStatuses.filter(s => !s.project_id);
+    console.log('Found global statuses:', globalStatuses.length);
 
-    // If both subscription and global statuses exist, user is already initialized
-    if (existingSubscription.length > 0 && globalStatuses.length >= 4) {
-      return Response.json({
-        success: true,
-        message: 'User already initialized',
-      });
-    }
-
-    // Create subscription if it doesn't exist
+    // Create subscription if missing
     let subscription = existingSubscription[0];
     if (!subscription) {
       subscription = await base44.asServiceRole.entities.Subscription.create({
@@ -43,10 +37,13 @@ Deno.serve(async (req) => {
           .toISOString()
           .split('T')[0],
       });
+      console.log('Created subscription');
     }
 
-    // Create default GLOBAL task statuses if they don't exist
-    if (globalStatuses.length === 0) {
+    // ALWAYS create statuses if less than 4 global ones exist
+    if (globalStatuses.length < 4) {
+      console.log('Creating default statuses...');
+      
       const defaultStatuses = [
         { name: 'To Do', key: 'todo', color: '#94a3b8', order: 0, is_done: false },
         { name: 'In Progress', key: 'in_progress', color: '#3b82f6', order: 1, is_done: false },
@@ -59,15 +56,22 @@ Deno.serve(async (req) => {
           base44.asServiceRole.entities.TaskStatus.create({
             ...status,
             created_by: user.email,
-            project_id: null, // ✅ EXPLICITLY SET TO NULL FOR GLOBAL STATUSES
+            project_id: null,
           })
         )
       );
 
-      console.log('Created default global statuses:', createdStatuses.length);
+      console.log('✅ Created statuses:', createdStatuses.length);
+      
+      return Response.json({
+        success: true,
+        subscription,
+        statusesCreated: createdStatuses.length,
+        message: `Created ${createdStatuses.length} default statuses`,
+      });
     }
 
-    // Update user with onboarding step if not completed
+    // Update onboarding if needed
     if (!user.onboarding_completed) {
       await base44.auth.updateMe({
         onboarding_step: 'company_info',
@@ -78,10 +82,11 @@ Deno.serve(async (req) => {
     return Response.json({
       success: true,
       subscription,
-      message: 'User initialized successfully',
+      statusCount: globalStatuses.length,
+      message: 'User already initialized',
     });
   } catch (error) {
-    console.error('initializeUser error:', error);
-    return Response.json({ error: error.message }, { status: 500 });
+    console.error('❌ initializeUser error:', error);
+    return Response.json({ error: error.message, stack: error.stack }, { status: 500 });
   }
 });
