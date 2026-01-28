@@ -30,8 +30,13 @@ export default function PublicReviewView() {
     queryFn: async () => {
       if (!token) return null;
       try {
-        const response = await base44.functions.invoke('getReviewByShareToken', { token });
-        return response.data;
+        const response = await fetch(`${import.meta.env.VITE_BASE44_FUNCTIONS_URL}/getReviewByShareToken`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token }),
+        });
+        if (!response.ok) throw new Error('Failed to fetch review');
+        return await response.json();
       } catch (err) {
         console.error('Failed to load review:', err);
         return null;
@@ -62,9 +67,10 @@ export default function PublicReviewView() {
 
       const updatedComments = [...(review.comments || []), newComment];
 
-      await base44.functions.invoke('updateReviewComment', {
-        reviewId: review.id,
-        comments: updatedComments,
+      await fetch(`${import.meta.env.VITE_BASE44_FUNCTIONS_URL}/updateReviewComment`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reviewId: review.id, comments: updatedComments }),
       });
 
       setComment('');
@@ -79,9 +85,10 @@ export default function PublicReviewView() {
 
   const handleApprove = async () => {
     try {
-      await base44.functions.invoke('updateReviewStatus', {
-        reviewId: review.id,
-        status: 'approved',
+      await fetch(`${import.meta.env.VITE_BASE44_FUNCTIONS_URL}/updateReviewStatus`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reviewId: review.id, status: 'approved' }),
       });
       toast.success('Document approved');
       queryClient.invalidateQueries({ queryKey: ['publicReview', token] });
@@ -92,9 +99,10 @@ export default function PublicReviewView() {
 
   const handleReject = async () => {
     try {
-      await base44.functions.invoke('updateReviewStatus', {
-        reviewId: review.id,
-        status: 'rejected',
+      await fetch(`${import.meta.env.VITE_BASE44_FUNCTIONS_URL}/updateReviewStatus`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reviewId: review.id, status: 'rejected' }),
       });
       toast.success('Document rejected');
       queryClient.invalidateQueries({ queryKey: ['publicReview', token] });
