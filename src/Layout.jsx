@@ -37,9 +37,15 @@ export default function Layout({ children, currentPageName }) {
   const [projectsExpanded, setProjectsExpanded] = useState(false);
   const navigate = useNavigate();
 
+  const { data: user } = useQuery({
+    queryKey: ['currentUser'],
+    queryFn: () => base44.auth.me(),
+  });
+
   const { data: projects = [] } = useQuery({
-    queryKey: ['projects'],
-    queryFn: () => base44.entities.Project.list('-updated_date', 5),
+    queryKey: ['projects', user?.email],
+    queryFn: () => base44.entities.Project.filter({ created_by: user.email }, '-updated_date', 5),
+    enabled: !!user?.email,
   });
 
   const toggleSidebar = () => {

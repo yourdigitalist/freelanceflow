@@ -230,18 +230,30 @@ export default function InvoicePreview({ open, onOpenChange, invoice, client, pr
             <table className="w-full">
               <thead>
                 <tr className="border-b border-slate-200">
-                  <th className="text-left py-3 text-sm font-medium text-slate-500">Description</th>
-                  <th className="text-right py-3 text-sm font-medium text-slate-500 w-20">Qty</th>
-                  <th className="text-right py-3 text-sm font-medium text-slate-500 w-24">Rate</th>
+                  {invoice.show_item_column && (
+                    <th className="text-left py-3 text-sm font-medium text-slate-500">Description</th>
+                  )}
+                  {invoice.show_quantity_column && (
+                    <th className="text-right py-3 text-sm font-medium text-slate-500 w-20">Qty</th>
+                  )}
+                  {invoice.show_rate_column && (
+                    <th className="text-right py-3 text-sm font-medium text-slate-500 w-24">Rate</th>
+                  )}
                   <th className="text-right py-3 text-sm font-medium text-slate-500 w-24">Amount</th>
                 </tr>
               </thead>
               <tbody>
                 {invoice.line_items?.map((item, index) => (
                   <tr key={index} className="border-b border-slate-100">
-                    <td className="py-3 text-slate-900">{item.description}</td>
-                    <td className="py-3 text-right text-slate-600">{item.quantity}</td>
-                    <td className="py-3 text-right text-slate-600">${item.rate?.toFixed(2)}</td>
+                    {invoice.show_item_column && (
+                      <td className="py-3 text-slate-900">{item.description}</td>
+                    )}
+                    {invoice.show_quantity_column && (
+                      <td className="py-3 text-right text-slate-600">{item.quantity}</td>
+                    )}
+                    {invoice.show_rate_column && (
+                      <td className="py-3 text-right text-slate-600">${item.rate?.toFixed(2)}</td>
+                    )}
                     <td className="py-3 text-right font-medium text-slate-900">${item.amount?.toFixed(2)}</td>
                   </tr>
                 ))}
