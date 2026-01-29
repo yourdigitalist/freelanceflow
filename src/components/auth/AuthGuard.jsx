@@ -9,10 +9,29 @@ export default function AuthGuard({ children }) {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const authenticated = await base44.auth.isAuthenticated();
-      setIsAuthenticated(authenticated);
-      
-      if (!authenticated) {
+      try {
+        const authenticated = await base44.auth.isAuthenticated();
+        
+        if (!authenticated) {
+          setIsAuthenticated(false);
+          navigate(createPageUrl('Landing'));
+          return;
+        }
+
+        // Initialize user and ensure default statuses are created
+        await base44.functions.invoke('initializeUser');
+        
+        // Check if onboarding is needed
+        const user = await base44.auth.me();
+        if (!user.onboarding_completed) {
+          navigate(createPageUrl('OnboardingWizard'));
+          return;
+        }
+
+        setIsAuthenticated(true);
+      } catch (error) {
+        console.error('Auth check error:', error);
+        setIsAuthenticated(false);
         navigate(createPageUrl('Landing'));
       }
     };
