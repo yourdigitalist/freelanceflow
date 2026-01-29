@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Copy, ExternalLink, Loader2, Trash2, Send, Download, Eye, MessageCircle } from 'lucide-react';
+import { ArrowLeft, Copy, ExternalLink, Loader2, Trash2, Send, Download, Eye, MessageCircle, Check, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -108,8 +108,8 @@ export default function ReviewRequestDetail() {
   const statusColors = {
     pending: 'bg-yellow-50 text-yellow-700 border-yellow-200',
     commented: 'bg-blue-50 text-blue-700 border-blue-200',
-    approved: 'bg-green-50 text-green-700 border-green-200',
-    rejected: 'bg-red-50 text-red-700 border-red-200',
+    approved: 'bg-green-500 text-white border-green-500',
+    rejected: 'bg-red-500 text-white border-red-500',
   };
 
   if (isLoading) {
@@ -155,10 +155,12 @@ export default function ReviewRequestDetail() {
               <div className="flex items-center gap-3 flex-wrap">
                 <span
                   className={cn(
-                    'text-xs font-medium px-2.5 py-1 rounded-full border',
+                    'text-sm font-semibold px-4 py-2 rounded-lg border flex items-center gap-2',
                     statusColors[review.status]
                   )}
                 >
+                  {review.status === 'approved' && <Check className="w-4 h-4" />}
+                  {review.status === 'rejected' && <X className="w-4 h-4" />}
                   {review.status.charAt(0).toUpperCase() + review.status.slice(1)}
                 </span>
                 {review.folder && (
