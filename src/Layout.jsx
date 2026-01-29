@@ -173,6 +173,7 @@ export default function Layout({ children, currentPageName }) {
                           )} />
                         )}
                       </button>
+                      )}
                       {projectsExpanded && !sidebarCollapsed && (
                         <div className="ml-8 mt-1 space-y-1">
                           <Link
