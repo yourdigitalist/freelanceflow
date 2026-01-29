@@ -127,6 +127,14 @@ export default function PublicReviewView() {
         },
       });
 
+      // Send notification email to review owner
+      await base44.functions.invoke('sendReviewNotification', {
+        reviewId: review.id,
+        type: 'comment',
+        commenterName: visitorName,
+        commenterEmail: visitorEmail,
+      });
+
       toast.success('Comment added');
       await reloadReview();
     } catch (error) {
@@ -193,6 +201,14 @@ export default function PublicReviewView() {
         comments: updatedComments,
       });
 
+      // Send notification email to review owner
+      await base44.functions.invoke('sendReviewNotification', {
+        reviewId: review.id,
+        type: 'comment',
+        commenterName: visitorName,
+        commenterEmail: visitorEmail,
+      });
+
       setGeneralComment('');
       toast.success('Comment added');
       await reloadReview();
@@ -209,6 +225,15 @@ export default function PublicReviewView() {
         reviewId: review.id,
         status: 'approved',
       });
+
+      // Send notification email to review owner
+      await base44.functions.invoke('sendReviewNotification', {
+        reviewId: review.id,
+        type: 'approved',
+        commenterName: visitorName,
+        commenterEmail: visitorEmail,
+      });
+
       toast.success('Document approved');
       await reloadReview();
     } catch (error) {
@@ -222,6 +247,15 @@ export default function PublicReviewView() {
         reviewId: review.id,
         status: 'rejected',
       });
+
+      // Send notification email to review owner
+      await base44.functions.invoke('sendReviewNotification', {
+        reviewId: review.id,
+        type: 'rejected',
+        commenterName: visitorName,
+        commenterEmail: visitorEmail,
+      });
+
       toast.success('Document rejected');
       await reloadReview();
     } catch (error) {

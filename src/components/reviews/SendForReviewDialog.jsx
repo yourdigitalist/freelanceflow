@@ -41,13 +41,13 @@ export default function SendForReviewDialog({ open, onOpenChange, project, clien
     queryFn: () => base44.auth.me(),
   });
 
-  const { data: allReviews = [] } = useQuery({
+  const { data: allReviews = [], refetch: refetchReviews } = useQuery({
     queryKey: ['allReviews', user?.email],
     queryFn: () => base44.entities.ReviewRequest.filter({ created_by: user.email }),
     enabled: !!user?.email,
   });
 
-  const existingFolders = [...new Set(allReviews.filter(r => r.folder).map(r => r.folder))];
+  const existingFolders = [...new Set(allReviews.filter(r => r.folder && !r.is_folder_placeholder).map(r => r.folder))];
 
   const { data: projects = [] } = useQuery({
     queryKey: ['projects', user?.email],
@@ -286,10 +286,11 @@ export default function SendForReviewDialog({ open, onOpenChange, project, clien
                     <button
                       type="button"
                       className="w-full text-left text-sm hover:bg-slate-100 rounded px-2 py-1.5 text-emerald-600 font-medium"
-                      onClick={() => {
+                      onClick={async () => {
                         const newFolder = prompt('Enter folder name:');
                         if (newFolder?.trim()) {
                           setFolder(newFolder.trim());
+                          await refetchReviews();
                           toast.success(`Folder "${newFolder.trim()}" will be created`);
                         }
                       }}
