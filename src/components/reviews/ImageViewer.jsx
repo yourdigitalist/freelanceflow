@@ -214,7 +214,9 @@ export default function ImageViewer({
                   }}
                   onClick={(e) => {
                     e.stopPropagation();
-                    handleEditComment(comment);
+                    if (!readOnly) {
+                      handleEditComment(comment);
+                    }
                   }}
                   title={comment.text}
                 >
@@ -294,7 +296,7 @@ export default function ImageViewer({
       )}
 
       {/* Comments Sidebar */}
-      {fileComments.length > 0 && !activePin && (
+      {fileComments.length > 0 && (readOnly || !activePin) && (
         <div className="absolute right-0 top-16 bottom-0 w-80 bg-white border-l border-slate-200 overflow-y-auto">
           <div className="p-4">
             <h4 className="font-semibold text-slate-900 mb-4">
