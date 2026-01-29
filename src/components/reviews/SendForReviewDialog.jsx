@@ -35,6 +35,8 @@ export default function SendForReviewDialog({ open, onOpenChange, project, clien
   const [newRecipient, setNewRecipient] = useState('');
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [passwordProtected, setPasswordProtected] = useState(false);
+  const [password, setPassword] = useState('');
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
@@ -169,6 +171,7 @@ export default function SendForReviewDialog({ open, onOpenChange, project, clien
         status: 'pending',
         due_date: dueDate || null,
         recipient_emails: recipients,
+        password: passwordProtected ? password : null,
       };
 
       await base44.entities.ReviewRequest.create(reviewData);
@@ -179,6 +182,7 @@ export default function SendForReviewDialog({ open, onOpenChange, project, clien
         recipients,
         shareToken: reviewData.share_token,
         appUrl: window.location.origin,
+        password: passwordProtected ? password : null,
       });
 
       toast.success('Review request sent successfully');
@@ -192,6 +196,8 @@ export default function SendForReviewDialog({ open, onOpenChange, project, clien
       setFolder('');
       setFiles([]);
       setRecipients([]);
+      setPasswordProtected(false);
+      setPassword('');
       onOpenChange(false);
       onSuccess?.();
     } catch (error) {

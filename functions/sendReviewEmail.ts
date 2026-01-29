@@ -9,7 +9,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { reviewTitle, recipients, shareToken, appUrl } = await req.json();
+    const { reviewTitle, recipients, shareToken, appUrl, password } = await req.json();
 
     if (!reviewTitle || !recipients || !shareToken || !appUrl) {
       return Response.json({ error: 'Missing required fields' }, { status: 400 });
@@ -29,6 +29,9 @@ Deno.serve(async (req) => {
           <p style="color: #6b7280; font-size: 14px; margin-bottom: 30px;">
             Click the button below to view the document, add comments, and provide your feedback.
           </p>
+          ${password ? `<div style="background: #fef3c7; padding: 15px; border-radius: 6px; margin-bottom: 20px; border-left: 4px solid #f59e0b;">
+            <p style="color: #92400e; font-size: 14px; margin: 0;"><strong>🔒 Password:</strong> ${password}</p>
+          </div>` : ''}
           <div style="text-align: center; margin-bottom: 30px;">
             <a href="${reviewLink}" style="display: inline-block; background: #10b981; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px;">
               Review Document
