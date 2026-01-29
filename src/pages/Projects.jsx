@@ -68,7 +68,42 @@ export default function Projects() {
   });
 
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.Project.create(data),
+    mutationFn: async (data) => {
+      // 1. Create the project
+      const newProject = await base44.entities.Project.create(data);
+      
+      // 2. Get the user's global template statuses (or create defaults if none exist)
+      let templateStatuses = await base44.entities.TaskStatus.filter({
+        created_by: user.email,
+        project_id: null
+      }, 'order');
+      
+      // If no global templates exist, use hardcoded defaults
+      if (templateStatuses.length === 0) {
+        templateStatuses = [
+          { name: 'To Do', key: 'todo', color: '#94a3b8', order: 0, is_done: false },
+          { name: 'In Progress', key: 'in_progress', color: '#3b82f6', order: 1, is_done: false },
+          { name: 'Review', key: 'review', color: '#f59e0b', order: 2, is_done: false },
+          { name: 'Completed', key: 'completed', color: '#10b981', order: 3, is_done: true },
+        ];
+      }
+      
+      // 3. Copy statuses to the new project
+      await Promise.all(
+        templateStatuses.map(status =>
+          base44.entities.TaskStatus.create({
+            name: status.name,
+            key: status.key,
+            color: status.color,
+            order: status.order,
+            is_done: status.is_done || false,
+            project_id: newProject.id,
+          })
+        )
+      );
+      
+      return newProject;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['projects'] });
       setDialogOpen(false);

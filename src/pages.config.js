@@ -51,13 +51,16 @@ import AdminDashboard from './pages/AdminDashboard';
 import BillingSettings from './pages/BillingSettings';
 import Clients from './pages/Clients';
 import CompanySettings from './pages/CompanySettings';
+import Dashboard from './pages/Dashboard';
 import HelpCenter from './pages/HelpCenter';
 import InvoiceSettings from './pages/InvoiceSettings';
 import Invoices from './pages/Invoices';
 import Landing from './pages/Landing';
 import Notifications from './pages/Notifications';
 import Onboarding from './pages/Onboarding';
+import OnboardingWizard from './pages/OnboardingWizard';
 import PersonalPreferences from './pages/PersonalPreferences';
+import ProjectDetail from './pages/ProjectDetail';
 import Projects from './pages/Projects';
 import PublicInvoice from './pages/PublicInvoice';
 import PublicReviewView from './pages/PublicReviewView';
@@ -65,9 +68,6 @@ import ReviewRequestDetail from './pages/ReviewRequestDetail';
 import ReviewRequests from './pages/ReviewRequests';
 import TaskStatuses from './pages/TaskStatuses';
 import TimeTracking from './pages/TimeTracking';
-import OnboardingWizard from './pages/OnboardingWizard';
-import Dashboard from './pages/Dashboard';
-import ProjectDetail from './pages/ProjectDetail';
 import __Layout from './Layout.jsx';
 
 
@@ -76,13 +76,16 @@ export const PAGES = {
     "BillingSettings": BillingSettings,
     "Clients": Clients,
     "CompanySettings": CompanySettings,
+    "Dashboard": Dashboard,
     "HelpCenter": HelpCenter,
     "InvoiceSettings": InvoiceSettings,
     "Invoices": Invoices,
     "Landing": Landing,
     "Notifications": Notifications,
     "Onboarding": Onboarding,
+    "OnboardingWizard": OnboardingWizard,
     "PersonalPreferences": PersonalPreferences,
+    "ProjectDetail": ProjectDetail,
     "Projects": Projects,
     "PublicInvoice": PublicInvoice,
     "PublicReviewView": PublicReviewView,
@@ -90,9 +93,6 @@ export const PAGES = {
     "ReviewRequests": ReviewRequests,
     "TaskStatuses": TaskStatuses,
     "TimeTracking": TimeTracking,
-    "OnboardingWizard": OnboardingWizard,
-    "Dashboard": Dashboard,
-    "ProjectDetail": ProjectDetail,
 }
 
 export const pagesConfig = {
