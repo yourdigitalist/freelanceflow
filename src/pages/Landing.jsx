@@ -64,12 +64,12 @@ export default function Landing() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-teal-50">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-indigo-50">
       {/* Header */}
       <header className="border-b bg-white/80 backdrop-blur-lg">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/20">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#9B63E9] to-[#8A52D8] flex items-center justify-center shadow-lg shadow-[#9B63E9]/20">
               <Sparkles className="w-6 h-6 text-white" />
             </div>
             <span className="text-xl font-bold text-slate-900">Flowdesk</span>
@@ -85,7 +85,7 @@ export default function Landing() {
         <div className="text-center max-w-3xl mx-auto">
           <h1 className="text-5xl md:text-6xl font-bold text-slate-900 mb-6 tracking-tight">
             Freelance work management,
-            <span className="text-emerald-600"> simplified</span>
+            <span className="text-[#9B63E9]"> simplified</span>
           </h1>
           <p className="text-xl text-slate-600 mb-8">
             Manage clients, track time, create invoices, and collaborate with clients - all in one beautiful platform.
@@ -94,7 +94,7 @@ export default function Landing() {
             <Button 
               onClick={handleSignIn}
               size="lg"
-              className="bg-emerald-600 hover:bg-emerald-700 text-lg px-8 shadow-lg shadow-emerald-600/30"
+              className="bg-[#9B63E9] hover:bg-[#8A52D8] text-lg px-8 shadow-lg shadow-[#9B63E9]/30"
             >
               Get Started Free
               <ArrowRight className="w-5 h-5 ml-2" />
@@ -120,8 +120,8 @@ export default function Landing() {
               key={idx}
               className="bg-white rounded-2xl p-6 border border-slate-200/60 shadow-sm hover:shadow-md transition-shadow"
             >
-              <div className="w-12 h-12 rounded-xl bg-emerald-100 flex items-center justify-center mb-4">
-                <feature.icon className="w-6 h-6 text-emerald-600" />
+              <div className="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center mb-4">
+                <feature.icon className="w-6 h-6 text-[#9B63E9]" />
               </div>
               <h3 className="text-lg font-semibold text-slate-900 mb-2">
                 {feature.title}
@@ -136,17 +136,17 @@ export default function Landing() {
 
       {/* CTA Section */}
       <section className="max-w-7xl mx-auto px-6 py-20">
-        <div className="bg-gradient-to-br from-emerald-600 to-teal-600 rounded-3xl p-12 text-center shadow-2xl">
+        <div className="bg-gradient-to-br from-[#9B63E9] to-[#8A52D8] rounded-3xl p-12 text-center shadow-2xl">
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
             Ready to get started?
           </h2>
-          <p className="text-emerald-50 text-lg mb-8">
+          <p className="text-purple-50 text-lg mb-8">
             Join thousands of freelancers managing their business with Flowdesk
           </p>
           <Button 
             onClick={handleSignIn}
             size="lg"
-            className="bg-white text-emerald-600 hover:bg-emerald-50 text-lg px-8"
+            className="bg-white text-[#9B63E9] hover:bg-purple-50 text-lg px-8"
           >
             Start Free Trial
           </Button>
@@ -168,7 +168,7 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto px-6 py-8">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#9B63E9] to-[#8A52D8] flex items-center justify-center">
                 <Sparkles className="w-4 h-4 text-white" />
               </div>
               <span className="font-semibold text-slate-900">Flowdesk</span>

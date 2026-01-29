@@ -177,7 +177,10 @@ export default function Layout({ children, currentPageName }) {
                         <div className="ml-8 mt-1 space-y-1">
                           <Link
                             to={createPageUrl(item.page)}
-                            onClick={() => setSidebarOpen(false)}
+                            onClick={() => {
+                              setSidebarOpen(false);
+                              window.location.href = createPageUrl(item.page);
+                            }}
                             className="block px-3 py-1.5 text-sm text-slate-600 hover:text-[#9B63E9] rounded-lg hover:bg-slate-50"
                           >
                             All Projects
@@ -186,7 +189,11 @@ export default function Layout({ children, currentPageName }) {
                             <Link
                               key={project.id}
                               to={createPageUrl(`ProjectDetail?id=${project.id}`)}
-                              onClick={() => setSidebarOpen(false)}
+                              onClick={(e) => {
+                                e.preventDefault();
+                                setSidebarOpen(false);
+                                window.location.href = createPageUrl(`ProjectDetail?id=${project.id}`);
+                              }}
                               className="block px-3 py-1.5 text-sm text-slate-600 hover:text-[#9B63E9] rounded-lg hover:bg-slate-50 truncate"
                             >
                               {project.name}

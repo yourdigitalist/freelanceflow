@@ -477,7 +477,7 @@ export default function ProjectDetail() {
               className="w-14 h-14 rounded-2xl flex items-center justify-center text-white font-bold text-xl flex-shrink-0"
               style={{ backgroundColor: project.color || '#10b981' }}
             >
-              {project.name?.charAt(0)?.toUpperCase()}
+              {project.emoji || project.name?.charAt(0)?.toUpperCase()}
             </div>
             <div>
               <div className="flex items-center gap-3 mb-1">

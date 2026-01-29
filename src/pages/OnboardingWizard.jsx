@@ -128,7 +128,7 @@ export default function OnboardingWizard() {
   if (checking) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#9B63E9]" />
       </div>
     );
   }
@@ -136,11 +136,11 @@ export default function OnboardingWizard() {
   if (!user) return null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-teal-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-indigo-50 flex items-center justify-center p-4">
       <div className="w-full max-w-2xl">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-emerald-500/30">
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#9B63E9] to-[#8A52D8] flex items-center justify-center mx-auto mb-4 shadow-lg shadow-[#9B63E9]/30">
             <Sparkles className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-3xl font-bold text-slate-900 mb-2">Welcome to Flowdesk</h1>
@@ -155,7 +155,7 @@ export default function OnboardingWizard() {
                 <div
                   className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${
                     currentStep >= step.id
-                      ? 'bg-emerald-600 text-white'
+                      ? 'bg-[#9B63E9] text-white'
                       : 'bg-slate-200 text-slate-400'
                   }`}
                 >
@@ -164,7 +164,7 @@ export default function OnboardingWizard() {
                 <p className="text-xs mt-2 text-slate-600">{step.title}</p>
               </div>
               {idx < steps.length - 1 && (
-                <div className={`h-0.5 w-16 ${currentStep > step.id ? 'bg-emerald-600' : 'bg-slate-200'}`} />
+                <div className={`h-0.5 w-16 ${currentStep > step.id ? 'bg-[#9B63E9]' : 'bg-slate-200'}`} />
               )}
             </React.Fragment>
           ))}
@@ -325,7 +325,7 @@ export default function OnboardingWizard() {
                 <p className="text-slate-600">Add a profile photo to personalize your account</p>
               </div>
 
-              <div className="py-8">
+              <div className="py-8 flex justify-center">
                 <AvatarUpload
                   currentAvatarUrl={user?.avatar_url}
                   userName={user?.full_name}
@@ -337,8 +337,8 @@ export default function OnboardingWizard() {
 
           {currentStep === 3 && (
             <div className="text-center py-8">
-              <div className="w-20 h-20 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-6">
-                <CheckCircle2 className="w-10 h-10 text-emerald-600" />
+              <div className="w-20 h-20 rounded-full bg-purple-100 flex items-center justify-center mx-auto mb-6">
+                <CheckCircle2 className="w-10 h-10 text-[#9B63E9]" />
               </div>
               <h2 className="text-2xl font-bold text-slate-900 mb-2">You're all set!</h2>
               <p className="text-slate-600 mb-6">
@@ -348,15 +348,15 @@ export default function OnboardingWizard() {
                 <h3 className="font-semibold text-slate-900 mb-3">What's included in your Free plan:</h3>
                 <ul className="space-y-2 text-sm text-slate-600">
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                    <CheckCircle2 className="w-4 h-4 text-[#9B63E9]" />
                     Unlimited projects & clients
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                    <CheckCircle2 className="w-4 h-4 text-[#9B63E9]" />
                     Time tracking & invoicing
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                    <CheckCircle2 className="w-4 h-4 text-[#9B63E9]" />
                     Client review portals
                   </li>
                 </ul>
@@ -376,7 +376,7 @@ export default function OnboardingWizard() {
             <Button
               onClick={handleNext}
               disabled={createProfileMutation.isPending || completeOnboardingMutation.isPending}
-              className="bg-emerald-600 hover:bg-emerald-700"
+              className="bg-[#9B63E9] hover:bg-[#8A52D8]"
             >
               {currentStep === 3 ? 'Go to Dashboard' : 'Continue'}
             </Button>
