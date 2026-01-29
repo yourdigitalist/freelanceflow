@@ -1,9 +1,9 @@
-import { createBase44Client } from 'npm:@base44/sdk@0.8.6';
+import { createClient } from 'npm:@base44/sdk@0.8.6';
 
 Deno.serve(async (req) => {
   try {
     // Initialize SDK without requiring authentication - this is a public endpoint
-    const base44 = createBase44Client({
+    const base44 = createClient({
       appId: Deno.env.get('BASE44_APP_ID'),
     });
     
