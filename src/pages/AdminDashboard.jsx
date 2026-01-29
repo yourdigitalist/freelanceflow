@@ -43,7 +43,7 @@ export default function AdminDashboard() {
 
   if (user?.role !== 'admin') {
     return (
-      <div className="min-h-screen bg-[#F5F5F5] flex items-center justify-center">
+      <div className="flex items-center justify-center py-12">
         <Card>
           <CardHeader>
             <CardTitle>Access Denied</CardTitle>
