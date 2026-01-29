@@ -144,9 +144,22 @@ export default function ReviewRequests() {
                       >
                         {review.status.charAt(0).toUpperCase() + review.status.slice(1)}
                       </span>
+                      {review.folder && (
+                        <span className="text-xs text-slate-600 bg-slate-100 px-2 py-1 rounded">
+                          📁 {review.folder}
+                        </span>
+                      )}
                       <span className="text-xs text-slate-500">
-                        v{review.version} • {review.file_urls?.length} file{review.file_urls?.length !== 1 ? 's' : ''}
+                        v{review.version || 1}
                       </span>
+                      <span className="text-xs text-slate-500">
+                        {review.file_urls?.length} file{review.file_urls?.length !== 1 ? 's' : ''}
+                      </span>
+                      {(review.file_comments?.length > 0) && (
+                        <span className="text-xs text-blue-600">
+                          💬 {review.file_comments.length}
+                        </span>
+                      )}
                       {review.due_date && (
                         <span className="text-xs text-slate-500">
                           Due: {format(new Date(review.due_date), 'MMM d')}

@@ -114,28 +114,54 @@ export default function PublicReviewView() {
     }
 
     try {
-      const newComment = {
-        id: Date.now().toString(),
-        author: visitorName,
-        author_email: visitorEmail,
-        text: commentData.text,
-        file_index: commentData.file_index,
-        coordinates: commentData.coordinates,
-        created_at: new Date().toISOString(),
-        resolved: false,
-      };
-
-      const updatedFileComments = [...(review.file_comments || []), newComment];
-
       await base44.functions.invoke('updateReviewFileComments', {
         reviewId: review.id,
-        fileComments: updatedFileComments,
+        operation: 'add',
+        comment: {
+          author: visitorName,
+          author_email: visitorEmail,
+          text: commentData.text,
+          file_index: commentData.file_index,
+          coordinates: commentData.coordinates,
+          resolved: false,
+        },
       });
 
       toast.success('Comment added');
       await reloadReview();
     } catch (error) {
       toast.error('Failed to add comment');
+    }
+  };
+
+  const handleEditFileComment = async (commentId, newText) => {
+    try {
+      await base44.functions.invoke('updateReviewFileComments', {
+        reviewId: review.id,
+        operation: 'edit',
+        commentId,
+        comment: { text: newText },
+      });
+
+      toast.success('Comment updated');
+      await reloadReview();
+    } catch (error) {
+      toast.error('Failed to update comment');
+    }
+  };
+
+  const handleDeleteFileComment = async (commentId) => {
+    try {
+      await base44.functions.invoke('updateReviewFileComments', {
+        reviewId: review.id,
+        operation: 'delete',
+        commentId,
+      });
+
+      toast.success('Comment deleted');
+      await reloadReview();
+    } catch (error) {
+      toast.error('Failed to delete comment');
     }
   };
 
@@ -258,6 +284,9 @@ export default function PublicReviewView() {
                   )}
                 >
                   {review.status.charAt(0).toUpperCase() + review.status.slice(1)}
+                </span>
+                <span className="text-sm text-slate-600 font-medium">
+                  Version {review.version || 1}
                 </span>
                 {review.due_date && (
                   <span className="text-sm text-slate-600">
@@ -452,6 +481,8 @@ export default function PublicReviewView() {
           onClose={() => setViewerOpen(false)}
           comments={allFileComments}
           onAddComment={handleAddFileComment}
+          onEditComment={handleEditFileComment}
+          onDeleteComment={handleDeleteFileComment}
           visitorName={visitorName}
           visitorEmail={visitorEmail}
         />

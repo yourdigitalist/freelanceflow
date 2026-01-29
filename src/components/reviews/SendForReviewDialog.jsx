@@ -28,6 +28,8 @@ export default function SendForReviewDialog({ open, onOpenChange, project, clien
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [dueDate, setDueDate] = useState('');
+  const [version, setVersion] = useState('1');
+  const [folder, setFolder] = useState('');
   const [files, setFiles] = useState([]);
   const [recipients, setRecipients] = useState([]);
   const [newRecipient, setNewRecipient] = useState('');
@@ -78,6 +80,15 @@ export default function SendForReviewDialog({ open, onOpenChange, project, clien
 
   const handleFileChange = async (e) => {
     const selectedFiles = Array.from(e.target.files);
+    const maxFileSize = 10 * 1024 * 1024; // 10MB limit
+    
+    // Validate file sizes
+    const oversizedFiles = selectedFiles.filter(file => file.size > maxFileSize);
+    if (oversizedFiles.length > 0) {
+      toast.error(`Files over 10MB: ${oversizedFiles.map(f => f.name).join(', ')}`);
+      return;
+    }
+
     setUploading(true);
 
     try {
@@ -144,6 +155,8 @@ export default function SendForReviewDialog({ open, onOpenChange, project, clien
         title,
         description,
         file_urls: files,
+        version: parseFloat(version) || 1,
+        folder: folder || null,
         share_token: generateShareToken(),
         status: 'pending',
         due_date: dueDate || null,
@@ -167,6 +180,8 @@ export default function SendForReviewDialog({ open, onOpenChange, project, clien
       setTitle('');
       setDescription('');
       setDueDate('');
+      setVersion('1');
+      setFolder('');
       setFiles([]);
       setRecipients([]);
       onOpenChange(false);
@@ -231,6 +246,32 @@ export default function SendForReviewDialog({ open, onOpenChange, project, clien
             />
           </div>
 
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="version">Version</Label>
+              <Input
+                id="version"
+                type="number"
+                step="0.1"
+                value={version}
+                onChange={(e) => setVersion(e.target.value)}
+                placeholder="1"
+                className="mt-2"
+              />
+              <p className="text-xs text-slate-500 mt-1">Display: v{version}</p>
+            </div>
+            <div>
+              <Label htmlFor="folder">Folder (optional)</Label>
+              <Input
+                id="folder"
+                value={folder}
+                onChange={(e) => setFolder(e.target.value)}
+                placeholder="e.g., Brand Guidelines"
+                className="mt-2"
+              />
+            </div>
+          </div>
+
           <div>
             <Label htmlFor="description">Description</Label>
             <Textarea
@@ -275,7 +316,7 @@ export default function SendForReviewDialog({ open, onOpenChange, project, clien
                   <div className="flex flex-col items-center gap-2">
                     <Upload className="w-5 h-5 text-slate-400" />
                     <span className="text-sm text-slate-600">Click to upload or drag & drop</span>
-                    <span className="text-xs text-slate-400">PDF, Images, Documents</span>
+                    <span className="text-xs text-slate-400">PDF, Images, Documents (max 10MB each)</span>
                   </div>
                 )}
               </label>

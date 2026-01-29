@@ -11,6 +11,8 @@ export default function ImageViewer({
   onClose, 
   comments = [],
   onAddComment,
+  onEditComment,
+  onDeleteComment,
   visitorName,
   visitorEmail 
 }) {
@@ -18,6 +20,7 @@ export default function ImageViewer({
   const [pins, setPins] = useState([]);
   const [activePin, setActivePin] = useState(null);
   const [commentText, setCommentText] = useState('');
+  const [editingComment, setEditingComment] = useState(null);
   const [zoom, setZoom] = useState(1);
   const imageRef = useRef(null);
 
@@ -54,22 +57,41 @@ export default function ImageViewer({
   const handleAddComment = async () => {
     if (!commentText.trim()) return;
 
-    const pin = pins.find(p => p.id === activePin);
-    
-    await onAddComment({
-      text: commentText,
-      file_index: currentIndex,
-      coordinates: pin ? {
-        x: pin.x,
-        y: pin.y,
-        percentX: pin.percentX,
-        percentY: pin.percentY,
-      } : null,
-    });
+    if (editingComment) {
+      // Edit existing comment
+      await onEditComment(editingComment.id, commentText);
+      setEditingComment(null);
+    } else {
+      // Add new comment
+      const pin = pins.find(p => p.id === activePin);
+      
+      await onAddComment({
+        text: commentText,
+        file_index: currentIndex,
+        coordinates: pin ? {
+          x: pin.x,
+          y: pin.y,
+          percentX: pin.percentX,
+          percentY: pin.percentY,
+        } : null,
+      });
+      setPins(pins.filter(p => p.id !== activePin));
+    }
 
     setCommentText('');
     setActivePin(null);
-    setPins(pins.filter(p => p.id !== activePin));
+  };
+
+  const handleEditComment = (comment) => {
+    setEditingComment(comment);
+    setCommentText(comment.text);
+    setActivePin('editing');
+  };
+
+  const handleDeleteComment = async (commentId) => {
+    if (confirm('Delete this comment?')) {
+      await onDeleteComment(commentId);
+    }
   };
 
   const goToNext = () => {
@@ -180,6 +202,7 @@ export default function ImageViewer({
                   top: `${comment.coordinates.percentY}%`,
                   transform: 'translate(-50%, -50%)',
                 }}
+                onClick={() => handleEditComment(comment)}
                 title={comment.text}
               >
                 <MessageCircle className="w-4 h-4" />
@@ -216,11 +239,13 @@ export default function ImageViewer({
         )}
       </div>
 
-      {/* Comment Input (shown when pin is active) */}
+      {/* Comment Input (shown when pin is active or editing) */}
       {activePin && (
         <div className="absolute bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-6 shadow-2xl">
           <div className="max-w-2xl mx-auto">
-            <h4 className="font-medium text-slate-900 mb-3">Add your comment</h4>
+            <h4 className="font-medium text-slate-900 mb-3">
+              {editingComment ? 'Edit comment' : 'Add your comment'}
+            </h4>
             <Textarea
               value={commentText}
               onChange={(e) => setCommentText(e.target.value)}
@@ -236,12 +261,13 @@ export default function ImageViewer({
                 className="bg-emerald-600 hover:bg-emerald-700"
               >
                 <Check className="w-4 h-4 mr-2" />
-                Add Comment
+                {editingComment ? 'Save' : 'Add Comment'}
               </Button>
               <Button
                 variant="outline"
                 onClick={() => {
                   setActivePin(null);
+                  setEditingComment(null);
                   setPins(pins.filter(p => p.id !== activePin));
                   setCommentText('');
                 }}
@@ -262,15 +288,37 @@ export default function ImageViewer({
             </h4>
             <div className="space-y-3">
               {fileComments.map((comment) => (
-                <div key={comment.id} className="bg-slate-50 rounded-lg p-3 border border-slate-200">
+                <div key={comment.id} className="bg-slate-50 rounded-lg p-3 border border-slate-200 group">
                   <div className="flex items-start justify-between mb-2">
                     <div>
                       <p className="font-medium text-slate-900 text-sm">{comment.author}</p>
                       <p className="text-xs text-slate-500">{comment.author_email}</p>
                     </div>
-                    <p className="text-xs text-slate-500">
-                      {format(new Date(comment.created_at), 'MMM d, h:mm a')}
-                    </p>
+                    <div className="flex items-center gap-1">
+                      <p className="text-xs text-slate-500">
+                        {format(new Date(comment.created_at), 'MMM d, h:mm a')}
+                      </p>
+                      {visitorEmail === comment.author_email && (
+                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleEditComment(comment)}
+                            className="h-6 w-6 p-0"
+                          >
+                            ✏️
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDeleteComment(comment.id)}
+                            className="h-6 w-6 p-0 text-red-600 hover:text-red-700"
+                          >
+                            🗑️
+                          </Button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                   <p className="text-slate-700 text-sm">{comment.text}</p>
                 </div>
