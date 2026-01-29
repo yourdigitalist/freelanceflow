@@ -101,6 +101,8 @@ export default function InvoiceDialog({
   const [showEditWarning, setShowEditWarning] = useState(false);
 
   useEffect(() => {
+    if (!open) return;
+    
     if (invoice) {
       setFormData({
         invoice_number: invoice.invoice_number || '',
@@ -118,7 +120,7 @@ export default function InvoiceDialog({
         show_quantity_column: invoice.show_quantity_column !== undefined ? invoice.show_quantity_column : true,
         show_rate_column: invoice.show_rate_column !== undefined ? invoice.show_rate_column : true,
       });
-      if (invoice.status === 'sent' && open) {
+      if (invoice.status === 'sent') {
         setShowEditWarning(true);
       }
     } else {
@@ -142,7 +144,7 @@ export default function InvoiceDialog({
       });
       setShowEditWarning(false);
     }
-  }, [invoice, initialData, invoiceSettings, taxRates, open]);
+  }, [invoice, open]);
 
   const updateLineItem = (index, field, value) => {
     const newItems = [...formData.line_items];
