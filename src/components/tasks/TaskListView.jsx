@@ -66,7 +66,7 @@ export default function TaskListView({ tasks, taskStatuses, onEditTask, onDelete
   }, [preferences]);
 
   const getStatusOrder = (statusId) => {
-    const status = taskStatuses.find(s => s.id === statusId);
+    const status = (taskStatuses || []).find(s => s.id === statusId);
     return status?.order || 999;
   };
 
@@ -76,12 +76,12 @@ export default function TaskListView({ tasks, taskStatuses, onEditTask, onDelete
   };
 
   const getStatusName = (statusId) => {
-    const status = taskStatuses.find(s => s.id === statusId);
+    const status = (taskStatuses || []).find(s => s.id === statusId);
     return status?.name || 'Unknown';
   };
 
   const getStatusColor = (statusId) => {
-    const status = taskStatuses.find(s => s.id === statusId);
+    const status = (taskStatuses || []).find(s => s.id === statusId);
     return status?.color || '#94A3B8';
   };
 
@@ -95,7 +95,7 @@ export default function TaskListView({ tasks, taskStatuses, onEditTask, onDelete
     topLevelTasks = topLevelTasks.filter(t => t.priority === filterPriority);
   }
   if (hideDone) {
-    const doneStatusIds = taskStatuses.filter(s => s.is_done).map(s => s.id);
+    const doneStatusIds = (taskStatuses || []).filter(s => s.is_done).map(s => s.id);
     topLevelTasks = topLevelTasks.filter(t => !doneStatusIds.includes(t.status_id));
   }
 
@@ -175,7 +175,7 @@ export default function TaskListView({ tasks, taskStatuses, onEditTask, onDelete
       id: tempId,
       title: newTaskTitle.trim(),
       project_id: projectId,
-      status_id: taskStatuses[0]?.id,
+      status_id: (taskStatuses && taskStatuses.length > 0) ? taskStatuses[0].id : null,
       priority: 'medium',
       order: topLevelTasks.length,
     };
@@ -256,7 +256,7 @@ export default function TaskListView({ tasks, taskStatuses, onEditTask, onDelete
   };
 
   const isDoneStatus = (statusId) => {
-    const status = taskStatuses.find(s => s.id === statusId);
+    const status = (taskStatuses || []).find(s => s.id === statusId);
     return status?.is_done === true;
   };
 
@@ -270,7 +270,7 @@ export default function TaskListView({ tasks, taskStatuses, onEditTask, onDelete
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Statuses</SelectItem>
-            {taskStatuses.map(status => (
+            {(taskStatuses || []).map(status => (
               <SelectItem key={status.id} value={status.id}>{status.name}</SelectItem>
             ))}
           </SelectContent>
@@ -419,7 +419,7 @@ export default function TaskListView({ tasks, taskStatuses, onEditTask, onDelete
                                   </div>
                                 </SelectTrigger>
                                 <SelectContent>
-                                  {taskStatuses.map(status => (
+                                  {(taskStatuses || []).map(status => (
                                     <SelectItem key={status.id} value={status.id}>
                                       <div className="flex items-center gap-2">
                                         <div 
