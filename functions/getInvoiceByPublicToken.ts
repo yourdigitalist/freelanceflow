@@ -26,11 +26,15 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'This invoice is no longer available' }, { status: 403 });
     }
 
+    // First, get the user ID from the invoice creator's email
+    const users = await base44.asServiceRole.entities.User.filter({ email: invoice.created_by });
+    const creatorUserId = users?.[0]?.id;
+
     // Fetch related data
     const [clients, projects, companyProfiles, invoiceSettings, personalPreferences] = await Promise.all([
       base44.asServiceRole.entities.Client.filter({ id: invoice.client_id }),
       invoice.project_id ? base44.asServiceRole.entities.Project.filter({ id: invoice.project_id }) : Promise.resolve([]),
-      base44.asServiceRole.entities.CompanyProfile.filter({ user_id: invoice.created_by }),
+      creatorUserId ? base44.asServiceRole.entities.CompanyProfile.filter({ user_id: creatorUserId }) : Promise.resolve([]),
       base44.asServiceRole.entities.InvoiceSettings.filter({ created_by: invoice.created_by }),
       base44.asServiceRole.entities.PersonalPreference.filter({ created_by: invoice.created_by })
     ]);
