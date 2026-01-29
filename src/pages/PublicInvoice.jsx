@@ -63,7 +63,12 @@ export default function PublicInvoice() {
 
   if (!invoiceData) return null;
 
-  const { invoice, client, project, businessInfo, numberFormat } = invoiceData;
+  const { invoice, client, project, businessInfo, numberFormat, currency } = invoiceData;
+  
+  const currencySymbol = currency === 'EUR' ? '€' : 
+                         currency === 'GBP' ? '£' : 
+                         currency === 'CAD' ? 'CA$' : 
+                         currency === 'AUD' ? 'A$' : '$';
 
   const clientName = [client?.first_name, client?.last_name].filter(Boolean).join(' ') || client?.company || 'Client';
   const clientAddress = [
@@ -167,9 +172,9 @@ export default function PublicInvoice() {
                       <td className="py-4 text-right text-slate-600">{item.quantity}</td>
                     )}
                     {invoice.show_rate_column && (
-                      <td className="py-4 text-right text-slate-600">${formatNumber(item.rate, numberFormat)}</td>
+                      <td className="py-4 text-right text-slate-600">{currencySymbol}{formatNumber(item.rate, numberFormat)}</td>
                     )}
-                    <td className="py-4 text-right font-semibold text-slate-900">${formatNumber(item.amount, numberFormat)}</td>
+                    <td className="py-4 text-right font-semibold text-slate-900">{currencySymbol}{formatNumber(item.amount, numberFormat)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -181,17 +186,17 @@ export default function PublicInvoice() {
             <div className="w-80">
               <div className="flex justify-between py-3 text-lg">
                 <span className="text-slate-600">Subtotal</span>
-                <span className="font-semibold text-slate-900">${formatNumber(invoice.subtotal, numberFormat)}</span>
+                <span className="font-semibold text-slate-900">{currencySymbol}{formatNumber(invoice.subtotal, numberFormat)}</span>
               </div>
               {invoice.tax_rate > 0 && (
                 <div className="flex justify-between py-3 text-lg">
                   <span className="text-slate-600">Tax ({invoice.tax_rate}%)</span>
-                  <span className="font-semibold text-slate-900">${formatNumber(invoice.tax_amount, numberFormat)}</span>
+                  <span className="font-semibold text-slate-900">{currencySymbol}{formatNumber(invoice.tax_amount, numberFormat)}</span>
                 </div>
               )}
               <div className="flex justify-between py-4 border-t-2 border-slate-300 mt-2">
                 <span className="font-bold text-xl text-slate-900">Total</span>
-                <span className="font-bold text-2xl text-[#9B63E9]">${formatNumber(invoice.total, numberFormat)}</span>
+                <span className="font-bold text-2xl text-[#9B63E9]">{currencySymbol}{formatNumber(invoice.total, numberFormat)}</span>
               </div>
             </div>
           </div>

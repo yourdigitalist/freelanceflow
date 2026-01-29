@@ -90,6 +90,7 @@ Deno.serve(async (req) => {
         name: project.name,
       } : null,
       businessInfo,
+      currency: companyProfile?.currency || 'USD',
       numberFormat: preferences?.number_format || '1,000.00',
     });
   } catch (error) {
