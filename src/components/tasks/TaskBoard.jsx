@@ -16,7 +16,7 @@ export default function TaskBoard({ tasks, taskStatuses, onDragEnd, onEditTask, 
   const [isDragging, setIsDragging] = React.useState(false);
   const [startX, setStartX] = React.useState(0);
   const [scrollLeft, setScrollLeft] = React.useState(0);
-  const columns = taskStatuses.sort((a, b) => a.order - b.order);
+  const columns = (taskStatuses || []).sort((a, b) => a.order - b.order);
 
   const handleMouseDown = (e) => {
     if (!scrollContainerRef.current) return;

@@ -40,7 +40,7 @@ export default function ProjectStatusManagementDialog({
 
   useEffect(() => {
     if (open) {
-      if (currentStatuses.length > 0) {
+    if (currentStatuses && currentStatuses.length > 0) {
         // Preserve IDs and ownership for proper update/create/delete logic
         setStatuses(currentStatuses.map((s) => ({
           id: s.id,                    // ✅ KEEP THE ID
@@ -153,7 +153,7 @@ export default function ProjectStatusManagementDialog({
                   <SelectValue placeholder="Choose a template..." />
                 </SelectTrigger>
                 <SelectContent>
-                  {templates.map(template => (
+                  {templates?.map(template => (
                     <SelectItem key={template.id} value={template.id}>
                       {template.name} {template.is_default && '(Default)'}
                     </SelectItem>

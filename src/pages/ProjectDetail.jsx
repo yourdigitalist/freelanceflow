@@ -564,7 +564,7 @@ export default function ProjectDetail() {
           {taskView === 'board' ? (
             <TaskBoard
               tasks={tasks}
-              taskStatuses={taskStatuses}
+              taskStatuses={taskStatuses || []}
               projectId={projectId}
               onDragEnd={handleDragEnd}
               onEditTask={(task) => {
@@ -580,7 +580,7 @@ export default function ProjectDetail() {
           ) : (
             <TaskListView
               tasks={tasks}
-              taskStatuses={taskStatuses}
+              taskStatuses={taskStatuses || []}
               projectId={projectId}
               onEditTask={(task) => {
                 setEditingTask(task);
@@ -604,7 +604,7 @@ export default function ProjectDetail() {
           if (!open) setEditingTask(null);
         }}
         task={editingTask}
-        taskStatuses={taskStatuses}
+        taskStatuses={taskStatuses || []}
         defaultStatusId={editingTask?.status_id}
         onSave={handleTaskSave}
       />
