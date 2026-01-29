@@ -61,10 +61,10 @@ import ProjectDetail from './pages/ProjectDetail';
 import Projects from './pages/Projects';
 import PublicInvoice from './pages/PublicInvoice';
 import PublicReviewView from './pages/PublicReviewView';
+import ReviewRequestDetail from './pages/ReviewRequestDetail';
 import ReviewRequests from './pages/ReviewRequests';
 import TaskStatuses from './pages/TaskStatuses';
 import TimeTracking from './pages/TimeTracking';
-import ReviewRequestDetail from './pages/ReviewRequestDetail';
 import __Layout from './Layout.jsx';
 
 
@@ -83,10 +83,10 @@ export const PAGES = {
     "Projects": Projects,
     "PublicInvoice": PublicInvoice,
     "PublicReviewView": PublicReviewView,
+    "ReviewRequestDetail": ReviewRequestDetail,
     "ReviewRequests": ReviewRequests,
     "TaskStatuses": TaskStatuses,
     "TimeTracking": TimeTracking,
-    "ReviewRequestDetail": ReviewRequestDetail,
 }
 
 export const pagesConfig = {

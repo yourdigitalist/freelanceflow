@@ -21,7 +21,12 @@ export default function Landing() {
       const isAuth = await base44.auth.isAuthenticated();
       if (isAuth) {
         const user = await base44.auth.me();
-        if (!user.onboarding_completed) {
+        
+        // Check if user has completed onboarding by checking CompanyProfile
+        const profiles = await base44.entities.CompanyProfile.filter({ user_id: user.id });
+        const hasCompletedSetup = profiles.length > 0 && profiles[0].is_setup_complete;
+        
+        if (!hasCompletedSetup && !user.onboarding_completed) {
           navigate(createPageUrl('OnboardingWizard'));
         } else {
           navigate(createPageUrl('Dashboard'));
