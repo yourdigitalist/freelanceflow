@@ -347,7 +347,7 @@ export default function PublicReviewView() {
             />
             <Button
               onClick={verifyPassword}
-              className="w-full bg-emerald-600 hover:bg-emerald-700"
+              className="w-full bg-[#9B63E9] hover:bg-[#8A52D8]"
             >
               Unlock Review
             </Button>
@@ -360,7 +360,7 @@ export default function PublicReviewView() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-emerald-500 border-t-transparent"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-[#9B63E9] border-t-transparent"></div>
       </div>
     );
   }
@@ -390,15 +390,17 @@ export default function PublicReviewView() {
             <div>
               <h1 className="text-3xl font-bold text-slate-900">{review.title}</h1>
               {review.description && (
-                <p className="text-slate-600 mt-2">{review.description}</p>
+                <div className="bg-[#9B63E9]/5 border border-[#9B63E9]/20 rounded-lg p-4 mt-3">
+                  <p className="text-sm text-slate-600 whitespace-pre-line">{review.description}</p>
+                </div>
               )}
               <div className="flex items-center gap-4 mt-4 flex-wrap">
                 <span
                   className={cn(
                     'text-sm font-semibold px-4 py-2 rounded-lg flex items-center gap-2',
-                    review.status === 'approved' && 'bg-green-500 text-white shadow-lg',
+                    review.status === 'approved' && 'bg-[#9B63E9] text-white shadow-lg',
                     review.status === 'rejected' && 'bg-red-500 text-white shadow-lg',
-                    review.status === 'commented' && 'bg-blue-100 text-blue-700',
+                    review.status === 'commented' && 'bg-[#9B63E9]/10 text-[#9B63E9]',
                     review.status === 'pending' && 'bg-yellow-100 text-yellow-700'
                   )}
                 >
@@ -421,7 +423,7 @@ export default function PublicReviewView() {
 
         {/* Visitor Info */}
         {!visitorInfoSaved && (
-          <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-6 mb-6">
+          <div className="bg-[#9B63E9]/5 border border-[#9B63E9]/20 rounded-2xl p-6 mb-6">
             <h3 className="font-semibold text-slate-900 mb-4">👤 Who's reviewing?</h3>
             <p className="text-sm text-slate-600 mb-4">
               Enter your info once to start adding comments to files
@@ -441,7 +443,7 @@ export default function PublicReviewView() {
             </div>
             <Button
               onClick={saveVisitorInfo}
-              className="bg-emerald-600 hover:bg-emerald-700"
+              className="bg-[#9B63E9] hover:bg-[#8A52D8]"
             >
               Save & Continue
             </Button>
@@ -449,9 +451,9 @@ export default function PublicReviewView() {
         )}
 
         {visitorInfoSaved && (
-          <div className="bg-white border border-emerald-200 rounded-lg p-3 mb-6 flex items-center justify-between">
+          <div className="bg-white border border-[#9B63E9]/20 rounded-lg p-3 mb-6 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Check className="w-4 h-4 text-emerald-600" />
+              <Check className="w-4 h-4 text-[#9B63E9]" />
               <span className="text-sm text-slate-700">
                 Reviewing as <strong>{visitorName}</strong> ({visitorEmail})
               </span>
@@ -477,9 +479,9 @@ export default function PublicReviewView() {
                 return (
                   <div
                     key={idx}
-                    className="flex items-center gap-3 p-4 border border-slate-200 rounded-lg hover:border-emerald-300 hover:bg-emerald-50 transition-colors group"
+                    className="flex items-center gap-3 p-4 border border-slate-200 rounded-lg hover:border-[#9B63E9] hover:bg-[#9B63E9]/5 transition-colors group"
                   >
-                    <FileText className="w-5 h-5 text-slate-400 group-hover:text-emerald-600" />
+                    <FileText className="w-5 h-5 text-slate-400 group-hover:text-[#9B63E9]" />
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-slate-900 truncate">{file.filename}</p>
                       <div className="flex items-center gap-3 mt-1">
@@ -499,7 +501,7 @@ export default function PublicReviewView() {
                         variant="outline"
                         size="sm"
                         onClick={() => openViewer(idx)}
-                        className="group-hover:border-emerald-600 group-hover:text-emerald-600"
+                        className="group-hover:border-[#9B63E9] group-hover:text-[#9B63E9]"
                       >
                         <Eye className="w-4 h-4 mr-1" />
                         Review
@@ -562,7 +564,7 @@ export default function PublicReviewView() {
                 <Button
                   onClick={handleAddGeneralComment}
                   disabled={submitting || !generalComment.trim()}
-                  className="bg-emerald-600 hover:bg-emerald-700 w-full"
+                  className="bg-[#9B63E9] hover:bg-[#8A52D8] w-full"
                 >
                   <Send className="w-4 h-4 mr-2" />
                   {submitting ? 'Sending...' : 'Add General Comment'}
@@ -577,7 +579,7 @@ export default function PublicReviewView() {
           <div className="flex gap-3">
             <Button
               onClick={handleApprove}
-              className="flex-1 bg-green-600 hover:bg-green-700"
+              className="flex-1 bg-[#9B63E9] hover:bg-[#8A52D8]"
             >
               <Check className="w-4 h-4 mr-2" />
               Approve

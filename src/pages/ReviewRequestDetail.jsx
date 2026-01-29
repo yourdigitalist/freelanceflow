@@ -4,7 +4,15 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { ArrowLeft, Copy, ExternalLink, Loader2, Trash2, Send, Download, Eye, MessageCircle, Check, X } from 'lucide-react';
+import EmojiPicker from '../components/shared/EmojiPicker';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -33,6 +41,8 @@ export default function ReviewRequestDetail() {
   const [selectedFileIndex, setSelectedFileIndex] = useState(0);
   const [editingFolder, setEditingFolder] = useState(false);
   const [newFolder, setNewFolder] = useState('');
+  const [newFolderEmoji, setNewFolderEmoji] = useState('📁');
+  const [newFolderColor, setNewFolderColor] = useState('#3b82f6');
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
@@ -67,6 +77,14 @@ export default function ReviewRequestDetail() {
     enabled: !!review?.project_id,
   });
 
+  const { data: allReviews = [] } = useQuery({
+    queryKey: ['allReviews', user?.email],
+    queryFn: () => base44.entities.ReviewRequest.filter({ created_by: user.email }),
+    enabled: !!user?.email,
+  });
+
+  const existingFolders = [...new Set(allReviews.filter(r => r.folder).map(r => r.folder))];
+
   const deleteMutation = useMutation({
     mutationFn: () => base44.entities.ReviewRequest.delete(reviewId),
     onSuccess: () => {
@@ -79,9 +97,15 @@ export default function ReviewRequestDetail() {
   });
 
   const updateFolderMutation = useMutation({
-    mutationFn: (folder) => base44.entities.ReviewRequest.update(reviewId, { folder }),
+    mutationFn: ({ folder, emoji, color }) => 
+      base44.entities.ReviewRequest.update(reviewId, { 
+        folder, 
+        folder_emoji: emoji,
+        folder_color: color 
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['reviewRequest', reviewId] });
+      queryClient.invalidateQueries({ queryKey: ['allReviews'] });
       setEditingFolder(false);
       toast.success('Folder updated');
     },
@@ -127,7 +151,7 @@ export default function ReviewRequestDetail() {
   if (isLoading) {
     return (
       <div className="p-6 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
+        <Loader2 className="w-8 h-8 animate-spin text-[#9B63E9]" />
       </div>
     );
   }
@@ -177,17 +201,63 @@ export default function ReviewRequestDetail() {
                 </span>
                 {editingFolder ? (
                   <div className="flex items-center gap-2">
-                    <Input
-                      value={newFolder}
-                      onChange={(e) => setNewFolder(e.target.value)}
-                      placeholder="Folder name"
-                      className="h-8 w-40"
-                      autoFocus
-                    />
+                    <Select value={newFolder || '__none__'} onValueChange={(val) => setNewFolder(val === '__none__' ? '' : val)}>
+                      <SelectTrigger className="h-8 w-40">
+                        <SelectValue placeholder="Select folder" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="__none__">No folder</SelectItem>
+                        {existingFolders.map((f) => (
+                          <SelectItem key={f} value={f}>
+                            {f}
+                          </SelectItem>
+                        ))}
+                        <div className="border-t mt-1 pt-1 px-2">
+                          <button
+                            type="button"
+                            className="w-full text-left text-sm hover:bg-slate-100 rounded px-2 py-1.5 text-[#9B63E9] font-medium"
+                            onClick={() => {
+                              const name = prompt('Enter new folder name:');
+                              if (name?.trim()) setNewFolder(name.trim());
+                            }}
+                          >
+                            + Create new
+                          </button>
+                        </div>
+                      </SelectContent>
+                    </Select>
+                    {newFolder && (
+                      <>
+                        <EmojiPicker 
+                          value={newFolderEmoji}
+                          onChange={setNewFolderEmoji}
+                          color={newFolderColor}
+                        />
+                        <div className="flex gap-1">
+                          {['#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981'].map(color => (
+                            <button
+                              key={color}
+                              type="button"
+                              onClick={() => setNewFolderColor(color)}
+                              className="w-5 h-5 rounded-full border-2 transition-all"
+                              style={{ 
+                                backgroundColor: color,
+                                borderColor: newFolderColor === color ? '#1e293b' : 'transparent'
+                              }}
+                            />
+                          ))}
+                        </div>
+                      </>
+                    )}
                     <Button
                       size="sm"
-                      onClick={() => updateFolderMutation.mutate(newFolder)}
+                      onClick={() => updateFolderMutation.mutate({ 
+                        folder: newFolder, 
+                        emoji: newFolderEmoji, 
+                        color: newFolderColor 
+                      })}
                       disabled={updateFolderMutation.isPending}
+                      className="bg-[#9B63E9] hover:bg-[#8A52D8]"
                     >
                       Save
                     </Button>
@@ -204,13 +274,15 @@ export default function ReviewRequestDetail() {
                   </div>
                 ) : (
                   <span 
-                    className="text-xs text-slate-600 bg-slate-100 px-2 py-1 rounded cursor-pointer hover:bg-slate-200"
+                    className="text-xs text-slate-600 bg-slate-100 px-2 py-1 rounded cursor-pointer hover:bg-slate-200 transition-colors"
                     onClick={() => {
                       setNewFolder(review.folder || '');
+                      setNewFolderEmoji(review.folder_emoji || '📁');
+                      setNewFolderColor(review.folder_color || '#3b82f6');
                       setEditingFolder(true);
                     }}
                   >
-                    📁 {review.folder || 'No folder'} ✏️
+                    {review.folder_emoji || '📁'} {review.folder || 'No folder'} ✏️
                   </span>
                 )}
                 <span className="text-xs text-slate-500">v{review.version || 1}</span>

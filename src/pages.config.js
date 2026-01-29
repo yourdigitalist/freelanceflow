@@ -52,6 +52,7 @@ import BillingSettings from './pages/BillingSettings';
 import Clients from './pages/Clients';
 import CompanySettings from './pages/CompanySettings';
 import Dashboard from './pages/Dashboard';
+import EmailSettings from './pages/EmailSettings';
 import HelpCenter from './pages/HelpCenter';
 import InvoiceSettings from './pages/InvoiceSettings';
 import Invoices from './pages/Invoices';
@@ -68,7 +69,6 @@ import ReviewRequestDetail from './pages/ReviewRequestDetail';
 import ReviewRequests from './pages/ReviewRequests';
 import TaskStatuses from './pages/TaskStatuses';
 import TimeTracking from './pages/TimeTracking';
-import EmailSettings from './pages/EmailSettings';
 import __Layout from './Layout.jsx';
 
 
@@ -78,6 +78,7 @@ export const PAGES = {
     "Clients": Clients,
     "CompanySettings": CompanySettings,
     "Dashboard": Dashboard,
+    "EmailSettings": EmailSettings,
     "HelpCenter": HelpCenter,
     "InvoiceSettings": InvoiceSettings,
     "Invoices": Invoices,
@@ -94,7 +95,6 @@ export const PAGES = {
     "ReviewRequests": ReviewRequests,
     "TaskStatuses": TaskStatuses,
     "TimeTracking": TimeTracking,
-    "EmailSettings": EmailSettings,
 }
 
 export const pagesConfig = {

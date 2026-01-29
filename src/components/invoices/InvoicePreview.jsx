@@ -63,6 +63,11 @@ export default function InvoicePreview({ open, onOpenChange, invoice, client, pr
       (companyProfile.phone_country_code ? `${companyProfile.phone_country_code} ${companyProfile.phone}` : companyProfile.phone) : '',
   };
 
+  const currencySymbol = companyProfile?.currency === 'EUR' ? '€' : 
+                         companyProfile?.currency === 'GBP' ? '£' : 
+                         companyProfile?.currency === 'CAD' ? 'CA$' : 
+                         companyProfile?.currency === 'AUD' ? 'A$' : '$';
+
   if (!invoice) return null;
 
   const handlePrint = () => {
@@ -252,9 +257,9 @@ export default function InvoicePreview({ open, onOpenChange, invoice, client, pr
                       <td className="py-3 text-right text-slate-600">{item.quantity}</td>
                     )}
                     {invoice.show_rate_column && (
-                      <td className="py-3 text-right text-slate-600">${item.rate?.toFixed(2)}</td>
+                      <td className="py-3 text-right text-slate-600">{currencySymbol}{item.rate?.toFixed(2)}</td>
                     )}
-                    <td className="py-3 text-right font-medium text-slate-900">${item.amount?.toFixed(2)}</td>
+                    <td className="py-3 text-right font-medium text-slate-900">{currencySymbol}{item.amount?.toFixed(2)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -266,17 +271,17 @@ export default function InvoicePreview({ open, onOpenChange, invoice, client, pr
             <div className="w-64">
               <div className="flex justify-between py-2">
                 <span className="text-slate-600">Subtotal</span>
-                <span className="font-medium text-slate-900">${invoice.subtotal?.toFixed(2)}</span>
+                <span className="font-medium text-slate-900">{currencySymbol}{invoice.subtotal?.toFixed(2)}</span>
               </div>
               {invoice.tax_rate > 0 && (
                 <div className="flex justify-between py-2">
                   <span className="text-slate-600">{invoice.tax_name || 'Tax'} ({invoice.tax_rate}%)</span>
-                  <span className="font-medium text-slate-900">${invoice.tax_amount?.toFixed(2)}</span>
+                  <span className="font-medium text-slate-900">{currencySymbol}{invoice.tax_amount?.toFixed(2)}</span>
                 </div>
               )}
               <div className="flex justify-between py-3 border-t border-slate-200 mt-2">
                 <span className="font-semibold text-slate-900">Total</span>
-                <span className="font-bold text-xl text-emerald-600">${invoice.total?.toFixed(2)}</span>
+                <span className="font-bold text-xl text-[#9B63E9]">{currencySymbol}{invoice.total?.toFixed(2)}</span>
               </div>
             </div>
           </div>

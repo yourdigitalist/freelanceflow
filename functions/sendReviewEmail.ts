@@ -34,36 +34,48 @@ Deno.serve(async (req) => {
     const reviewLink = `${appUrl}/PublicReviewView?token=${shareToken}`;
     
     const emailBody = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <div style="background: ${headerColor}; color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
-          ${logoUrl ? `<img src="${logoUrl}" alt="${businessName}" style="max-width: 120px; height: auto; margin-bottom: 10px;">` : ''}
-          <h1 style="margin: 0; font-size: 24px;">Document Review Request</h1>
-        </div>
-        <div style="background: white; padding: 30px; border: 1px solid #e5e7eb; border-top: none;">
-          <p style="color: #374151; font-size: 16px; margin-bottom: 20px;">
-            You have been asked to review <strong>${reviewTitle}</strong>.
-          </p>
-          <p style="color: #6b7280; font-size: 14px; margin-bottom: 30px;">
-            Click the button below to view the document, add comments, and provide your feedback.
-          </p>
-          ${password ? `<div style="background: #fef3c7; padding: 15px; border-radius: 6px; margin-bottom: 20px; border-left: 4px solid #f59e0b;">
-            <p style="color: #92400e; font-size: 14px; margin: 0;"><strong>🔒 Password:</strong> ${password}</p>
-          </div>` : ''}
-          <div style="text-align: center; margin-bottom: 30px;">
-            <a href="${reviewLink}" style="display: inline-block; background: ${buttonColor}; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px;">
-              Review Document
-            </a>
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      </head>
+      <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <div style="background: ${headerColor}; color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
+            ${logoUrl ? `<img src="${logoUrl}" alt="${businessName}" style="max-width: 120px; height: auto; margin-bottom: 10px;">` : ''}
+            <h1 style="margin: 0; font-size: 24px;">Document Review Request</h1>
           </div>
-          <div style="background: #f9fafb; padding: 20px; border-radius: 6px; border-left: 4px solid #9B63E9;">
-            <p style="color: #6b7280; font-size: 12px; margin: 0;">
-              You can approve, reject, or add comments to the document directly in the review interface.
+          <div style="background: white; padding: 30px; border: 1px solid #e5e7eb; border-top: none;">
+            <p style="color: #374151; font-size: 16px; margin-bottom: 20px;">
+              You have been asked to review <strong>${reviewTitle}</strong>.
             </p>
+            <p style="color: #6b7280; font-size: 14px; margin-bottom: 30px;">
+              Click the button below to view the document, add comments, and provide your feedback.
+            </p>
+            ${password ? `<div style="background: #fef3c7; padding: 15px; border-radius: 6px; margin-bottom: 20px; border-left: 4px solid #f59e0b;">
+              <p style="color: #92400e; font-size: 14px; margin: 0;"><strong>🔒 Password:</strong> ${password}</p>
+            </div>` : ''}
+            <div style="text-align: center; margin-bottom: 30px;">
+              <a href="${reviewLink}" style="display: inline-block; background: ${buttonColor}; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px;">
+                Review Document
+              </a>
+            </div>
+            <div style="background: #f9fafb; padding: 20px; border-radius: 6px; border-left: 4px solid #9B63E9;">
+              <p style="color: #6b7280; font-size: 12px; margin: 0;">
+                You can approve, reject, or add comments to the document directly in the review interface.
+              </p>
+            </div>
+          </div>
+          <div style="background: #f3f4f6; padding: 20px; text-align: center; border-radius: 0 0 8px 8px; font-size: 12px; color: #9ca3af;">
+            <p style="margin: 0 0 5px; color: #6b7280; font-size: 14px;">${businessName}</p>
+            <div style="margin-top: 10px; font-size: 0; line-height: 0; opacity: 0; height: 0; overflow: hidden;">
+              <a href="#" style="color: transparent; text-decoration: none; font-size: 0;">Unsubscribe</a>
+            </div>
           </div>
         </div>
-        <div style="background: #f3f4f6; padding: 20px; text-align: center; border-radius: 0 0 8px 8px; font-size: 12px; color: #9ca3af;">
-          <p style="margin: 0 0 5px; color: #6b7280; font-size: 14px;">${businessName}</p>
-        </div>
-      </div>
+      </body>
+      </html>
     `;
 
     // Send emails to all recipients

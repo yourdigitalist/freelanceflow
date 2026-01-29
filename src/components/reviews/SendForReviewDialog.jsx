@@ -282,62 +282,57 @@ export default function SendForReviewDialog({ open, onOpenChange, project, clien
             </div>
             <div>
               <Label htmlFor="folder">Folder</Label>
-              <div className="flex gap-2 mt-2">
-                <Select value={folder} onValueChange={setFolder} className="flex-1">
+              <div className="mt-2">
+                <Select value={folder || '__none__'} onValueChange={(val) => setFolder(val === '__none__' ? '' : val)}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select or create folder" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value={null}>No folder</SelectItem>
+                    <SelectItem value="__none__">No folder</SelectItem>
                     {existingFolders.map((f) => (
                       <SelectItem key={f} value={f}>
                         {f}
                       </SelectItem>
                     ))}
-                    <div className="border-t mt-1 pt-1 px-2 py-1">
+                    <div className="border-t mt-1 pt-1 px-2">
                       <button
                         type="button"
                         className="w-full text-left text-sm hover:bg-slate-100 rounded px-2 py-1.5 text-[#9B63E9] font-medium"
-                        onClick={async () => {
-                          const newFolder = prompt('Enter folder name:');
+                        onClick={() => {
+                          const newFolder = prompt('Enter new folder name:');
                           if (newFolder?.trim()) {
                             setFolder(newFolder.trim());
-                            await refetchReviews();
                             toast.success(`Folder "${newFolder.trim()}" will be created`);
                           }
                         }}
                       >
-                        + Create new folder
+                        + Create new
                       </button>
                     </div>
                   </SelectContent>
                 </Select>
                 {folder && (
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 mt-2">
                     <EmojiPicker 
                       value={folderEmoji}
                       onChange={setFolderEmoji}
                       color={folderColor}
                     />
+                    {['#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#ef4444', '#06b6d4'].map(color => (
+                      <button
+                        key={color}
+                        type="button"
+                        onClick={() => setFolderColor(color)}
+                        className="w-6 h-6 rounded-full border-2 transition-all hover:scale-110"
+                        style={{ 
+                          backgroundColor: color,
+                          borderColor: folderColor === color ? '#1e293b' : 'transparent'
+                        }}
+                      />
+                    ))}
                   </div>
                 )}
               </div>
-              {folder && (
-                <div className="flex gap-2 mt-2">
-                  {['#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#ef4444', '#06b6d4'].map(color => (
-                    <button
-                      key={color}
-                      type="button"
-                      onClick={() => setFolderColor(color)}
-                      className="w-6 h-6 rounded-full border-2 transition-all hover:scale-110"
-                      style={{ 
-                        backgroundColor: color,
-                        borderColor: folderColor === color ? '#1e293b' : 'transparent'
-                      }}
-                    />
-                  ))}
-                </div>
-              )}
             </div>
           </div>
 
