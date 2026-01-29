@@ -36,6 +36,11 @@ export default function SendForReviewDialog({ open, onOpenChange, project, clien
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
 
+  const { data: user } = useQuery({
+    queryKey: ['currentUser'],
+    queryFn: () => base44.auth.me(),
+  });
+
   const { data: allReviews = [] } = useQuery({
     queryKey: ['allReviews', user?.email],
     queryFn: () => base44.entities.ReviewRequest.filter({ created_by: user.email }),
@@ -43,11 +48,6 @@ export default function SendForReviewDialog({ open, onOpenChange, project, clien
   });
 
   const existingFolders = [...new Set(allReviews.filter(r => r.folder).map(r => r.folder))];
-
-  const { data: user } = useQuery({
-    queryKey: ['currentUser'],
-    queryFn: () => base44.auth.me(),
-  });
 
   const { data: projects = [] } = useQuery({
     queryKey: ['projects', user?.email],
