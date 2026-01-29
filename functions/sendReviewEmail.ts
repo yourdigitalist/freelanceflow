@@ -15,11 +15,28 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
+    // Fetch company profile and email settings
+    const companyProfiles = await base44.asServiceRole.entities.CompanyProfile.filter({ 
+      created_by: user.email 
+    });
+    const emailSettings = await base44.asServiceRole.entities.EmailSettings.filter({ 
+      created_by: user.email 
+    });
+    
+    const companyProfile = companyProfiles[0] || null;
+    const emailSetting = emailSettings[0] || null;
+    
+    const businessName = companyProfile?.company_name || 'Your Business';
+    const headerColor = emailSetting?.header_color || '#9B63E9';
+    const buttonColor = emailSetting?.button_color || '#9B63E9';
+    const logoUrl = emailSetting?.logo_url || companyProfile?.logo_url || '';
+
     const reviewLink = `${appUrl}/PublicReviewView?token=${shareToken}`;
     
     const emailBody = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <div style="background: linear-gradient(135deg, #9B63E9 0%, #8A52D8 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
+        <div style="background: ${headerColor}; color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
+          ${logoUrl ? `<img src="${logoUrl}" alt="${businessName}" style="max-width: 120px; height: auto; margin-bottom: 10px;">` : ''}
           <h1 style="margin: 0; font-size: 24px;">Document Review Request</h1>
         </div>
         <div style="background: white; padding: 30px; border: 1px solid #e5e7eb; border-top: none;">
@@ -33,7 +50,7 @@ Deno.serve(async (req) => {
             <p style="color: #92400e; font-size: 14px; margin: 0;"><strong>🔒 Password:</strong> ${password}</p>
           </div>` : ''}
           <div style="text-align: center; margin-bottom: 30px;">
-            <a href="${reviewLink}" style="display: inline-block; background: #9B63E9; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px;">
+            <a href="${reviewLink}" style="display: inline-block; background: ${buttonColor}; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px;">
               Review Document
             </a>
           </div>
@@ -44,7 +61,7 @@ Deno.serve(async (req) => {
           </div>
         </div>
         <div style="background: #f3f4f6; padding: 20px; text-align: center; border-radius: 0 0 8px 8px; font-size: 12px; color: #9ca3af;">
-          <p style="margin: 0;">This is an automated message. Please do not reply to this email.</p>
+          <p style="margin: 0 0 5px; color: #6b7280; font-size: 14px;">${businessName}</p>
         </div>
       </div>
     `;
@@ -52,10 +69,10 @@ Deno.serve(async (req) => {
     // Send emails to all recipients
     const emailPromises = recipients.map(email =>
       base44.integrations.Core.SendEmail({
+        from_name: businessName,
         to: email,
         subject: `Review Request: ${reviewTitle}`,
-        body: emailBody,
-        from_name: 'Review Request'
+        body: emailBody
       })
     );
 

@@ -49,8 +49,9 @@ Deno.serve(async (req) => {
          [companyProfile?.city, companyProfile?.state, companyProfile?.zip].filter(Boolean).join(', '),
          companyProfile?.country].filter(Boolean).join('\n') || '',
       business_email: companyProfile?.email || '',
-      business_phone: (companyProfile?.phone_country_code && companyProfile?.phone ? 
-          `${companyProfile.phone_country_code} ${companyProfile.phone}` : companyProfile?.phone || ''),
+      business_phone: companyProfile?.phone_country_code && companyProfile?.phone 
+        ? `${companyProfile.phone_country_code} ${companyProfile.phone}` 
+        : '',
       invoice_footer: settings?.invoice_footer || '',
     };
 

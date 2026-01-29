@@ -93,13 +93,10 @@ export default function PublicInvoice() {
               {businessInfo?.business_address && (
                 <p className="text-sm text-slate-600 whitespace-pre-line mb-2">{businessInfo.business_address}</p>
               )}
-              {(businessInfo?.business_email || businessInfo?.business_phone) && (
-                <p className="text-sm text-slate-600">
-                  {businessInfo.business_email}
-                  {businessInfo.business_email && businessInfo.business_phone && ' | '}
-                  {businessInfo.business_phone}
-                </p>
-              )}
+              <div className="text-sm text-slate-600 space-y-0.5">
+                {businessInfo?.business_email && <p>{businessInfo.business_email}</p>}
+                {businessInfo?.business_phone && <p>{businessInfo.business_phone}</p>}
+              </div>
             </div>
             <div className="text-right">
               <h1 className="text-3xl font-bold text-slate-900 mb-2">INVOICE</h1>
@@ -137,8 +134,8 @@ export default function PublicInvoice() {
           </div>
 
           {project && (
-            <div className="mb-8 p-4 bg-emerald-50 rounded-lg border border-emerald-100">
-              <p className="text-sm text-emerald-600 font-medium mb-1">Project</p>
+            <div className="mb-8 p-4 bg-purple-50 rounded-lg border border-purple-100">
+              <p className="text-sm text-[#9B63E9] font-medium mb-1">Project</p>
               <p className="text-lg font-semibold text-slate-900">{project.name}</p>
             </div>
           )}
@@ -194,7 +191,7 @@ export default function PublicInvoice() {
               )}
               <div className="flex justify-between py-4 border-t-2 border-slate-300 mt-2">
                 <span className="font-bold text-xl text-slate-900">Total</span>
-                <span className="font-bold text-2xl text-emerald-600">${formatNumber(invoice.total, numberFormat)}</span>
+                <span className="font-bold text-2xl text-[#9B63E9]">${formatNumber(invoice.total, numberFormat)}</span>
               </div>
             </div>
           </div>
@@ -227,7 +224,7 @@ export default function PublicInvoice() {
         <div className="bg-slate-50 px-8 py-6 border-t border-slate-200 print:hidden">
           <button
             onClick={() => window.print()}
-            className="w-full sm:w-auto px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg transition-colors"
+            className="w-full sm:w-auto px-6 py-3 bg-[#9B63E9] hover:bg-[#8A52D8] text-white font-semibold rounded-lg transition-colors"
           >
             Print or Save as PDF
           </button>

@@ -64,7 +64,19 @@ export default function SendEmailDialog({
       const invoiceViewUrl = invoice.public_url || `${window.location.origin}/PublicInvoice?token=${invoice.public_token}`;
       
       const settings = await base44.entities.InvoiceSettings.list().then(list => list[0]);
-      const businessName = settings?.business_name || 'Your Business';
+      const companyProfile = await base44.entities.CompanyProfile.list().then(list => list[0]);
+      const emailSettings = await base44.entities.EmailSettings.list().then(list => list[0]);
+      
+      const businessName = companyProfile?.company_name || settings?.business_name || 'Your Business';
+      const logoUrl = emailSettings?.logo_url || companyProfile?.logo_url || settings?.business_logo || '';
+      const headerColor = emailSettings?.header_color || '#9B63E9';
+      const buttonColor = emailSettings?.button_color || '#9B63E9';
+      const footerText = emailSettings?.footer_text || '';
+      
+      // Format phone number
+      const formattedPhone = companyProfile?.phone_country_code && companyProfile?.phone 
+        ? `${companyProfile.phone_country_code} ${companyProfile.phone}` 
+        : companyProfile?.phone || settings?.business_phone || '';
 
       // Replace merge tags
       let processedBody = body
@@ -88,8 +100,8 @@ export default function SendEmailDialog({
                 <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
                   <!-- Header with logo/brand -->
                   <tr>
-                    <td style="padding: 40px; text-align: center; background: linear-gradient(135deg, #9B63E9 0%, #8A52D8 100%);">
-                      ${settings?.business_logo ? `<img src="${settings.business_logo}" alt="${businessName}" style="max-width: 150px; height: auto; margin-bottom: 10px;">` : ''}
+                    <td style="padding: 40px; text-align: center; background: ${headerColor};">
+                      ${logoUrl ? `<img src="${logoUrl}" alt="${businessName}" style="max-width: 150px; height: auto; margin-bottom: 10px;">` : ''}
                       <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: bold;">${businessName}</h1>
                     </td>
                   </tr>
@@ -110,7 +122,7 @@ export default function SendEmailDialog({
                         ${processedBody.split('\n').map(line => `<p style="margin: 0 0 10px;">${line}</p>`).join('')}
                       </div>
                       
-                      <a href="${invoiceViewUrl}" style="display: inline-block; background: linear-gradient(135deg, #9B63E9 0%, #8A52D8 100%); color: #ffffff; text-decoration: none; padding: 16px 32px; border-radius: 8px; font-weight: 600; font-size: 16px; box-shadow: 0 2px 4px rgba(155, 99, 233, 0.3);">
+                      <a href="${invoiceViewUrl}" style="display: inline-block; background: ${buttonColor}; color: #ffffff; text-decoration: none; padding: 16px 32px; border-radius: 8px; font-weight: 600; font-size: 16px; box-shadow: 0 2px 4px rgba(155, 99, 233, 0.3);">
                         View Invoice
                       </a>
                     </td>
@@ -120,9 +132,10 @@ export default function SendEmailDialog({
                   <tr>
                     <td style="padding: 30px; background-color: #f9fafb; text-align: center; border-top: 1px solid #e5e7eb;">
                       <p style="margin: 0 0 10px; color: #6b7280; font-size: 14px;">${businessName}</p>
-                      ${settings?.business_address ? `<p style="margin: 0 0 5px; color: #9ca3af; font-size: 12px;">${settings.business_address.replace(/\n/g, ', ')}</p>` : ''}
-                      ${settings?.business_email ? `<p style="margin: 0 0 5px; color: #9ca3af; font-size: 12px;">${settings.business_email}</p>` : ''}
-                      ${settings?.business_phone ? `<p style="margin: 0; color: #9ca3af; font-size: 12px;">${settings.business_phone}</p>` : ''}
+                      ${companyProfile?.street ? `<p style="margin: 0 0 5px; color: #9ca3af; font-size: 12px;">${[companyProfile.street, companyProfile.street2, companyProfile.city, companyProfile.state, companyProfile.zip, companyProfile.country].filter(Boolean).join(', ')}</p>` : ''}
+                      ${companyProfile?.email || settings?.business_email ? `<p style="margin: 0 0 5px; color: #9ca3af; font-size: 12px;">${companyProfile?.email || settings?.business_email}</p>` : ''}
+                      ${formattedPhone ? `<p style="margin: 0 0 10px; color: #9ca3af; font-size: 12px;">${formattedPhone}</p>` : ''}
+                      ${footerText ? `<p style="margin: 0; color: #9ca3af; font-size: 11px;">${footerText}</p>` : ''}
                     </td>
                   </tr>
                 </table>
@@ -135,6 +148,7 @@ export default function SendEmailDialog({
 
       // Send to primary recipient
       await base44.integrations.Core.SendEmail({
+        from_name: businessName,
         to: client.email,
         subject: subject,
         body: htmlBody,
@@ -145,6 +159,7 @@ export default function SendEmailDialog({
         const ccEmails = cc.split(',').map(email => email.trim()).filter(Boolean);
         for (const ccEmail of ccEmails) {
           await base44.integrations.Core.SendEmail({
+            from_name: businessName,
             to: ccEmail,
             subject: subject,
             body: htmlBody,
