@@ -10,7 +10,7 @@ import { createPageUrl } from '../../utils';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 
-export default function NotificationBell() {
+export default function NotificationBell({ isInline = false }) {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -42,6 +42,19 @@ export default function NotificationBell() {
       setOpen(false);
     }
   };
+
+  if (isInline) {
+    return (
+      <div className="relative inline-flex">
+        <Bell className="w-5 h-5 text-slate-400" />
+        {unreadCount > 0 && (
+          <Badge className="absolute -top-1 -right-1 h-5 min-w-5 px-1 flex items-center justify-center bg-red-500 text-white text-xs">
+            {unreadCount > 9 ? '9+' : unreadCount}
+          </Badge>
+        )}
+      </div>
+    );
+  }
 
   return (
     <Popover open={open} onOpenChange={setOpen}>

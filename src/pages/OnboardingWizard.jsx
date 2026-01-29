@@ -35,7 +35,8 @@ export default function OnboardingWizard() {
           return;
         }
 
-        await base44.functions.invoke('initializeUser').catch(() => {});
+        // Initialize user and wait for it to complete
+        await base44.functions.invoke('initializeUser');
 
         const user = await base44.auth.me();
         if (user.onboarding_completed) {
@@ -45,6 +46,7 @@ export default function OnboardingWizard() {
 
         setChecking(false);
       } catch (error) {
+        console.error('Onboarding init error:', error);
         navigate(createPageUrl('Landing'));
       }
     };

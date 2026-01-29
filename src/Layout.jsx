@@ -96,27 +96,30 @@ export default function Layout({ children, currentPageName }) {
         <div className="flex flex-col h-full">
           {/* Logo */}
           <div className="flex items-center justify-between px-6 py-6 border-b border-slate-100">
-            <div className="flex items-center gap-3 overflow-hidden">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#9B63E9] to-[#8A52D8] flex items-center justify-center shadow-lg shadow-[#9B63E9]/20 flex-shrink-0">
-                <Sparkles className="w-5 h-5 text-white" />
-              </div>
-              {!sidebarCollapsed && (
-                <span className="text-lg font-semibold text-slate-800 tracking-tight">Flowdesk</span>
-                )}
+            <div className={cn("flex items-center gap-3 overflow-hidden", sidebarCollapsed && "flex-col")}>
+                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#9B63E9] to-[#8A52D8] flex items-center justify-center shadow-lg shadow-[#9B63E9]/20 flex-shrink-0">
+                  <Sparkles className="w-5 h-5 text-white" />
                 </div>
-                <div className="flex items-center gap-2">
-                {!sidebarCollapsed && <NotificationBell />}
-                <button
-                onClick={toggleSidebar}
-                className="hidden lg:block p-1 rounded-lg hover:bg-slate-100 transition-colors"
-                >
-                {sidebarCollapsed ? (
-                  <ChevronRight className="w-4 h-4 text-slate-600" />
-                ) : (
-                  <ChevronLeft className="w-4 h-4 text-slate-600" />
+                {sidebarCollapsed && (
+                  <button
+                  onClick={toggleSidebar}
+                  className="hidden lg:block p-1 rounded-lg hover:bg-slate-100 transition-colors"
+                  >
+                    <ChevronRight className="w-4 h-4 text-slate-600" />
+                  </button>
                 )}
-                </button>
-                </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                  {!sidebarCollapsed && <span className="text-lg font-semibold text-slate-800 tracking-tight">Flowdesk</span>}
+                  {!sidebarCollapsed && (
+                  <button
+                  onClick={toggleSidebar}
+                  className="hidden lg:block p-1 rounded-lg hover:bg-slate-100 transition-colors"
+                  >
+                    <ChevronLeft className="w-4 h-4 text-slate-600" />
+                  </button>
+                  )}
+                  </div>
                 </div>
 
           {/* Navigation */}
@@ -140,7 +143,7 @@ export default function Layout({ children, currentPageName }) {
                       >
                         <div className={cn("flex items-center gap-3", sidebarCollapsed && "justify-center")}>
                           <item.icon className={cn(
-                            sidebarCollapsed ? "w-6 h-6" : "w-5 h-5",
+                            "w-5 h-5",
                             isActive ? "text-[#9B63E9]" : "text-slate-400"
                           )} />
                           {!sidebarCollapsed && item.name}
@@ -188,7 +191,7 @@ export default function Layout({ children, currentPageName }) {
                       title={sidebarCollapsed ? item.name : ''}
                     >
                       <item.icon className={cn(
-                        sidebarCollapsed ? "w-6 h-6" : "w-5 h-5",
+                        "w-5 h-5",
                         isActive ? "text-[#9B63E9]" : "text-slate-400"
                       )} />
                       {!sidebarCollapsed && item.name}
