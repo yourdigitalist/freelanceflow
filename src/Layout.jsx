@@ -22,6 +22,7 @@ import { cn } from "@/lib/utils";
 import UserMenu from './components/layout/UserMenu';
 import AuthGuard from './components/auth/AuthGuard';
 import NotificationBell from './components/notifications/NotificationBell';
+import UpgradeBanner from './components/layout/UpgradeBanner';
 
 const navigation = [
   { name: 'Dashboard', icon: LayoutDashboard, page: 'Dashboard' },
@@ -48,6 +49,15 @@ export default function Layout({ children, currentPageName }) {
     queryFn: () => base44.entities.Project.filter({ created_by: user.email }, '-updated_date', 5),
     enabled: !!user?.email,
   });
+
+  const { data: subscription } = useQuery({
+    queryKey: ['subscription', user?.email],
+    queryFn: () => base44.entities.Subscription.filter({ user_id: user?.email }),
+    enabled: !!user?.email,
+    select: (data) => data?.[0],
+  });
+
+  const isPremium = subscription?.plan === 'pro' || subscription?.plan === 'business';
 
   const toggleSidebar = () => {
     const newValue = !sidebarCollapsed;
@@ -147,7 +157,7 @@ export default function Layout({ children, currentPageName }) {
                           <Link
                             to={createPageUrl(item.page)}
                             onClick={() => setSidebarOpen(false)}
-                            className="block px-3 py-1.5 text-sm text-slate-600 hover:text-emerald-600 rounded-lg hover:bg-slate-50"
+                            className="block px-3 py-1.5 text-sm text-slate-600 hover:text-[#9B63E9] rounded-lg hover:bg-slate-50"
                           >
                             All Projects
                           </Link>
@@ -156,7 +166,7 @@ export default function Layout({ children, currentPageName }) {
                               key={project.id}
                               to={createPageUrl(`ProjectDetail?id=${project.id}`)}
                               onClick={() => setSidebarOpen(false)}
-                              className="block px-3 py-1.5 text-sm text-slate-600 hover:text-emerald-600 rounded-lg hover:bg-slate-50 truncate"
+                              className="block px-3 py-1.5 text-sm text-slate-600 hover:text-[#9B63E9] rounded-lg hover:bg-slate-50 truncate"
                             >
                               {project.name}
                             </Link>
@@ -188,6 +198,9 @@ export default function Layout({ children, currentPageName }) {
               );
             })}
           </nav>
+
+          {/* Upgrade Banner */}
+          {!isPremium && <UpgradeBanner collapsed={sidebarCollapsed} />}
 
           {/* User Menu */}
           <UserMenu collapsed={sidebarCollapsed} />

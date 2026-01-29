@@ -148,42 +148,48 @@ export default function Dashboard() {
         />
       </div>
 
-      {/* Two Column Layout */}
+      {/* Dashboard Sections */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Active Projects */}
         <div className="lg:col-span-2">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-slate-900">Active Projects</h2>
-            <Link to={createPageUrl('Projects')} className="text-sm text-[#9B63E9] hover:text-[#8A52D8] font-medium flex items-center gap-1">
-              View all <ArrowRight className="w-4 h-4" />
-            </Link>
-          </div>
-          {activeProjects.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {activeProjects.slice(0, 4).map(project => (
-                <ProjectCard
-                  key={project.id}
-                  project={project}
-                  client={clients.find(c => c.id === project.client_id)}
-                  totalHours={getProjectHours(project.id)}
-                  taskCount={getProjectTaskCount(project.id)}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="bg-white rounded-2xl p-8 border border-slate-200/60 text-center">
-              <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-3">
-                <FolderKanban className="w-6 h-6 text-slate-400" />
+          <Card className="border-slate-200/60">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle>Active Projects</CardTitle>
+                <Link to={createPageUrl('Projects')} className="text-sm text-[#9B63E9] hover:text-[#8A52D8] font-medium flex items-center gap-1">
+                  View all <ArrowRight className="w-4 h-4" />
+                </Link>
               </div>
-              <p className="text-sm text-slate-500">No active projects yet</p>
-              <Link to={createPageUrl('Projects')}>
-                <Button className="mt-4 bg-[#9B63E9] hover:bg-[#8A52D8]">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Create Project
-                </Button>
-              </Link>
-            </div>
-          )}
+            </CardHeader>
+            <CardContent>
+              {activeProjects.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {activeProjects.slice(0, 4).map(project => (
+                    <ProjectCard
+                      key={project.id}
+                      project={project}
+                      client={clients.find(c => c.id === project.client_id)}
+                      totalHours={getProjectHours(project.id)}
+                      taskCount={getProjectTaskCount(project.id)}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-3">
+                    <FolderKanban className="w-6 h-6 text-slate-400" />
+                  </div>
+                  <p className="text-sm text-slate-500">No active projects yet</p>
+                  <Link to={createPageUrl('Projects')}>
+                    <Button className="mt-4 bg-[#9B63E9] hover:bg-[#8A52D8]">
+                      <Plus className="w-4 h-4 mr-2" />
+                      Create Project
+                    </Button>
+                  </Link>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
 
         {/* Recent Activity */}
@@ -194,13 +200,10 @@ export default function Dashboard() {
 
       {/* Reviews and Invoices Summary */}
       <div className="grid lg:grid-cols-2 gap-6 mt-6">
-        <Card className="border-[#9B63E9]/20">
+        <Card className="border-slate-200/60">
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2">
-                <Eye className="w-5 h-5 text-[#9B63E9]" />
-                Review Requests
-              </CardTitle>
+              <CardTitle>Review Requests</CardTitle>
               <Link to={createPageUrl('ReviewRequests')} className="text-sm text-[#9B63E9] hover:text-[#8A52D8] font-medium flex items-center gap-1">
                 View all <ArrowRight className="w-4 h-4" />
               </Link>
@@ -242,13 +245,10 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        <Card className="border-[#9B63E9]/20">
+        <Card className="border-slate-200/60">
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2">
-                <FileText className="w-5 h-5 text-[#9B63E9]" />
-                Recent Invoices
-              </CardTitle>
+              <CardTitle>Recent Invoices</CardTitle>
               <Link to={createPageUrl('Invoices')} className="text-sm text-[#9B63E9] hover:text-[#8A52D8] font-medium flex items-center gap-1">
                 View all <ArrowRight className="w-4 h-4" />
               </Link>
