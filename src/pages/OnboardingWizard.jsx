@@ -10,6 +10,7 @@ import { Sparkles, Building2, Bell, CheckCircle2 } from 'lucide-react';
 import { createPageUrl } from '../utils';
 import AvatarUpload from '../components/user/AvatarUpload';
 import PhoneInput from '../components/shared/PhoneInput';
+import AddressAutocomplete from '../components/shared/AddressAutocomplete';
 import { CURRENCY_OPTIONS } from '../components/shared/currencies';
 import { TIMEZONE_OPTIONS } from '../components/shared/timezones';
 import { toast } from 'sonner';
@@ -193,12 +194,10 @@ export default function OnboardingWizard() {
 
                 <div>
                   <Label htmlFor="street">Street Address *</Label>
-                  <Input
-                    id="street"
+                  <AddressAutocomplete
                     value={companyData.street}
-                    onChange={(e) => setCompanyData({ ...companyData, street: e.target.value })}
+                    onChange={(value) => setCompanyData({ ...companyData, street: value })}
                     placeholder="123 Main St"
-                    required
                   />
                 </div>
 
