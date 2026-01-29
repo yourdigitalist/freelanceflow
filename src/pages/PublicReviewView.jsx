@@ -23,6 +23,11 @@ export default function PublicReviewView() {
   const [visitorName, setVisitorName] = useState('');
   const [visitorEmail, setVisitorEmail] = useState('');
   const [visitorInfoSaved, setVisitorInfoSaved] = useState(false);
+  
+  // Password protection
+  const [passwordRequired, setPasswordRequired] = useState(false);
+  const [passwordInput, setPasswordInput] = useState('');
+  const [passwordVerified, setPasswordVerified] = useState(false);
 
   useEffect(() => {
     const loadReview = async () => {
@@ -42,8 +47,16 @@ export default function PublicReviewView() {
         }
 
         const response = await base44.functions.invoke('getReviewByShareToken', { token });
+
+        // Check if password is required
+        if (response.data?.review?.password) {
+          setPasswordRequired(true);
+          setLoading(false);
+          return;
+        }
+
         setReviewData(response.data);
-        
+
         // Pre-fill visitor info from client data
         const client = response.data?.client;
         if (client) {
@@ -72,6 +85,47 @@ export default function PublicReviewView() {
 
     loadReview();
   }, []);
+
+  const verifyPassword = async () => {
+    try {
+      const searchParams = new URLSearchParams(window.location.search);
+      let token = searchParams.get('token');
+      
+      if (!token) {
+        const hashParams = new URLSearchParams(window.location.hash.split('?')[1]);
+        token = hashParams.get('token');
+      }
+
+      const response = await base44.functions.invoke('getReviewByShareToken', { 
+        token,
+        password: passwordInput 
+      });
+      
+      setReviewData(response.data);
+      setPasswordVerified(true);
+      setPasswordRequired(false);
+      
+      // Pre-fill visitor info from client data
+      const client = response.data?.client;
+      if (client) {
+        const fullName = [client.first_name, client.last_name].filter(Boolean).join(' ');
+        setVisitorName(fullName);
+        setVisitorEmail(client.email || '');
+        
+        const savedName = localStorage.getItem('reviewVisitorName');
+        const savedEmail = localStorage.getItem('reviewVisitorEmail');
+        if (savedName && savedEmail) {
+          setVisitorName(savedName);
+          setVisitorEmail(savedEmail);
+          setVisitorInfoSaved(true);
+        } else if (fullName && client.email) {
+          setVisitorInfoSaved(true);
+        }
+      }
+    } catch (err) {
+      toast.error('Incorrect password');
+    }
+  };
 
   const review = reviewData?.review;
   const client = reviewData?.client;
@@ -271,6 +325,37 @@ export default function PublicReviewView() {
     setSelectedFileIndex(index);
     setViewerOpen(true);
   };
+
+  if (passwordRequired && !passwordVerified) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl border border-slate-200 p-8 max-w-md w-full">
+          <div className="text-center mb-6">
+            <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <span className="text-3xl">🔒</span>
+            </div>
+            <h1 className="text-2xl font-bold text-slate-900 mb-2">Password Required</h1>
+            <p className="text-slate-600">This review is password protected</p>
+          </div>
+          <div className="space-y-4">
+            <Input
+              type="password"
+              placeholder="Enter password"
+              value={passwordInput}
+              onChange={(e) => setPasswordInput(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && verifyPassword()}
+            />
+            <Button
+              onClick={verifyPassword}
+              className="w-full bg-emerald-600 hover:bg-emerald-700"
+            >
+              Unlock Review
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (

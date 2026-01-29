@@ -299,23 +299,20 @@ export default function ImageViewer({
       {fileComments.length > 0 && (readOnly || !activePin) && (
         <div className="absolute right-0 top-16 bottom-0 w-80 bg-white border-l border-slate-200 overflow-y-auto">
           <div className="p-4">
-            <h4 className="font-semibold text-slate-900 mb-4">
+            <h4 className="font-semibold text-slate-900 mb-4 sticky top-0 bg-white pb-2">
               Comments ({fileComments.length})
             </h4>
             <div className="space-y-3">
               {fileComments.map((comment) => (
                 <div key={comment.id} className="bg-slate-50 rounded-lg p-3 border border-slate-200 group">
-                  <div className="flex items-start justify-between mb-2">
-                    <div>
-                      <p className="font-medium text-slate-900 text-sm">{comment.author}</p>
-                      <p className="text-xs text-slate-500">{comment.author_email}</p>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <p className="text-xs text-slate-500">
-                        {format(new Date(comment.created_at), 'MMM d, h:mm a')}
-                      </p>
+                  <div className="flex flex-col gap-2 mb-2">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-slate-900 text-sm truncate">{comment.author}</p>
+                        <p className="text-xs text-slate-500 truncate">{comment.author_email}</p>
+                      </div>
                       {!readOnly && visitorEmail === comment.author_email && onEditComment && onDeleteComment && (
-                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
                           <Button
                             variant="ghost"
                             size="sm"
@@ -335,8 +332,11 @@ export default function ImageViewer({
                         </div>
                       )}
                     </div>
+                    <p className="text-xs text-slate-500">
+                      {format(new Date(comment.created_at), 'MMM d, h:mm a')}
+                    </p>
                   </div>
-                  <p className="text-slate-700 text-sm">{comment.text}</p>
+                  <p className="text-slate-700 text-sm break-words">{comment.text}</p>
                 </div>
               ))}
             </div>

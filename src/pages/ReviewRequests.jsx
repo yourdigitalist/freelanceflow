@@ -35,6 +35,8 @@ export default function ReviewRequests() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [folderDialogOpen, setFolderDialogOpen] = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
+  const [newFolderEmoji, setNewFolderEmoji] = useState('📁');
+  const [newFolderColor, setNewFolderColor] = useState('#3b82f6');
   const [selectedFolder, setSelectedFolder] = useState(null);
   const [expandedFolders, setExpandedFolders] = useState({});
 
@@ -65,6 +67,8 @@ export default function ReviewRequests() {
         client_id: 'placeholder',
         title: `_folder_placeholder_${Date.now()}`,
         folder: newFolderName.trim(),
+        folder_emoji: newFolderEmoji,
+        folder_color: newFolderColor,
         file_urls: [],
         share_token: '',
         status: 'pending',
@@ -75,6 +79,8 @@ export default function ReviewRequests() {
       toast.success(`Folder "${newFolderName.trim()}" created`);
       setFolderDialogOpen(false);
       setNewFolderName('');
+      setNewFolderEmoji('📁');
+      setNewFolderColor('#3b82f6');
     } catch (error) {
       toast.error('Failed to create folder');
     }
@@ -133,6 +139,11 @@ export default function ReviewRequests() {
           const folderReviews = reviews.filter(r => r.folder === folder);
           const isExpanded = expandedFolders[folder];
           
+          // Get emoji and color from any review in this folder
+          const folderData = folderReviews.find(r => r.folder_emoji && r.folder_color);
+          const emoji = folderData?.folder_emoji || '📁';
+          const color = folderData?.folder_color || '#3b82f6';
+          
           return (
             <div key={folder} className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
               <button
@@ -140,11 +151,12 @@ export default function ReviewRequests() {
                 className="w-full flex items-center justify-between p-4 hover:bg-slate-50 transition-colors"
               >
                 <div className="flex items-center gap-3">
-                  {isExpanded ? (
-                    <FolderOpen className="w-5 h-5 text-emerald-600" />
-                  ) : (
-                    <Folder className="w-5 h-5 text-slate-400" />
-                  )}
+                  <div 
+                    className="w-10 h-10 rounded-full flex items-center justify-center text-xl"
+                    style={{ backgroundColor: color }}
+                  >
+                    {emoji}
+                  </div>
                   <div className="text-left">
                     <h3 className="font-semibold text-slate-900">{folder}</h3>
                     <p className="text-sm text-slate-500">{folderReviews.length} review{folderReviews.length !== 1 ? 's' : ''}</p>
@@ -286,6 +298,40 @@ export default function ReviewRequests() {
               onChange={(e) => setNewFolderName(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && handleCreateFolder()}
             />
+            
+            <div className="space-y-3">
+              <label className="text-sm font-medium text-slate-700">Folder Icon</label>
+              <div className="flex items-center gap-3">
+                <div 
+                  className="w-12 h-12 rounded-full flex items-center justify-center text-2xl"
+                  style={{ backgroundColor: newFolderColor }}
+                >
+                  {newFolderEmoji}
+                </div>
+                <div className="flex-1 space-y-2">
+                  <Input
+                    placeholder="Emoji (e.g., 📁, 🎨, 💼)"
+                    value={newFolderEmoji}
+                    onChange={(e) => setNewFolderEmoji(e.target.value)}
+                    maxLength={2}
+                  />
+                  <div className="flex gap-2">
+                    {['#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#ef4444', '#06b6d4'].map(color => (
+                      <button
+                        key={color}
+                        onClick={() => setNewFolderColor(color)}
+                        className="w-8 h-8 rounded-full border-2 transition-all hover:scale-110"
+                        style={{ 
+                          backgroundColor: color,
+                          borderColor: newFolderColor === color ? '#1e293b' : 'transparent'
+                        }}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+            
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => setFolderDialogOpen(false)}>
                 Cancel

@@ -4,8 +4,8 @@ Deno.serve(async (req) => {
   try {
     // Initialize SDK without requiring authentication - this is a public endpoint
     const base44 = createClientFromRequest(req);
-    
-    const { token } = await req.json();
+
+    const { token, password } = await req.json();
 
     if (!token) {
       return Response.json({ error: 'Token is required' }, { status: 400 });
