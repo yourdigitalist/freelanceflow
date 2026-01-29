@@ -293,8 +293,8 @@ export default function PublicReviewView() {
 
   if (!reviewData || !review) return null;
 
-  const allFileComments = review.file_comments || [];
-  const generalComments = review.comments || [];
+  const allFileComments = reviewData?.review?.file_comments || [];
+  const generalComments = reviewData?.review?.comments || [];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-8 px-4">
@@ -512,6 +512,7 @@ export default function PublicReviewView() {
       {/* Image Viewer Modal */}
       {viewerOpen && (
         <ImageViewer
+          key={`viewer-${allFileComments.length}-${selectedFileIndex}`}
           files={review.file_urls}
           initialIndex={selectedFileIndex}
           onClose={() => setViewerOpen(false)}
