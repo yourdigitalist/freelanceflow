@@ -297,7 +297,7 @@ export default function SendForReviewDialog({ open, onOpenChange, project, clien
                     <div className="border-t mt-1 pt-1 px-2 py-1">
                       <button
                         type="button"
-                        className="w-full text-left text-sm hover:bg-slate-100 rounded px-2 py-1.5 text-emerald-600 font-medium"
+                        className="w-full text-left text-sm hover:bg-slate-100 rounded px-2 py-1.5 text-[#9B63E9] font-medium"
                         onClick={async () => {
                           const newFolder = prompt('Enter folder name:');
                           if (newFolder?.trim()) {
@@ -366,7 +366,7 @@ export default function SendForReviewDialog({ open, onOpenChange, project, clien
 
           <div>
             <Label>Files *</Label>
-            <div className="mt-2 border-2 border-dashed border-slate-300 rounded-lg p-6 text-center hover:border-emerald-400 transition-colors">
+            <div className="mt-2 border-2 border-dashed border-slate-300 rounded-lg p-6 text-center hover:border-purple-400 transition-colors">
               <input
                 type="file"
                 multiple
@@ -378,7 +378,7 @@ export default function SendForReviewDialog({ open, onOpenChange, project, clien
               <label htmlFor="file-input" className="cursor-pointer">
                 {uploading ? (
                   <div className="flex items-center justify-center gap-2">
-                    <Loader2 className="w-5 h-5 animate-spin text-emerald-600" />
+                    <Loader2 className="w-5 h-5 animate-spin text-[#9B63E9]" />
                     <span className="text-sm text-slate-600">Uploading...</span>
                   </div>
                 ) : (
