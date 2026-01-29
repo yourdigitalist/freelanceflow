@@ -314,11 +314,11 @@ export default function InvoiceDialog({
                   <SelectValue placeholder="Select a client" />
                 </SelectTrigger>
                 <SelectContent>
-                  {clients.map(client => (
+                  {clients?.map(client => (
                     <SelectItem key={client.id} value={client.id}>
                       {[client.first_name, client.last_name].filter(Boolean).join(' ') || client.company || 'Unnamed Client'}
                     </SelectItem>
-                  ))}
+                  )) || null}
                 </SelectContent>
               </Select>
             </div>
@@ -332,11 +332,11 @@ export default function InvoiceDialog({
                   <SelectValue placeholder="Select a project" />
                 </SelectTrigger>
                 <SelectContent>
-                  {clientProjects.map(project => (
+                  {clientProjects?.map(project => (
                     <SelectItem key={project.id} value={project.id}>
                       {project.name}
                     </SelectItem>
-                  ))}
+                  )) || null}
                 </SelectContent>
               </Select>
             </div>
@@ -420,7 +420,7 @@ export default function InvoiceDialog({
                 <div className="w-24 text-right">Amount</div>
                 <div className="w-9"></div>
               </div>
-              {formData.line_items.map((item, index) => (
+              {formData.line_items?.map((item, index) => (
                 <div key={index} className="flex gap-2 items-start p-3 bg-slate-50 rounded-lg">
                   <div className="flex-1">
                     <Input
@@ -499,11 +499,11 @@ export default function InvoiceDialog({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value={null}>No Tax</SelectItem>
-                  {taxRates.map((tax) => (
+                  {taxRates?.map((tax) => (
                     <SelectItem key={tax.id} value={tax.name}>
                       {tax.name} ({tax.rate}%)
                     </SelectItem>
-                  ))}
+                  )) || null}
                 </SelectContent>
               </Select>
               <span className="font-medium w-24 text-right">{currencySymbol}{taxAmount.toFixed(2)}</span>
