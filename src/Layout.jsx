@@ -130,17 +130,35 @@ export default function Layout({ children, currentPageName }) {
                 <div key={item.name}>
                   {item.hasSubmenu && item.page ? (
                     <div>
-                      <button
-                        onClick={() => setProjectsExpanded(!projectsExpanded)}
-                        className={cn(
-                          "flex items-center w-full gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
-                          isActive 
-                            ? "bg-[#9B63E9]/10 text-[#9B63E9]" 
-                            : "text-slate-600 hover:bg-slate-50 hover:text-slate-900",
-                          sidebarCollapsed ? "justify-center" : "justify-between"
-                        )}
-                        title={sidebarCollapsed ? item.name : ''}
-                      >
+                      {sidebarCollapsed ? (
+                        <Link
+                          to={createPageUrl(item.page)}
+                          onClick={() => setSidebarOpen(false)}
+                          className={cn(
+                            "flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
+                            isActive 
+                              ? "bg-[#9B63E9]/10 text-[#9B63E9]" 
+                              : "text-slate-600 hover:bg-slate-50 hover:text-slate-900",
+                            "justify-center"
+                          )}
+                          title={item.name}
+                        >
+                          <item.icon className={cn(
+                            "w-5 h-5",
+                            isActive ? "text-[#9B63E9]" : "text-slate-400"
+                          )} />
+                        </Link>
+                      ) : (
+                        <button
+                          onClick={() => setProjectsExpanded(!projectsExpanded)}
+                          className={cn(
+                            "flex items-center w-full gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
+                            isActive 
+                              ? "bg-[#9B63E9]/10 text-[#9B63E9]" 
+                              : "text-slate-600 hover:bg-slate-50 hover:text-slate-900",
+                            "justify-between"
+                          )}
+                        >
                         <div className={cn("flex items-center gap-3", sidebarCollapsed && "justify-center")}>
                           <item.icon className={cn(
                             "w-5 h-5",

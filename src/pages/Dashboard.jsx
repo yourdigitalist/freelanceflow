@@ -71,6 +71,16 @@ export default function Dashboard() {
   const pendingInvoices = invoices.filter(i => i.status === 'sent' || i.status === 'overdue');
   const pendingAmount = pendingInvoices.reduce((sum, inv) => sum + (inv.total || 0), 0);
 
+  // Get time-based greeting
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good morning';
+    if (hour < 18) return 'Good afternoon';
+    return 'Good evening';
+  };
+
+  const firstName = user?.full_name?.split(' ')[0] || 'there';
+
   // Recent activities
   const recentActivities = timeEntries
     .sort((a, b) => new Date(b.created_date) - new Date(a.created_date))
@@ -97,8 +107,8 @@ export default function Dashboard() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Dashboard</h1>
-          <p className="text-slate-500 mt-1">Welcome back! Here's what's happening.</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">{getGreeting()}, {firstName}!</h1>
+          <p className="text-slate-500 mt-1">Here's what's happening with your business.</p>
         </div>
         <div className="flex gap-3">
           <Link to={createPageUrl('TimeTracking')}>
@@ -162,9 +172,9 @@ export default function Dashboard() {
               </div>
             </CardHeader>
             <CardContent>
-              {activeProjects.length > 0 ? (
+              {projects.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {activeProjects.slice(0, 4).map(project => (
+                  {projects.sort((a, b) => new Date(b.created_date) - new Date(a.created_date)).slice(0, 4).map(project => (
                     <ProjectCard
                       key={project.id}
                       project={project}
@@ -179,7 +189,7 @@ export default function Dashboard() {
                   <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-3">
                     <FolderKanban className="w-6 h-6 text-slate-400" />
                   </div>
-                  <p className="text-sm text-slate-500">No active projects yet</p>
+                  <p className="text-sm text-slate-500">No projects yet</p>
                   <Link to={createPageUrl('Projects')}>
                     <Button className="mt-4 bg-[#9B63E9] hover:bg-[#8A52D8]">
                       <Plus className="w-4 h-4 mr-2" />
