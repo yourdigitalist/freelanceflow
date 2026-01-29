@@ -19,7 +19,9 @@ import {
   LogOut,
   ChevronUp,
   FileText,
-  Bell
+  Bell,
+  HelpCircle,
+  BarChart3
 } from 'lucide-react';
 import { cn } from "@/lib/utils";
 
@@ -58,7 +60,7 @@ export default function UserMenu({ collapsed }) {
             <button className="w-full flex items-center justify-center hover:bg-slate-50 rounded-lg p-2 transition-colors">
               <Avatar className="h-8 w-8">
                 <AvatarImage src={user.avatar_url} />
-                <AvatarFallback className="bg-emerald-600 text-white text-xs">
+                <AvatarFallback className="bg-[#9B63E9] text-white text-xs">
                   {initials}
                 </AvatarFallback>
               </Avatar>
@@ -100,6 +102,21 @@ export default function UserMenu({ collapsed }) {
               </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
+            {user?.role === 'admin' && (
+              <DropdownMenuItem asChild>
+                <Link to={createPageUrl('AdminDashboard')} className="cursor-pointer">
+                  <BarChart3 className="w-4 h-4 mr-2" />
+                  Admin Dashboard
+                </Link>
+              </DropdownMenuItem>
+            )}
+            <DropdownMenuItem asChild>
+              <Link to={createPageUrl('HelpCenter')} className="cursor-pointer">
+                <HelpCircle className="w-4 h-4 mr-2" />
+                Help Center
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleLogout} className="text-red-600 cursor-pointer">
               <LogOut className="w-4 h-4 mr-2" />
               Sign Out
@@ -117,7 +134,7 @@ export default function UserMenu({ collapsed }) {
           <button className="w-full flex items-center gap-3 px-3 py-2 hover:bg-slate-50 rounded-xl transition-colors">
             <Avatar className="h-9 w-9">
               <AvatarImage src={user.avatar_url} />
-              <AvatarFallback className="bg-emerald-600 text-white text-sm">
+              <AvatarFallback className="bg-[#9B63E9] text-white text-sm">
                 {initials}
               </AvatarFallback>
             </Avatar>
@@ -163,6 +180,21 @@ export default function UserMenu({ collapsed }) {
             <Link to={createPageUrl('BillingSettings')} className="cursor-pointer">
               <CreditCard className="w-4 h-4 mr-2" />
               Billing & Subscription
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          {user?.role === 'admin' && (
+            <DropdownMenuItem asChild>
+              <Link to={createPageUrl('AdminDashboard')} className="cursor-pointer">
+                <BarChart3 className="w-4 h-4 mr-2" />
+                Admin Dashboard
+              </Link>
+            </DropdownMenuItem>
+          )}
+          <DropdownMenuItem asChild>
+            <Link to={createPageUrl('HelpCenter')} className="cursor-pointer">
+              <HelpCircle className="w-4 h-4 mr-2" />
+              Help Center
             </Link>
           </DropdownMenuItem>
           <DropdownMenuSeparator />

@@ -65,7 +65,11 @@ export default function Layout({ children, currentPageName }) {
 
   return (
     <AuthGuard>
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-[#F5F5F5] relative">
+      <div className="absolute inset-0 pointer-events-none" style={{
+        background: 'radial-gradient(circle at 30% 40%, rgba(247, 237, 255, 0.6), transparent 40%), radial-gradient(circle at 70% 60%, rgba(206, 221, 247, 0.4), transparent 40%)',
+        mixBlendMode: 'multiply'
+      }} />
       {/* Mobile sidebar backdrop */}
       {sidebarOpen && (
         <div 
@@ -76,15 +80,15 @@ export default function Layout({ children, currentPageName }) {
 
       {/* Sidebar */}
       <aside className={cn(
-        "fixed top-0 left-0 z-50 h-full bg-white border-r border-slate-200/80 transform transition-all duration-300 ease-out lg:translate-x-0",
+        "fixed top-0 left-0 z-50 h-full bg-white border-r border-[#9B63E9]/10 transform transition-all duration-300 ease-out lg:translate-x-0",
         sidebarOpen ? "translate-x-0" : "-translate-x-full",
-        sidebarCollapsed ? "w-16" : "w-64"
+        sidebarCollapsed ? "w-20" : "w-64"
       )}>
         <div className="flex flex-col h-full">
           {/* Logo */}
           <div className="flex items-center justify-between px-6 py-6 border-b border-slate-100">
             <div className="flex items-center gap-3 overflow-hidden">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/20 flex-shrink-0">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#9B63E9] to-[#8A52D8] flex items-center justify-center shadow-lg shadow-[#9B63E9]/20 flex-shrink-0">
                 <Sparkles className="w-5 h-5 text-white" />
               </div>
               {!sidebarCollapsed && (
@@ -119,7 +123,7 @@ export default function Layout({ children, currentPageName }) {
                         className={cn(
                           "flex items-center w-full gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
                           isActive 
-                            ? "bg-emerald-50 text-emerald-700" 
+                            ? "bg-[#9B63E9]/10 text-[#9B63E9]" 
                             : "text-slate-600 hover:bg-slate-50 hover:text-slate-900",
                           sidebarCollapsed ? "justify-center" : "justify-between"
                         )}
@@ -127,8 +131,8 @@ export default function Layout({ children, currentPageName }) {
                       >
                         <div className={cn("flex items-center gap-3", sidebarCollapsed && "justify-center")}>
                           <item.icon className={cn(
-                            "w-5 h-5",
-                            isActive ? "text-emerald-600" : "text-slate-400"
+                            sidebarCollapsed ? "w-6 h-6" : "w-5 h-5",
+                            isActive ? "text-[#9B63E9]" : "text-slate-400"
                           )} />
                           {!sidebarCollapsed && item.name}
                         </div>
@@ -168,15 +172,15 @@ export default function Layout({ children, currentPageName }) {
                       className={cn(
                         "flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
                         isActive 
-                          ? "bg-emerald-50 text-emerald-700" 
+                          ? "bg-[#9B63E9]/10 text-[#9B63E9]" 
                           : "text-slate-600 hover:bg-slate-50 hover:text-slate-900",
                         sidebarCollapsed && "justify-center"
                       )}
                       title={sidebarCollapsed ? item.name : ''}
                     >
                       <item.icon className={cn(
-                        "w-5 h-5",
-                        isActive ? "text-emerald-600" : "text-slate-400"
+                        sidebarCollapsed ? "w-6 h-6" : "w-5 h-5",
+                        isActive ? "text-[#9B63E9]" : "text-slate-400"
                       )} />
                       {!sidebarCollapsed && item.name}
                     </Link>
@@ -194,7 +198,7 @@ export default function Layout({ children, currentPageName }) {
       {/* Main content */}
       <div className={cn("transition-all duration-300", sidebarCollapsed ? "lg:pl-16" : "lg:pl-64")}>
         {/* Mobile header */}
-        <header className="sticky top-0 z-30 flex items-center h-16 px-4 bg-white/80 backdrop-blur-xl border-b border-slate-200/50 lg:hidden">
+        <header className="sticky top-0 z-30 flex items-center h-16 px-4 bg-white/80 backdrop-blur-xl border-b border-[#9B63E9]/10 lg:hidden">
           <button
             onClick={() => setSidebarOpen(true)}
             className="p-2 -ml-2 rounded-lg hover:bg-slate-100 transition-colors"
@@ -202,7 +206,7 @@ export default function Layout({ children, currentPageName }) {
             <Menu className="w-5 h-5 text-slate-600" />
           </button>
           <div className="flex items-center gap-2 ml-3">
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
+            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#9B63E9] to-[#8A52D8] flex items-center justify-center">
               <Sparkles className="w-4 h-4 text-white" />
             </div>
             <span className="font-semibold text-slate-800">Flowdesk</span>

@@ -9,13 +9,17 @@ import {
   Clock, 
   DollarSign,
   ArrowRight,
-  Plus
+  Plus,
+  Eye,
+  FileText
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import StatCard from '../components/dashboard/StatCard';
 import ProjectCard from '../components/dashboard/ProjectCard';
 import RecentActivity from '../components/dashboard/RecentActivity';
 import AuthGuard from '../components/auth/AuthGuard';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
 export default function Dashboard() {
 
@@ -54,6 +58,12 @@ export default function Dashboard() {
     enabled: !!user?.email,
   });
 
+  const { data: reviews = [] } = useQuery({
+    queryKey: ['reviews', user?.email],
+    queryFn: () => base44.entities.ReviewRequest.filter({ created_by: user.email }),
+    enabled: !!user?.email,
+  });
+
   // Calculate stats
   const activeProjects = projects.filter(p => p.status === 'in_progress' || p.status === 'review');
   const totalHours = timeEntries.reduce((sum, entry) => sum + (entry.hours || 0), 0);
@@ -78,9 +88,18 @@ export default function Dashboard() {
   const getProjectTaskCount = (projectId) => tasks.filter(t => t.project_id === projectId).length;
   const getProjectHours = (projectId) => timeEntries.filter(t => t.project_id === projectId).reduce((sum, e) => sum + (e.hours || 0), 0);
 
+  const pendingReviews = reviews.filter(r => r.status === 'pending').length;
+  const approvedReviews = reviews.filter(r => r.status === 'approved').length;
+
   return (
     <AuthGuard requireOnboarding={true}>
-    <div className="p-6 lg:p-8 max-w-7xl mx-auto">
+    <div className="min-h-screen bg-[#F5F5F5] relative">
+      <div className="absolute inset-0 pointer-events-none" style={{
+        background: 'radial-gradient(circle at 30% 40%, rgba(247, 237, 255, 0.6), transparent 40%), radial-gradient(circle at 70% 60%, rgba(206, 221, 247, 0.4), transparent 40%)',
+        mixBlendMode: 'multiply'
+      }} />
+      
+      <div className="relative p-6 lg:p-8 max-w-7xl mx-auto">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
@@ -95,7 +114,7 @@ export default function Dashboard() {
             </Button>
           </Link>
           <Link to={createPageUrl('Projects')}>
-            <Button className="bg-emerald-600 hover:bg-emerald-700 shadow-lg shadow-emerald-600/20">
+            <Button className="bg-[#9B63E9] hover:bg-[#8A52D8] shadow-lg shadow-[#9B63E9]/20">
               <Plus className="w-4 h-4 mr-2" />
               New Project
             </Button>
@@ -178,6 +197,106 @@ export default function Dashboard() {
           <RecentActivity activities={recentActivities} />
         </div>
       </div>
+
+      {/* Reviews and Invoices Summary */}
+      <div className="grid lg:grid-cols-2 gap-6 mt-6">
+        <Card className="border-[#9B63E9]/20">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <Eye className="w-5 h-5 text-[#9B63E9]" />
+                Review Requests
+              </CardTitle>
+              <Link to={createPageUrl('ReviewRequests')} className="text-sm text-[#9B63E9] hover:text-[#8A52D8] font-medium flex items-center gap-1">
+                View all <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-4 mb-4">
+              <div>
+                <p className="text-2xl font-bold text-slate-900">{reviews.length}</p>
+                <p className="text-sm text-slate-500">Total reviews</p>
+              </div>
+              <div className="flex gap-2">
+                <Badge variant="secondary">{pendingReviews} pending</Badge>
+                <Badge variant="default" className="bg-green-100 text-green-700">{approvedReviews} approved</Badge>
+              </div>
+            </div>
+            <div className="space-y-2">
+              {reviews.slice(0, 3).map(review => (
+                <Link key={review.id} to={createPageUrl(`ReviewRequestDetail?id=${review.id}`)} className="flex items-center justify-between py-2 border-b border-slate-100 last:border-0 hover:bg-slate-50 rounded px-2 transition-colors">
+                  <div className="flex items-center gap-3">
+                    <Eye className="w-4 h-4 text-slate-400" />
+                    <div>
+                      <p className="font-medium text-slate-900 text-sm">{review.title}</p>
+                      <p className="text-xs text-slate-500">
+                        {new Date(review.created_date).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </div>
+                  <Badge variant={
+                    review.status === 'approved' ? 'default' : 
+                    review.status === 'rejected' ? 'destructive' : 
+                    'secondary'
+                  }>
+                    {review.status}
+                  </Badge>
+                </Link>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-[#9B63E9]/20">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="w-5 h-5 text-[#9B63E9]" />
+                Recent Invoices
+              </CardTitle>
+              <Link to={createPageUrl('Invoices')} className="text-sm text-[#9B63E9] hover:text-[#8A52D8] font-medium flex items-center gap-1">
+                View all <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-4 mb-4">
+              <div>
+                <p className="text-2xl font-bold text-slate-900">{invoices.length}</p>
+                <p className="text-sm text-slate-500">Total invoices</p>
+              </div>
+              <div className="flex gap-2">
+                <Badge variant="secondary">{invoices.filter(i => i.status === 'sent').length} sent</Badge>
+                <Badge variant="default" className="bg-green-100 text-green-700">{invoices.filter(i => i.status === 'paid').length} paid</Badge>
+              </div>
+            </div>
+            <div className="space-y-2">
+              {invoices.slice(0, 3).map(invoice => (
+                <div key={invoice.id} className="flex items-center justify-between py-2 border-b border-slate-100 last:border-0">
+                  <div className="flex items-center gap-3">
+                    <FileText className="w-4 h-4 text-slate-400" />
+                    <div>
+                      <p className="font-medium text-slate-900 text-sm">{invoice.invoice_number}</p>
+                      <p className="text-xs text-slate-500">
+                        ${invoice.total?.toLocaleString() || 0}
+                      </p>
+                    </div>
+                  </div>
+                  <Badge variant={
+                    invoice.status === 'paid' ? 'default' : 
+                    invoice.status === 'overdue' ? 'destructive' : 
+                    'secondary'
+                  }>
+                    {invoice.status}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
     </div>
     </AuthGuard>
   );
