@@ -377,7 +377,7 @@ export default function SendForReviewDialog({ open, onOpenChange, project, clien
           </div>
 
           <div>
-           <Label>Recipients *</Label>
+            <Label>Recipients *</Label>
            <div className="mt-2 space-y-2">
              <div className="flex gap-2">
                <Input
