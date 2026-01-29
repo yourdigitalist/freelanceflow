@@ -15,6 +15,8 @@ import {
   LayoutGrid,
   List,
   Eye,
+  Upload,
+  Download,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { Button } from "@/components/ui/button";
@@ -27,6 +29,7 @@ import TaskDialog from '../components/tasks/TaskDialog';
 import ProjectDialog from '../components/projects/ProjectDialog';
 import InvoiceDialog from '../components/invoices/InvoiceDialog';
 import ProjectStatusManagementDialog from '../components/projects/ProjectStatusManagementDialog';
+import TaskCSVImport from '../components/tasks/TaskCSVImport';
 import { toast } from 'sonner';
 import {
   AlertDialog,
@@ -66,6 +69,7 @@ export default function ProjectDetail() {
   const [statusManagementOpen, setStatusManagementOpen] = useState(false);
   const [invoiceDialogOpen, setInvoiceDialogOpen] = useState(false);
   const [deleteProjectOpen, setDeleteProjectOpen] = useState(false);
+  const [csvImportOpen, setCsvImportOpen] = useState(false);
   const [taskView, setTaskView] = useState(() => localStorage.getItem(`taskView_${projectId}`) || 'board');
   const queryClient = useQueryClient();
 
@@ -411,6 +415,45 @@ export default function ProjectDetail() {
     setInvoiceDialogOpen(true);
   };
 
+  const handleCSVImport = async (tasksData) => {
+    try {
+      const promises = tasksData.map(task => 
+        base44.entities.Task.create({ ...task, project_id: projectId })
+      );
+      await Promise.all(promises);
+      queryClient.invalidateQueries({ queryKey: ['tasks', projectId] });
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  const handleExportCSV = () => {
+    const headers = ['Title', 'Description', 'Status', 'Priority', 'Due Date', 'Estimated Hours'];
+    const rows = tasks.map(task => {
+      const status = (taskStatuses || []).find(s => s.id === task.status_id);
+      return [
+        task.title || '',
+        task.description || '',
+        status?.name || '',
+        task.priority || '',
+        task.due_date || '',
+        task.estimated_hours || ''
+      ].map(val => `"${String(val).replace(/"/g, '""')}"`).join(',');
+    });
+
+    const csv = [headers.join(','), ...rows].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${project.name.replace(/[^a-z0-9]/gi, '_')}_tasks.csv`;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    a.remove();
+    toast.success('Tasks exported');
+  };
+
   if (!project) {
     return (
       <div className="p-6 lg:p-8 flex items-center justify-center min-h-[60vh]">
@@ -540,6 +583,22 @@ export default function ProjectDetail() {
                 <List className="w-4 h-4" />
               </Button>
             </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleExportCSV}
+              title="Export tasks as CSV"
+            >
+              <Download className="w-4 h-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCsvImportOpen(true)}
+            >
+              <Upload className="w-4 h-4 mr-2" />
+              Import
+            </Button>
             <Button
               variant="outline"
               size="sm"
@@ -691,6 +750,14 @@ export default function ProjectDetail() {
         </AlertDialogContent>
       </AlertDialog>
 
+      {/* CSV Import Dialog */}
+      <TaskCSVImport
+        open={csvImportOpen}
+        onOpenChange={setCsvImportOpen}
+        onImport={handleCSVImport}
+        projectId={projectId}
+        statuses={taskStatuses || []}
+      />
 
     </div>
   );

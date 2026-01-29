@@ -22,12 +22,13 @@ Deno.serve(async (req) => {
     // Filter to only global statuses (no project_id)
     const globalStatuses = existingStatuses.filter(s => !s.project_id);
 
-    // If both subscription and global statuses exist, user is already initialized
+    // Early return ONLY if BOTH exist
     if (existingSubscription.length > 0 && globalStatuses.length >= 4) {
       return Response.json({
         success: true,
         message: 'User already initialized',
         subscription: existingSubscription[0],
+        statusesCount: globalStatuses.length,
       });
     }
 
@@ -79,7 +80,8 @@ Deno.serve(async (req) => {
     return Response.json({
       success: true,
       subscription,
-      statusesCreated: globalStatuses.length === 0 ? 4 : 0,
+      statusesCreated: globalStatuses.length === 0, // Will be true if we just created them
+      statusesCount: globalStatuses.length === 0 ? 4 : globalStatuses.length,
       message: 'User initialized successfully',
     });
   } catch (error) {
