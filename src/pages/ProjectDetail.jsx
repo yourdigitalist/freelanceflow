@@ -15,8 +15,6 @@ import {
   LayoutGrid,
   List,
   Eye,
-  Upload,
-  Download,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { Button } from "@/components/ui/button";
@@ -26,12 +24,10 @@ import { cn } from "@/lib/utils";
 import TaskBoard from '../components/tasks/TaskBoard';
 import TaskListView from '../components/tasks/TaskListView';
 import TaskDialog from '../components/tasks/TaskDialog';
-import TaskImportDialog from '../components/tasks/TaskImportDialog';
 import ProjectDialog from '../components/projects/ProjectDialog';
 import InvoiceDialog from '../components/invoices/InvoiceDialog';
 import ProjectStatusManagementDialog from '../components/projects/ProjectStatusManagementDialog';
 import { toast } from 'sonner';
-import Papa from 'papaparse';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -64,7 +60,6 @@ export default function ProjectDetail() {
   const projectId = urlParams.get('id');
 
   const [taskDialogOpen, setTaskDialogOpen] = useState(false);
-  const [taskImportOpen, setTaskImportOpen] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
   const [deleteTask, setDeleteTask] = useState(null);
   const [projectDialogOpen, setProjectDialogOpen] = useState(false);
@@ -416,46 +411,6 @@ export default function ProjectDetail() {
     setInvoiceDialogOpen(true);
   };
 
-  const handleImportTasks = async (tasksData) => {
-    try {
-      for (const task of tasksData) {
-        await base44.entities.Task.create({
-          ...task,
-          project_id: projectId,
-        });
-      }
-      queryClient.invalidateQueries({ queryKey: ['tasks', projectId] });
-      toast.success(`Imported ${tasksData.length} tasks`);
-    } catch (error) {
-      toast.error('Failed to import tasks: ' + error.message);
-    }
-  };
-
-  const handleExportTasks = () => {
-    const exportData = tasks.map(task => {
-      const status = taskStatuses.find(s => s.id === task.status_id);
-      return {
-        Title: task.title,
-        Description: task.description || '',
-        Status: status?.name || '',
-        Priority: task.priority || 'medium',
-        'Due Date': task.due_date || '',
-        'Estimated Hours': task.estimated_hours || '',
-        'Created Date': new Date(task.created_date).toLocaleDateString(),
-      };
-    });
-
-    const csv = Papa.unparse(exportData);
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${project.name}_tasks_${new Date().toISOString().split('T')[0]}.csv`;
-    a.click();
-    window.URL.revokeObjectURL(url);
-    toast.success('Tasks exported');
-  };
-
   if (!project) {
     return (
       <div className="p-6 lg:p-8 flex items-center justify-center min-h-[60vh]">
@@ -592,22 +547,6 @@ export default function ProjectDetail() {
             >
               Edit Statuses
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setTaskImportOpen(true)}
-            >
-              <Upload className="w-4 h-4 mr-2" />
-              Import
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleExportTasks}
-              disabled={tasks.length === 0}
-            >
-              <Download className="w-4 h-4" />
-            </Button>
             <Button 
               onClick={() => {
                 setEditingTask(null);
@@ -668,15 +607,6 @@ export default function ProjectDetail() {
         taskStatuses={taskStatuses || []}
         defaultStatusId={editingTask?.status_id}
         onSave={handleTaskSave}
-      />
-
-      {/* Task Import Dialog */}
-      <TaskImportDialog
-        open={taskImportOpen}
-        onOpenChange={setTaskImportOpen}
-        projectId={projectId}
-        taskStatuses={taskStatuses}
-        onImport={handleImportTasks}
       />
 
       {/* Status Management Dialog */}

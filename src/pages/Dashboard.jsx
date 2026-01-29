@@ -1,5 +1,5 @@
 import React from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
@@ -22,7 +22,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
 export default function Dashboard() {
-  const queryClient = useQueryClient();
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
@@ -102,25 +101,6 @@ export default function Dashboard() {
           <p className="text-slate-500 mt-1">Welcome back! Here's what's happening.</p>
         </div>
         <div className="flex gap-3">
-          {/* Temporary debug button */}
-          <Button 
-            onClick={async () => {
-              console.log('Calling initializeUser...');
-              try {
-                const result = await base44.functions.invoke('initializeUser', {});
-                console.log('✅ initializeUser result:', result);
-                alert('Success! Check console for details');
-                queryClient.invalidateQueries({ queryKey: ['taskStatuses'] });
-              } catch (error) {
-                console.error('❌ initializeUser error:', error);
-                alert('Error: ' + error.message);
-              }
-            }}
-            className="bg-purple-600 hover:bg-purple-700"
-            size="sm"
-          >
-            🔧 Test Init
-          </Button>
           <Link to={createPageUrl('TimeTracking')}>
             <Button variant="outline" className="border-slate-200">
               <Clock className="w-4 h-4 mr-2" />

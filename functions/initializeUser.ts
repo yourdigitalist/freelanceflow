@@ -27,7 +27,6 @@ Deno.serve(async (req) => {
       return Response.json({
         success: true,
         message: 'User already initialized',
-        subscription: existingSubscription[0],
       });
     }
 
