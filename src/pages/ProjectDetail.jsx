@@ -123,8 +123,8 @@ export default function ProjectDetail() {
   });
 
   // Get project-specific statuses or fall back to global
-  const taskStatuses = allTaskStatuses.filter(s => 
-    s.project_id === projectId || (!s.project_id && !allTaskStatuses.some(st => st.project_id === projectId))
+  const taskStatuses = (allTaskStatuses || []).filter(s => 
+    s.project_id === projectId || (!s.project_id && !(allTaskStatuses || []).some(st => st.project_id === projectId))
   );
 
   const { data: timeEntries = [] } = useQuery({
