@@ -1,6 +1,7 @@
 import React from 'react';
 import { Clock, FileText, CheckCircle, Plus } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { cn } from "@/lib/utils";
 
 const activityIcons = {
   time: Clock,
@@ -16,7 +17,7 @@ export default function RecentActivity({ activities = [] }) {
         <h3 className="text-lg font-semibold text-slate-900 mb-4">Recent Activity</h3>
         <div className="text-center py-8">
           <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-3">
-            <Clock className="w-6 h-6 text-slate-400" />
+            <Clock className={cn("w-6 h-6 text-slate-400")} />
           </div>
           <p className="text-sm text-slate-500">No recent activity</p>
           <p className="text-xs text-slate-400 mt-1">Start tracking time to see updates here</p>
@@ -34,7 +35,7 @@ export default function RecentActivity({ activities = [] }) {
           return (
             <div key={index} className="flex items-start gap-3">
               <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center flex-shrink-0">
-                <Icon className="w-4 h-4 text-slate-500" />
+                <Icon className={cn("w-4 h-4 text-slate-500")} />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm text-slate-700">{activity.description}</p>

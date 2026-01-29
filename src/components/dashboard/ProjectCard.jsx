@@ -48,7 +48,7 @@ export default function ProjectCard({ project, client, totalHours = 0, taskCount
             <>
               <span>•</span>
               <span className="flex items-center gap-1">
-                <Folder className="w-3 h-3" />
+                <Folder className={cn("w-3 h-3")} />
                 {project.folder}
               </span>
             </>
@@ -58,12 +58,12 @@ export default function ProjectCard({ project, client, totalHours = 0, taskCount
         <div className="flex items-center gap-4 mt-4 pt-4 border-t border-slate-100">
           {project.due_date && (
             <div className="flex items-center gap-1.5 text-sm text-slate-500">
-              <Calendar className="w-4 h-4" />
+              <Calendar className={cn("w-4 h-4")} />
               <span>{format(new Date(project.due_date), 'MMM d')}</span>
             </div>
           )}
           <div className="flex items-center gap-1.5 text-sm text-slate-500">
-            <Clock className="w-4 h-4" />
+            <Clock className={cn("w-4 h-4")} />
             <span>{totalHours.toFixed(1)}h</span>
           </div>
           <div className="ml-auto text-sm text-slate-500">
@@ -84,7 +84,7 @@ export default function ProjectCard({ project, client, totalHours = 0, taskCount
               }}
               className="bg-white/90 backdrop-blur-sm hover:bg-white"
             >
-              <Pencil className="w-4 h-4 text-slate-500" />
+              <Pencil className={cn("w-4 h-4 text-slate-500")} />
             </Button>
           )}
           {onDelete && (
@@ -97,7 +97,7 @@ export default function ProjectCard({ project, client, totalHours = 0, taskCount
               }}
               className="bg-white/90 backdrop-blur-sm hover:bg-white hover:text-red-600"
             >
-              <Trash2 className="w-4 h-4 text-slate-500" />
+              <Trash2 className={cn("w-4 h-4 text-slate-500")} />
             </Button>
           )}
         </div>
