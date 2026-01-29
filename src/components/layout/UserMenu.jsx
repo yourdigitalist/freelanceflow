@@ -21,7 +21,8 @@ import {
   FileText,
   Bell,
   HelpCircle,
-  BarChart3
+  BarChart3,
+  Mail
 } from 'lucide-react';
 import { cn } from "@/lib/utils";
 
@@ -87,6 +88,12 @@ export default function UserMenu({ collapsed }) {
               <Link to={createPageUrl('InvoiceSettings')} className="cursor-pointer">
                 <FileText className="w-4 h-4 mr-2" />
                 Invoice Settings
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link to={createPageUrl('EmailSettings')} className="cursor-pointer">
+                <Mail className="w-4 h-4 mr-2" />
+                Email Settings
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
@@ -168,6 +175,12 @@ export default function UserMenu({ collapsed }) {
             <Link to={createPageUrl('InvoiceSettings')} className="cursor-pointer">
               <FileText className="w-4 h-4 mr-2" />
               Invoice Settings
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link to={createPageUrl('EmailSettings')} className="cursor-pointer">
+              <Mail className="w-4 h-4 mr-2" />
+              Email Settings
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem asChild>
