@@ -17,6 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import PhoneInput from '../shared/PhoneInput';
+import AddressAutocomplete from '../shared/AddressAutocomplete';
 
 const avatarColors = [
   '#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4'
@@ -168,10 +169,10 @@ export default function ClientDialog({ open, onOpenChange, client, onSave }) {
 
           <div className="space-y-3">
             <Label>Address</Label>
-            <Input
+            <AddressAutocomplete
               placeholder="Street"
               value={formData.street}
-              onChange={(e) => setFormData({ ...formData, street: e.target.value })}
+              onChange={(value) => setFormData({ ...formData, street: value })}
             />
             <Input
               placeholder="Street 2"
