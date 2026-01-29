@@ -27,7 +27,6 @@ import TaskDialog from '../components/tasks/TaskDialog';
 import ProjectDialog from '../components/projects/ProjectDialog';
 import InvoiceDialog from '../components/invoices/InvoiceDialog';
 import ProjectStatusManagementDialog from '../components/projects/ProjectStatusManagementDialog';
-import SendForReviewDialog from '../components/reviews/SendForReviewDialog';
 import { toast } from 'sonner';
 import {
   AlertDialog,
@@ -67,7 +66,6 @@ export default function ProjectDetail() {
   const [statusManagementOpen, setStatusManagementOpen] = useState(false);
   const [invoiceDialogOpen, setInvoiceDialogOpen] = useState(false);
   const [deleteProjectOpen, setDeleteProjectOpen] = useState(false);
-  const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
   const [taskView, setTaskView] = useState(() => localStorage.getItem(`taskView_${projectId}`) || 'board');
   const queryClient = useQueryClient();
 
@@ -452,10 +450,6 @@ export default function ProjectDetail() {
             </div>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" onClick={() => setReviewDialogOpen(true)}>
-              <Eye className="w-4 h-4 mr-2" />
-              Send for Review
-            </Button>
             <Button variant="outline" onClick={() => setProjectDialogOpen(true)}>
               <Pencil className="w-4 h-4 mr-2" />
               Edit
@@ -469,7 +463,7 @@ export default function ProjectDetail() {
               Create Invoice
             </Button>
             <Link to={createPageUrl(`TimeTracking?project=${projectId}`)}>
-              <Button className="bg-emerald-600 hover:bg-emerald-700">
+              <Button className="bg-[#9B63E9] hover:bg-[#8A52D8]">
                 <Clock className="w-4 h-4 mr-2" />
                 Log Time
               </Button>
@@ -529,7 +523,7 @@ export default function ProjectDetail() {
                 onClick={() => handleViewChange('board')}
                 className={cn(
                   "rounded-none",
-                  taskView === 'board' ? "bg-emerald-600 hover:bg-emerald-700" : ""
+                  taskView === 'board' ? "bg-[#9B63E9] hover:bg-[#8A52D8]" : ""
                 )}
               >
                 <LayoutGrid className="w-4 h-4" />
@@ -540,7 +534,7 @@ export default function ProjectDetail() {
                 onClick={() => handleViewChange('list')}
                 className={cn(
                   "rounded-none",
-                  taskView === 'list' ? "bg-emerald-600 hover:bg-emerald-700" : ""
+                  taskView === 'list' ? "bg-[#9B63E9] hover:bg-[#8A52D8]" : ""
                 )}
               >
                 <List className="w-4 h-4" />
@@ -559,7 +553,7 @@ export default function ProjectDetail() {
                 setTaskDialogOpen(true);
               }}
               size="sm"
-              className="bg-emerald-600 hover:bg-emerald-700"
+              className="bg-[#9B63E9] hover:bg-[#8A52D8]"
             >
               <Plus className="w-4 h-4 mr-2" />
               Task
@@ -697,16 +691,7 @@ export default function ProjectDetail() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Send for Review Dialog */}
-      <SendForReviewDialog
-        open={reviewDialogOpen}
-        onOpenChange={setReviewDialogOpen}
-        project={project}
-        client={client}
-        onSuccess={() => {
-          queryClient.invalidateQueries({ queryKey: ['reviewRequests'] });
-        }}
-      />
+
     </div>
   );
 }

@@ -247,7 +247,7 @@ export default function Invoices() {
             <CheckCircle className="w-4 h-4" />
             Collected
           </div>
-          <p className="text-2xl font-bold text-emerald-600">${totalPaid.toLocaleString()}</p>
+          <p className="text-2xl font-bold text-[#9B63E9]">${totalPaid.toLocaleString()}</p>
         </div>
         <div className="bg-white rounded-xl p-4 border border-slate-200/60">
           <div className="flex items-center gap-2 text-sm text-slate-500 mb-1">

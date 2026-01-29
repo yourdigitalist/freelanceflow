@@ -49,7 +49,10 @@ export default function CompanySettings() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: () => base44.entities.CompanyProfile.delete(company.id),
+    mutationFn: async () => {
+      await base44.entities.CompanyProfile.delete(company.id);
+      await base44.auth.logout('/Landing');
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['companyProfile'] });
       setShowDeleteDialog(false);
@@ -85,7 +88,7 @@ export default function CompanySettings() {
     <div className="max-w-4xl mx-auto p-8 space-y-8">
       <div>
         <div className="flex items-center gap-3 mb-2">
-          <Building2 className="w-8 h-8 text-emerald-600" />
+          <Building2 className="w-8 h-8 text-[#9B63E9]" />
           <h1 className="text-3xl font-bold text-slate-900">Company Settings</h1>
         </div>
         <p className="text-slate-600">Manage your company information and billing details</p>
@@ -145,7 +148,7 @@ export default function CompanySettings() {
                   setFormData(company);
                   setIsEditing(true);
                 }}
-                className="bg-emerald-600 hover:bg-emerald-700"
+                className="bg-[#9B63E9] hover:bg-[#8A52D8]"
               >
                 <Edit className="w-4 h-4 mr-2" />
                 Edit Information
@@ -154,7 +157,7 @@ export default function CompanySettings() {
                 onClick={() => setShowDeleteDialog(true)}
                 variant="destructive"
               >
-                Delete Profile
+                Delete Account
               </Button>
             </div>
           </>
@@ -314,7 +317,7 @@ export default function CompanySettings() {
               <Button
                 type="submit"
                 disabled={updateMutation.isPending}
-                className="flex-1 bg-emerald-600 hover:bg-emerald-700"
+                className="flex-1 bg-[#9B63E9] hover:bg-[#8A52D8]"
               >
                 <Save className="w-4 h-4 mr-2" />
                 Save Changes
@@ -328,9 +331,9 @@ export default function CompanySettings() {
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Company Profile?</AlertDialogTitle>
+            <AlertDialogTitle>Delete Account?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. All associated data will be removed.
+              This will permanently delete your account and all associated data including projects, clients, time entries, and invoices. This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="flex gap-3">

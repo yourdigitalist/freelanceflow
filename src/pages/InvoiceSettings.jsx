@@ -531,7 +531,7 @@ export default function InvoiceSettings() {
           <Button
             type="submit"
             disabled={saveMutation.isPending}
-            className="bg-emerald-600 hover:bg-emerald-700"
+            className="bg-[#9B63E9] hover:bg-[#8A52D8]"
           >
             {saveMutation.isPending ? 'Saving...' : 'Save Settings'}
           </Button>

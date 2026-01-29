@@ -102,28 +102,28 @@ export default function BillingSettings() {
     <div className="max-w-6xl mx-auto p-8 space-y-8">
       <div>
         <div className="flex items-center gap-3 mb-2">
-          <CreditCard className="w-8 h-8 text-emerald-600" />
+          <CreditCard className="w-8 h-8 text-[#9B63E9]" />
           <h1 className="text-3xl font-bold text-slate-900">Billing & Subscription</h1>
         </div>
         <p className="text-slate-600">Manage your plan and billing information</p>
       </div>
 
       {/* Current Plan */}
-      <Card className="p-6 bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-200">
+      <Card className="p-6 bg-gradient-to-br from-purple-50 to-blue-50 border border-purple-200">
         <div className="flex items-start justify-between">
           <div>
-            <p className="text-sm font-medium text-emerald-700">Current Plan</p>
+            <p className="text-sm font-medium text-[#9B63E9]">Current Plan</p>
             <h2 className="text-3xl font-bold text-slate-900 mt-1">
               {currentPlan?.name}
             </h2>
             <p className="text-slate-600 mt-2">{currentPlan?.description}</p>
             {subscription.next_billing_date && (
-              <p className="text-sm text-emerald-700 mt-3">
+              <p className="text-sm text-[#9B63E9] mt-3">
                 Next billing date: {new Date(subscription.next_billing_date).toLocaleDateString()}
               </p>
             )}
           </div>
-          <Badge className="bg-emerald-600 text-white h-fit">
+          <Badge className="bg-[#9B63E9] text-white h-fit">
             {subscription.status === 'active' ? 'Active' : 'Inactive'}
           </Badge>
         </div>
@@ -139,11 +139,11 @@ export default function BillingSettings() {
               <Card
                 key={plan.id}
                 className={`p-6 flex flex-col ${
-                  isCurrentPlan ? 'ring-2 ring-emerald-600 bg-emerald-50' : ''
+                  isCurrentPlan ? 'ring-2 ring-[#9B63E9] bg-purple-50' : ''
                 }`}
               >
                 {isCurrentPlan && (
-                  <Badge className="w-fit mb-3 bg-emerald-600">Current Plan</Badge>
+                  <Badge className="w-fit mb-3 bg-[#9B63E9]">Current Plan</Badge>
                 )}
                 <h4 className="text-lg font-bold text-slate-900">{plan.name}</h4>
                 <p className="text-slate-600 text-sm mt-1">{plan.description}</p>
@@ -162,7 +162,7 @@ export default function BillingSettings() {
                 <ul className="space-y-3 mb-8 flex-1">
                   {plan.features.map((feature, idx) => (
                     <li key={idx} className="flex items-start gap-2">
-                      <Check className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
+                      <Check className="w-4 h-4 text-[#9B63E9] flex-shrink-0 mt-0.5" />
                       <span className="text-sm text-slate-700">{feature}</span>
                     </li>
                   ))}
@@ -182,7 +182,7 @@ export default function BillingSettings() {
                     className={`w-full ${
                       plan.coming_soon
                         ? 'bg-slate-300'
-                        : 'bg-emerald-600 hover:bg-emerald-700'
+                        : 'bg-[#9B63E9] hover:bg-[#8A52D8]'
                     }`}
                   >
                     {plan.coming_soon ? (

@@ -88,7 +88,7 @@ export default function SendEmailDialog({
                 <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
                   <!-- Header with logo/brand -->
                   <tr>
-                    <td style="padding: 40px; text-align: center; background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                    <td style="padding: 40px; text-align: center; background: linear-gradient(135deg, #9B63E9 0%, #8A52D8 100%);">
                       ${settings?.business_logo ? `<img src="${settings.business_logo}" alt="${businessName}" style="max-width: 150px; height: auto; margin-bottom: 10px;">` : ''}
                       <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: bold;">${businessName}</h1>
                     </td>
@@ -110,7 +110,7 @@ export default function SendEmailDialog({
                         ${processedBody.split('\n').map(line => `<p style="margin: 0 0 10px;">${line}</p>`).join('')}
                       </div>
                       
-                      <a href="${invoiceViewUrl}" style="display: inline-block; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #ffffff; text-decoration: none; padding: 16px 32px; border-radius: 8px; font-weight: 600; font-size: 16px; box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);">
+                      <a href="${invoiceViewUrl}" style="display: inline-block; background: linear-gradient(135deg, #9B63E9 0%, #8A52D8 100%); color: #ffffff; text-decoration: none; padding: 16px 32px; border-radius: 8px; font-weight: 600; font-size: 16px; box-shadow: 0 2px 4px rgba(155, 99, 233, 0.3);">
                         View Invoice
                       </a>
                     </td>

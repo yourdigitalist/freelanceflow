@@ -149,7 +149,7 @@ export default function TimeTracking() {
             <DollarSign className="w-4 h-4" />
             Billable Hours
           </div>
-          <p className="text-2xl font-bold text-emerald-600">{billableHours.toFixed(1)}h</p>
+          <p className="text-2xl font-bold text-[#9B63E9]">{billableHours.toFixed(1)}h</p>
         </div>
         <div className="bg-white rounded-xl p-4 border border-slate-200/60 col-span-2 lg:col-span-1">
           <div className="flex items-center gap-2 text-sm text-slate-500 mb-1">

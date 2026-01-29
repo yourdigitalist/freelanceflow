@@ -19,7 +19,7 @@ Deno.serve(async (req) => {
     
     const emailBody = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
+        <div style="background: linear-gradient(135deg, #9B63E9 0%, #8A52D8 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
           <h1 style="margin: 0; font-size: 24px;">Document Review Request</h1>
         </div>
         <div style="background: white; padding: 30px; border: 1px solid #e5e7eb; border-top: none;">
@@ -33,11 +33,11 @@ Deno.serve(async (req) => {
             <p style="color: #92400e; font-size: 14px; margin: 0;"><strong>🔒 Password:</strong> ${password}</p>
           </div>` : ''}
           <div style="text-align: center; margin-bottom: 30px;">
-            <a href="${reviewLink}" style="display: inline-block; background: #10b981; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px;">
+            <a href="${reviewLink}" style="display: inline-block; background: #9B63E9; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px;">
               Review Document
             </a>
           </div>
-          <div style="background: #f9fafb; padding: 20px; border-radius: 6px; border-left: 4px solid #10b981;">
+          <div style="background: #f9fafb; padding: 20px; border-radius: 6px; border-left: 4px solid #9B63E9;">
             <p style="color: #6b7280; font-size: 12px; margin: 0;">
               You can approve, reject, or add comments to the document directly in the review interface.
             </p>

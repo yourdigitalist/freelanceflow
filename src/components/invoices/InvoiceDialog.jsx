@@ -362,7 +362,7 @@ export default function InvoiceDialog({
                   <button
                     type="button"
                     onClick={() => setFormData({ ...formData, show_item_column: !formData.show_item_column })}
-                    className={`p-1 rounded hover:bg-slate-100 transition-colors ${formData.show_item_column ? 'text-emerald-600' : 'text-slate-400'}`}
+                    className={`p-1 rounded hover:bg-slate-100 transition-colors ${formData.show_item_column ? 'text-[#9B63E9]' : 'text-slate-400'}`}
                     title={formData.show_item_column ? 'Hide Item column' : 'Show Item column'}
                   >
                     <Eye className="w-4 h-4" />
@@ -373,7 +373,7 @@ export default function InvoiceDialog({
                   <button
                     type="button"
                     onClick={() => setFormData({ ...formData, show_quantity_column: !formData.show_quantity_column })}
-                    className={`p-1 rounded hover:bg-slate-100 transition-colors ${formData.show_quantity_column ? 'text-emerald-600' : 'text-slate-400'}`}
+                    className={`p-1 rounded hover:bg-slate-100 transition-colors ${formData.show_quantity_column ? 'text-[#9B63E9]' : 'text-slate-400'}`}
                     title={formData.show_quantity_column ? 'Hide Quantity column' : 'Show Quantity column'}
                   >
                     <Eye className="w-4 h-4" />
@@ -384,7 +384,7 @@ export default function InvoiceDialog({
                   <button
                     type="button"
                     onClick={() => setFormData({ ...formData, show_rate_column: !formData.show_rate_column })}
-                    className={`p-1 rounded hover:bg-slate-100 transition-colors ${formData.show_rate_column ? 'text-emerald-600' : 'text-slate-400'}`}
+                    className={`p-1 rounded hover:bg-slate-100 transition-colors ${formData.show_rate_column ? 'text-[#9B63E9]' : 'text-slate-400'}`}
                     title={formData.show_rate_column ? 'Hide Rate column' : 'Show Rate column'}
                   >
                     <Eye className="w-4 h-4" />
@@ -479,7 +479,7 @@ export default function InvoiceDialog({
             </div>
             <div className="flex justify-between w-full max-w-xs pt-2 border-t border-slate-200">
               <span className="font-semibold text-slate-900">Total</span>
-              <span className="font-bold text-lg text-emerald-600">${total.toFixed(2)}</span>
+              <span className="font-bold text-lg text-[#9B63E9]">${total.toFixed(2)}</span>
             </div>
           </div>
 
@@ -510,7 +510,7 @@ export default function InvoiceDialog({
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button type="submit" disabled={saving} className="bg-emerald-600 hover:bg-emerald-700">
+            <Button type="submit" disabled={saving} className="bg-[#9B63E9] hover:bg-[#8A52D8]">
               {saving ? 'Saving...' : (invoice ? 'Save Changes' : 'Create Invoice')}
             </Button>
           </div>

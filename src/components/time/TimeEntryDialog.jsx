@@ -164,7 +164,7 @@ export default function TimeEntryDialog({ open, onOpenChange, entry, projects = 
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button type="submit" disabled={saving} className="bg-emerald-600 hover:bg-emerald-700">
+            <Button type="submit" disabled={saving} className="bg-[#9B63E9] hover:bg-[#8A52D8]">
               {saving ? 'Saving...' : (entry ? 'Save Changes' : 'Log Time')}
             </Button>
           </div>

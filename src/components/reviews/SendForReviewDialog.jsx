@@ -445,7 +445,7 @@ export default function SendForReviewDialog({ open, onOpenChange, project, clien
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button onClick={handleSubmit} disabled={saving || uploading}>
+          <Button onClick={handleSubmit} disabled={saving || uploading} className="bg-[#9B63E9] hover:bg-[#8A52D8]">
             {saving ? (
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
             ) : null}

@@ -22,7 +22,7 @@ export default function PageHeader({
         {actionLabel && onAction && (
           <Button 
             onClick={onAction} 
-            className="bg-emerald-600 hover:bg-emerald-700 shadow-lg shadow-emerald-600/20"
+            className="bg-[#9B63E9] hover:bg-[#8A52D8] shadow-lg shadow-[#9B63E9]/20"
           >
             <Plus className="w-4 h-4 mr-2" />
             {actionLabel}

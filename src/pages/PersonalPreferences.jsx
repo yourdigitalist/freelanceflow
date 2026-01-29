@@ -150,7 +150,7 @@ export default function PersonalPreferences() {
         </div>
 
         <div className="flex justify-end pt-4 border-t border-slate-200">
-          <Button onClick={handleSave} className="bg-emerald-600 hover:bg-emerald-700">
+          <Button onClick={handleSave} className="bg-[#9B63E9] hover:bg-[#8A52D8]">
             Save Preferences
           </Button>
         </div>
@@ -198,7 +198,7 @@ export default function PersonalPreferences() {
         </div>
 
         <div className="flex justify-end pt-4 border-t border-slate-200">
-          <Button onClick={handleSaveNotifications} className="bg-emerald-600 hover:bg-emerald-700">
+          <Button onClick={handleSaveNotifications} className="bg-[#9B63E9] hover:bg-[#8A52D8]">
             Save Notification Settings
           </Button>
         </div>

@@ -47,10 +47,12 @@
  *
  * The mainPage value must match a key in the PAGES object exactly.
  */
+import AdminDashboard from './pages/AdminDashboard';
 import BillingSettings from './pages/BillingSettings';
 import Clients from './pages/Clients';
 import CompanySettings from './pages/CompanySettings';
 import Dashboard from './pages/Dashboard';
+import HelpCenter from './pages/HelpCenter';
 import InvoiceSettings from './pages/InvoiceSettings';
 import Invoices from './pages/Invoices';
 import Landing from './pages/Landing';
@@ -66,16 +68,16 @@ import ReviewRequestDetail from './pages/ReviewRequestDetail';
 import ReviewRequests from './pages/ReviewRequests';
 import TaskStatuses from './pages/TaskStatuses';
 import TimeTracking from './pages/TimeTracking';
-import HelpCenter from './pages/HelpCenter';
-import AdminDashboard from './pages/AdminDashboard';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
+    "AdminDashboard": AdminDashboard,
     "BillingSettings": BillingSettings,
     "Clients": Clients,
     "CompanySettings": CompanySettings,
     "Dashboard": Dashboard,
+    "HelpCenter": HelpCenter,
     "InvoiceSettings": InvoiceSettings,
     "Invoices": Invoices,
     "Landing": Landing,
@@ -91,8 +93,6 @@ export const PAGES = {
     "ReviewRequests": ReviewRequests,
     "TaskStatuses": TaskStatuses,
     "TimeTracking": TimeTracking,
-    "HelpCenter": HelpCenter,
-    "AdminDashboard": AdminDashboard,
 }
 
 export const pagesConfig = {
