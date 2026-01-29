@@ -27,6 +27,7 @@ Deno.serve(async (req) => {
       return Response.json({
         success: true,
         message: 'User already initialized',
+        subscription: existingSubscription[0],
       });
     }
 
@@ -64,7 +65,7 @@ Deno.serve(async (req) => {
         )
       );
 
-      console.log('Created default global statuses:', createdStatuses.length);
+      console.log('✅ Created default global statuses:', createdStatuses.length);
     }
 
     // Update user with onboarding step if not completed
@@ -78,6 +79,7 @@ Deno.serve(async (req) => {
     return Response.json({
       success: true,
       subscription,
+      statusesCreated: globalStatuses.length === 0 ? 4 : 0,
       message: 'User initialized successfully',
     });
   } catch (error) {
