@@ -65,6 +65,7 @@ import ReviewRequestDetail from './pages/ReviewRequestDetail';
 import ReviewRequests from './pages/ReviewRequests';
 import TaskStatuses from './pages/TaskStatuses';
 import TimeTracking from './pages/TimeTracking';
+import Notifications from './pages/Notifications';
 import __Layout from './Layout.jsx';
 
 
@@ -87,6 +88,7 @@ export const PAGES = {
     "ReviewRequests": ReviewRequests,
     "TaskStatuses": TaskStatuses,
     "TimeTracking": TimeTracking,
+    "Notifications": Notifications,
 }
 
 export const pagesConfig = {

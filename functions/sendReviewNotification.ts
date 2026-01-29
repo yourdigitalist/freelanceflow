@@ -44,12 +44,41 @@ Deno.serve(async (req) => {
       `;
     }
 
-    // Send email to the review owner
-    await base44.integrations.Core.SendEmail({
-      to: ownerEmail,
-      subject,
-      body,
+    // Check notification preferences
+    const preferences = await base44.asServiceRole.entities.NotificationPreference.filter({ 
+      user_email: ownerEmail 
     });
+    
+    const prefs = preferences[0] || { 
+      review_comments: true, 
+      review_status_changes: true 
+    };
+
+    let shouldNotify = false;
+    if (type === 'comment' && prefs.review_comments) shouldNotify = true;
+    if ((type === 'approved' || type === 'rejected') && prefs.review_status_changes) shouldNotify = true;
+
+    if (shouldNotify) {
+      // Send email
+      await base44.integrations.Core.SendEmail({
+        to: ownerEmail,
+        subject,
+        body,
+      });
+
+      // Create in-app notification
+      await base44.asServiceRole.entities.Notification.create({
+        user_email: ownerEmail,
+        type: type === 'comment' ? 'review_comment' : (type === 'approved' ? 'review_approved' : 'review_rejected'),
+        title: subject,
+        message: type === 'comment' 
+          ? `${commenterName} added a comment` 
+          : `${commenterName} ${type} your review`,
+        link: `/ReviewRequestDetail?id=${reviewId}`,
+        related_id: reviewId,
+        read: false,
+      });
+    }
 
     return Response.json({ success: true });
   } catch (error) {

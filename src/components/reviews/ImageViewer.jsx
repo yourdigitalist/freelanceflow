@@ -295,7 +295,7 @@ export default function ImageViewer({
 
       {/* Comments Sidebar */}
       {fileComments.length > 0 && !activePin && (
-        <div className="absolute right-0 top-0 bottom-0 w-80 bg-white border-l border-slate-200 overflow-y-auto">
+        <div className="absolute right-0 top-16 bottom-0 w-80 bg-white border-l border-slate-200 overflow-y-auto">
           <div className="p-4">
             <h4 className="font-semibold text-slate-900 mb-4">
               Comments ({fileComments.length})

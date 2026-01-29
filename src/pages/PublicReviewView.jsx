@@ -310,13 +310,15 @@ export default function PublicReviewView() {
               <div className="flex items-center gap-4 mt-4 flex-wrap">
                 <span
                   className={cn(
-                    'text-xs font-medium px-3 py-1 rounded-full',
-                    review.status === 'approved' && 'bg-green-100 text-green-700',
-                    review.status === 'rejected' && 'bg-red-100 text-red-700',
+                    'text-sm font-semibold px-4 py-2 rounded-lg flex items-center gap-2',
+                    review.status === 'approved' && 'bg-green-500 text-white shadow-lg',
+                    review.status === 'rejected' && 'bg-red-500 text-white shadow-lg',
                     review.status === 'commented' && 'bg-blue-100 text-blue-700',
                     review.status === 'pending' && 'bg-yellow-100 text-yellow-700'
                   )}
                 >
+                  {review.status === 'approved' && <Check className="w-4 h-4" />}
+                  {review.status === 'rejected' && <X className="w-4 h-4" />}
                   {review.status.charAt(0).toUpperCase() + review.status.slice(1)}
                 </span>
                 <span className="text-sm text-slate-600 font-medium">

@@ -21,6 +21,7 @@ import {
 import { cn } from "@/lib/utils";
 import UserMenu from './components/layout/UserMenu';
 import AuthGuard from './components/auth/AuthGuard';
+import NotificationBell from './components/notifications/NotificationBell';
 
 const navigation = [
   { name: 'Dashboard', icon: LayoutDashboard, page: 'Dashboard' },
@@ -88,19 +89,22 @@ export default function Layout({ children, currentPageName }) {
               </div>
               {!sidebarCollapsed && (
                 <span className="text-lg font-semibold text-slate-800 tracking-tight">Flowdesk</span>
-              )}
-            </div>
-            <button
-              onClick={toggleSidebar}
-              className="hidden lg:block p-1 rounded-lg hover:bg-slate-100 transition-colors"
-            >
-              {sidebarCollapsed ? (
-                <ChevronRight className="w-4 h-4 text-slate-600" />
-              ) : (
-                <ChevronLeft className="w-4 h-4 text-slate-600" />
-              )}
-            </button>
-          </div>
+                )}
+                </div>
+                <div className="flex items-center gap-2">
+                {!sidebarCollapsed && <NotificationBell />}
+                <button
+                onClick={toggleSidebar}
+                className="hidden lg:block p-1 rounded-lg hover:bg-slate-100 transition-colors"
+                >
+                {sidebarCollapsed ? (
+                  <ChevronRight className="w-4 h-4 text-slate-600" />
+                ) : (
+                  <ChevronLeft className="w-4 h-4 text-slate-600" />
+                )}
+                </button>
+                </div>
+                </div>
 
           {/* Navigation */}
           <nav className="flex-1 px-3 py-4 space-y-1">
@@ -202,8 +206,9 @@ export default function Layout({ children, currentPageName }) {
               <Sparkles className="w-4 h-4 text-white" />
             </div>
             <span className="font-semibold text-slate-800">Flowdesk</span>
-          </div>
-        </header>
+              </div>
+              <NotificationBell />
+            </header>
 
         {/* Page content */}
         <main className="min-h-screen">
