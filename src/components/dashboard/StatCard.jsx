@@ -32,7 +32,7 @@ export default function StatCard({ title, value, subtitle, icon: Icon, trend, co
             "w-12 h-12 rounded-xl bg-gradient-to-br flex items-center justify-center shadow-lg",
             colorClasses[color]
           )}>
-            <Icon className="w-6 h-6 text-white" />
+            <Icon className={cn("w-6 h-6 text-white")} />
           </div>
         )}
       </div>
