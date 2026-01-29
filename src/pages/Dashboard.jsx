@@ -93,13 +93,7 @@ export default function Dashboard() {
 
   return (
     <AuthGuard requireOnboarding={true}>
-    <div className="min-h-screen bg-[#F5F5F5] relative">
-      <div className="absolute inset-0 pointer-events-none" style={{
-        background: 'radial-gradient(circle at 30% 40%, rgba(247, 237, 255, 0.6), transparent 40%), radial-gradient(circle at 70% 60%, rgba(206, 221, 247, 0.4), transparent 40%)',
-        mixBlendMode: 'multiply'
-      }} />
-      
-      <div className="relative p-6 lg:p-8 max-w-7xl mx-auto">
+      <div className="p-6 lg:p-8 max-w-7xl mx-auto">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
@@ -129,28 +123,28 @@ export default function Dashboard() {
           value={clients.filter(c => c.status === 'active').length}
           subtitle={`${clients.length} total`}
           icon={Users}
-          color="blue"
+          color="purple"
         />
         <StatCard
           title="Active Projects"
           value={activeProjects.length}
           subtitle={`${projects.length} total`}
           icon={FolderKanban}
-          color="emerald"
+          color="purple"
         />
         <StatCard
           title="Hours This Month"
           value={totalHours.toFixed(1)}
           subtitle={`${unbilledHours.toFixed(1)}h unbilled`}
           icon={Clock}
-          color="amber"
+          color="purple"
         />
         <StatCard
           title="Pending Payment"
           value={`$${pendingAmount.toLocaleString()}`}
           subtitle={`${pendingInvoices.length} invoices`}
           icon={DollarSign}
-          color="rose"
+          color="purple"
         />
       </div>
 
@@ -160,7 +154,7 @@ export default function Dashboard() {
         <div className="lg:col-span-2">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-slate-900">Active Projects</h2>
-            <Link to={createPageUrl('Projects')} className="text-sm text-emerald-600 hover:text-emerald-700 font-medium flex items-center gap-1">
+            <Link to={createPageUrl('Projects')} className="text-sm text-[#9B63E9] hover:text-[#8A52D8] font-medium flex items-center gap-1">
               View all <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
@@ -183,7 +177,7 @@ export default function Dashboard() {
               </div>
               <p className="text-sm text-slate-500">No active projects yet</p>
               <Link to={createPageUrl('Projects')}>
-                <Button className="mt-4 bg-emerald-600 hover:bg-emerald-700">
+                <Button className="mt-4 bg-[#9B63E9] hover:bg-[#8A52D8]">
                   <Plus className="w-4 h-4 mr-2" />
                   Create Project
                 </Button>
@@ -296,8 +290,6 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </div>
-    </div>
-    </div>
     </AuthGuard>
   );
 }

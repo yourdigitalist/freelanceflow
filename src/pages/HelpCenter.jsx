@@ -31,13 +31,7 @@ export default function HelpCenter() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F5F5F5] relative">
-      <div className="absolute inset-0 pointer-events-none" style={{
-        background: 'radial-gradient(circle at 30% 40%, rgba(247, 237, 255, 0.6), transparent 40%), radial-gradient(circle at 70% 60%, rgba(206, 221, 247, 0.4), transparent 40%)',
-        mixBlendMode: 'multiply'
-      }} />
-      
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-slate-900 mb-3">Help Center</h1>
           <p className="text-lg text-slate-600">Get support, find answers, and learn how to use Flowdesk</p>
@@ -170,6 +164,5 @@ export default function HelpCenter() {
           </CardContent>
         </Card>
       </div>
-    </div>
   );
 }

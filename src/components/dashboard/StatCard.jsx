@@ -1,9 +1,9 @@
 import React from 'react';
 import { cn } from "@/lib/utils";
 
-export default function StatCard({ title, value, subtitle, icon: Icon, trend, color = "emerald" }) {
+export default function StatCard({ title, value, subtitle, icon: Icon, trend, color = "purple" }) {
   const colorClasses = {
-    emerald: "from-emerald-500 to-teal-600 shadow-emerald-500/20",
+    purple: "from-[#9B63E9] to-[#8A52D8] shadow-[#9B63E9]/20",
     blue: "from-blue-500 to-indigo-600 shadow-blue-500/20",
     amber: "from-amber-500 to-orange-600 shadow-amber-500/20",
     rose: "from-rose-500 to-pink-600 shadow-rose-500/20",
@@ -21,7 +21,7 @@ export default function StatCard({ title, value, subtitle, icon: Icon, trend, co
           {trend && (
             <p className={cn(
               "text-sm font-medium mt-2",
-              trend > 0 ? "text-emerald-600" : "text-rose-600"
+              trend > 0 ? "text-[#9B63E9]" : "text-rose-600"
             )}>
               {trend > 0 ? "+" : ""}{trend}% from last month
             </p>

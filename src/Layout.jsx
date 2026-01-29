@@ -66,9 +66,8 @@ export default function Layout({ children, currentPageName }) {
   return (
     <AuthGuard>
     <div className="min-h-screen bg-[#F5F5F5] relative">
-      <div className="absolute inset-0 pointer-events-none" style={{
-        background: 'radial-gradient(circle at 30% 40%, rgba(247, 237, 255, 0.6), transparent 40%), radial-gradient(circle at 70% 60%, rgba(206, 221, 247, 0.4), transparent 40%)',
-        mixBlendMode: 'multiply'
+      <div className="absolute inset-0 pointer-events-none -z-10" style={{
+        background: 'radial-gradient(circle at 30% 40%, rgba(247, 237, 255, 0.4), transparent 50%), radial-gradient(circle at 70% 60%, rgba(206, 221, 247, 0.3), transparent 50%)'
       }} />
       {/* Mobile sidebar backdrop */}
       {sidebarOpen && (

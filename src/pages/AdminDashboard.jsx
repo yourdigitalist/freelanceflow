@@ -115,13 +115,7 @@ export default function AdminDashboard() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#F5F5F5] relative">
-      <div className="absolute inset-0 pointer-events-none" style={{
-        background: 'radial-gradient(circle at 30% 40%, rgba(247, 237, 255, 0.6), transparent 40%), radial-gradient(circle at 70% 60%, rgba(206, 221, 247, 0.4), transparent 40%)',
-        mixBlendMode: 'multiply'
-      }} />
-      
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-slate-900">Admin Dashboard</h1>
           <p className="text-slate-600 mt-2">Overview of platform usage and metrics</p>
@@ -213,6 +207,5 @@ export default function AdminDashboard() {
           </Card>
         </div>
       </div>
-    </div>
   );
 }

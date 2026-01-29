@@ -233,7 +233,7 @@ export default function Projects() {
                     <div className="flex-1 min-w-0">
                       <Link 
                         to={createPageUrl(`ProjectDetail?id=${project.id}`)}
-                        className="font-semibold text-slate-900 hover:text-emerald-600 block truncate"
+                        className="font-semibold text-slate-900 hover:text-[#9B63E9] block truncate"
                       >
                         {project.name}
                       </Link>

@@ -165,6 +165,7 @@ export default function ReviewRequests() {
               setSelectedFolder(null);
               setDialogOpen(true);
             }}
+            className="bg-[#9B63E9] hover:bg-[#8A52D8]"
           >
             <Plus className="w-4 h-4 mr-2" />
             Create Request
@@ -239,7 +240,7 @@ export default function ReviewRequests() {
                     <div
                       key={review.id}
                       onClick={() => openReviewDetail(review.id)}
-                      className="p-4 border border-slate-200 rounded-lg hover:border-emerald-300 hover:bg-emerald-50 transition-colors cursor-pointer"
+                      className="p-4 border border-slate-200 rounded-lg hover:border-[#9B63E9]/30 hover:bg-[#9B63E9]/5 transition-colors cursor-pointer"
                     >
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1 min-w-0">
@@ -282,7 +283,7 @@ export default function ReviewRequests() {
               <div
                 key={review.id}
                 onClick={() => openReviewDetail(review.id)}
-                className="bg-white p-4 border border-slate-200 rounded-lg hover:border-emerald-300 hover:bg-emerald-50 transition-colors cursor-pointer"
+                className="bg-white p-4 border border-slate-200 rounded-lg hover:border-[#9B63E9]/30 hover:bg-[#9B63E9]/5 transition-colors cursor-pointer"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
@@ -379,7 +380,7 @@ export default function ReviewRequests() {
               <Button variant="outline" onClick={() => setFolderDialogOpen(false)}>
                 Cancel
               </Button>
-              <Button onClick={handleCreateFolder}>Create Folder</Button>
+              <Button onClick={handleCreateFolder} className="bg-[#9B63E9] hover:bg-[#8A52D8]">Create Folder</Button>
             </div>
           </div>
         </DialogContent>
@@ -432,7 +433,7 @@ export default function ReviewRequests() {
               <Button variant="outline" onClick={() => setEditFolderDialogOpen(false)}>
                 Cancel
               </Button>
-              <Button onClick={handleUpdateFolder}>Save Changes</Button>
+              <Button onClick={handleUpdateFolder} className="bg-[#9B63E9] hover:bg-[#8A52D8]">Save Changes</Button>
             </div>
           </div>
         </DialogContent>
