@@ -511,18 +511,26 @@ export default function PublicReviewView() {
 
       {/* Image Viewer Modal */}
       {viewerOpen && (
-        <ImageViewer
-          key={`viewer-${allFileComments.length}-${selectedFileIndex}`}
-          files={review.file_urls}
-          initialIndex={selectedFileIndex}
-          onClose={() => setViewerOpen(false)}
-          comments={allFileComments}
-          onAddComment={handleAddFileComment}
-          onEditComment={handleEditFileComment}
-          onDeleteComment={handleDeleteFileComment}
-          visitorName={visitorName}
-          visitorEmail={visitorEmail}
-        />
+        <>
+          {console.log('ImageViewer Props:', {
+            comments: allFileComments,
+            fileComments: allFileComments.filter(c => c.file_index === selectedFileIndex),
+            selectedFileIndex,
+            reviewData
+          })}
+          <ImageViewer
+            key={`viewer-${allFileComments.length}-${selectedFileIndex}`}
+            files={review.file_urls}
+            initialIndex={selectedFileIndex}
+            onClose={() => setViewerOpen(false)}
+            comments={allFileComments}
+            onAddComment={handleAddFileComment}
+            onEditComment={handleEditFileComment}
+            onDeleteComment={handleDeleteFileComment}
+            visitorName={visitorName}
+            visitorEmail={visitorEmail}
+          />
+        </>
       )}
     </div>
   );
