@@ -22,19 +22,27 @@ import { toast } from 'sonner';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 
-export default function SendForReviewDialog({ open, onOpenChange, project, client, onSuccess }) {
+export default function SendForReviewDialog({ open, onOpenChange, project, client, folder: initialFolder, onSuccess }) {
   const [selectedProject, setSelectedProject] = useState(project?.id || '');
   const [selectedClient, setSelectedClient] = useState(client?.id || '');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [dueDate, setDueDate] = useState('');
   const [version, setVersion] = useState('1');
-  const [folder, setFolder] = useState('');
+  const [folder, setFolder] = useState(initialFolder || '');
   const [files, setFiles] = useState([]);
   const [recipients, setRecipients] = useState([]);
   const [newRecipient, setNewRecipient] = useState('');
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  const { data: allReviews = [] } = useQuery({
+    queryKey: ['allReviews', user?.email],
+    queryFn: () => base44.entities.ReviewRequest.filter({ created_by: user.email }),
+    enabled: !!user?.email,
+  });
+
+  const existingFolders = [...new Set(allReviews.filter(r => r.folder).map(r => r.folder))];
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
@@ -65,6 +73,10 @@ export default function SendForReviewDialog({ open, onOpenChange, project, clien
       }
     }
   }, [client]);
+
+  useEffect(() => {
+    if (initialFolder) setFolder(initialFolder);
+  }, [initialFolder]);
 
   const selectedClientObj = clients.find(c => c.id === selectedClient);
 
@@ -126,10 +138,6 @@ export default function SendForReviewDialog({ open, onOpenChange, project, clien
   };
 
   const handleSubmit = async () => {
-    if (!selectedProject) {
-      toast.error('Please select a project');
-      return;
-    }
     if (!selectedClient) {
       toast.error('Please select a client');
       return;
@@ -150,7 +158,7 @@ export default function SendForReviewDialog({ open, onOpenChange, project, clien
     setSaving(true);
     try {
       const reviewData = {
-        project_id: selectedProject,
+        project_id: selectedProject || null,
         client_id: selectedClient,
         title,
         description,
@@ -205,22 +213,6 @@ export default function SendForReviewDialog({ open, onOpenChange, project, clien
 
         <div className="space-y-4 py-4">
           <div>
-            <Label htmlFor="project">Project *</Label>
-            <Select value={selectedProject} onValueChange={setSelectedProject}>
-              <SelectTrigger className="mt-2">
-                <SelectValue placeholder="Select a project" />
-              </SelectTrigger>
-              <SelectContent>
-                {projects.map((p) => (
-                  <SelectItem key={p.id} value={p.id}>
-                    {p.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div>
             <Label htmlFor="client">Client *</Label>
             <Select value={selectedClient} onValueChange={setSelectedClient}>
               <SelectTrigger className="mt-2">
@@ -246,6 +238,23 @@ export default function SendForReviewDialog({ open, onOpenChange, project, clien
             />
           </div>
 
+          <div>
+            <Label htmlFor="project">Project (optional)</Label>
+            <Select value={selectedProject} onValueChange={setSelectedProject}>
+              <SelectTrigger className="mt-2">
+                <SelectValue placeholder="Select a project" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={null}>No project</SelectItem>
+                {projects.map((p) => (
+                  <SelectItem key={p.id} value={p.id}>
+                    {p.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="version">Version</Label>
@@ -261,14 +270,34 @@ export default function SendForReviewDialog({ open, onOpenChange, project, clien
               <p className="text-xs text-slate-500 mt-1">Display: v{version}</p>
             </div>
             <div>
-              <Label htmlFor="folder">Folder (optional)</Label>
-              <Input
-                id="folder"
-                value={folder}
-                onChange={(e) => setFolder(e.target.value)}
-                placeholder="e.g., Brand Guidelines"
-                className="mt-2"
-              />
+              <Label htmlFor="folder">Folder</Label>
+              <Select value={folder} onValueChange={setFolder}>
+                <SelectTrigger className="mt-2">
+                  <SelectValue placeholder="Select or create folder" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={null}>No folder</SelectItem>
+                  {existingFolders.map((f) => (
+                    <SelectItem key={f} value={f}>
+                      {f}
+                    </SelectItem>
+                  ))}
+                  <div className="border-t mt-1 pt-1">
+                    <button
+                      type="button"
+                      className="w-full text-left px-2 py-1.5 text-sm hover:bg-slate-100 rounded"
+                      onClick={() => {
+                        const newFolder = prompt('Enter folder name:');
+                        if (newFolder?.trim()) {
+                          setFolder(newFolder.trim());
+                        }
+                      }}
+                    >
+                      + Create new folder
+                    </button>
+                  </div>
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
