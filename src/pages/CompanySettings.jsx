@@ -201,10 +201,13 @@ export default function CompanySettings() {
               <div>
                 <PhoneInput
                   label="Phone"
-                  phone={formData.phone}
-                  phoneCountryCode={formData.phone_country_code}
-                  onPhoneChange={(value) => setFormData({ ...formData, phone: value })}
-                  onCountryCodeChange={(value) => setFormData({ ...formData, phone_country_code: value })}
+                  value={formData.phone || ''}
+                  countryCode={formData.phone_country_code || '+1'}
+                  onChange={(phone, countryCode) => setFormData({ 
+                    ...formData, 
+                    phone: phone,
+                    phone_country_code: countryCode 
+                  })}
                 />
               </div>
               <div>
