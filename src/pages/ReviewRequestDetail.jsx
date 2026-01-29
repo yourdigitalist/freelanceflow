@@ -354,6 +354,7 @@ export default function ReviewRequestDetail() {
           comments={allFileComments}
           visitorName={user?.full_name}
           visitorEmail={user?.email}
+          readOnly={true}
         />
       )}
     </div>

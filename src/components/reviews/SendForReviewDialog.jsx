@@ -282,16 +282,15 @@ export default function SendForReviewDialog({ open, onOpenChange, project, clien
                       {f}
                     </SelectItem>
                   ))}
-                  <div className="border-t mt-1 pt-1">
+                  <div className="border-t mt-1 pt-1 px-2 py-1">
                     <button
                       type="button"
-                      className="w-full text-left px-2 py-1.5 text-sm hover:bg-slate-100 rounded"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        const newFolder = window.prompt('Enter folder name:');
+                      className="w-full text-left text-sm hover:bg-slate-100 rounded px-2 py-1.5 text-emerald-600 font-medium"
+                      onClick={() => {
+                        const newFolder = prompt('Enter folder name:');
                         if (newFolder?.trim()) {
                           setFolder(newFolder.trim());
+                          toast.success(`Folder "${newFolder.trim()}" will be created`);
                         }
                       }}
                     >
@@ -401,9 +400,9 @@ export default function SendForReviewDialog({ open, onOpenChange, project, clien
              )}
            </div>
           </div>
-          </div>
+        </div>
 
-          <div className="flex justify-end gap-2">
+        <div className="flex justify-end gap-2 pt-4">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>

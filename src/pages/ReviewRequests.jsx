@@ -51,16 +51,33 @@ export default function ReviewRequests() {
 
   // Get unique folders from reviews
   const folders = [...new Set(reviews.filter(r => r.folder).map(r => r.folder))];
-  const unorganizedReviews = reviews.filter(r => !r.folder);
+  const unorganizedReviews = reviews.filter(r => !r.folder && !r.is_folder_placeholder);
 
-  const handleCreateFolder = () => {
+  const handleCreateFolder = async () => {
     if (!newFolderName.trim()) {
       toast.error('Please enter a folder name');
       return;
     }
-    setFolderDialogOpen(false);
-    toast.success(`Folder "${newFolderName.trim()}" created`);
-    setNewFolderName('');
+    
+    // Create a placeholder review with just the folder name to establish the folder
+    try {
+      await base44.entities.ReviewRequest.create({
+        client_id: 'placeholder',
+        title: `_folder_placeholder_${Date.now()}`,
+        folder: newFolderName.trim(),
+        file_urls: [],
+        share_token: '',
+        status: 'pending',
+        is_folder_placeholder: true,
+      });
+      
+      queryClient.invalidateQueries({ queryKey: ['reviewRequests'] });
+      toast.success(`Folder "${newFolderName.trim()}" created`);
+      setFolderDialogOpen(false);
+      setNewFolderName('');
+    } catch (error) {
+      toast.error('Failed to create folder');
+    }
   };
 
   const toggleFolder = (folder) => {
@@ -157,7 +174,7 @@ export default function ReviewRequests() {
 
               {isExpanded && (
                 <div className="border-t border-slate-100 p-4 space-y-2">
-                  {folderReviews.map((review) => (
+                  {folderReviews.filter(r => !r.is_folder_placeholder).map((review) => (
                     <div
                       key={review.id}
                       onClick={() => openReviewDetail(review.id)}

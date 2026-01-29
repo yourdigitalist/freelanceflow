@@ -14,7 +14,8 @@ export default function ImageViewer({
   onEditComment,
   onDeleteComment,
   visitorName,
-  visitorEmail 
+  visitorEmail,
+  readOnly = false
 }) {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [pins, setPins] = useState([]);
@@ -39,7 +40,7 @@ export default function ImageViewer({
   }, [currentIndex, comments]);
 
   const handleImageClick = (e) => {
-    if (!isImage || activePin !== null) return;
+    if (!isImage || activePin !== null || readOnly) return;
 
     const rect = e.target.getBoundingClientRect();
     const x = e.clientX - rect.left;
@@ -190,13 +191,13 @@ export default function ImageViewer({
 
         {/* Image Display */}
         {isImage ? (
-          <div className="relative max-w-full max-h-full p-8" style={{ pointerEvents: onAddComment ? 'auto' : 'none' }}>
+          <div className="relative max-w-full max-h-full p-8">
             <img
               ref={imageRef}
               src={currentFile.url}
               alt={currentFile.filename}
-              onClick={onAddComment ? handleImageClick : undefined}
-              style={{ transform: `scale(${zoom})`, cursor: onAddComment ? (activePin ? 'default' : 'crosshair') : 'default' }}
+              onClick={readOnly ? undefined : handleImageClick}
+              style={{ transform: `scale(${zoom})`, cursor: readOnly ? 'default' : (activePin ? 'default' : 'crosshair') }}
               className="max-w-full max-h-[80vh] object-contain transition-transform"
             />
 
@@ -253,7 +254,7 @@ export default function ImageViewer({
       </div>
 
       {/* Comment Input (shown when pin is active or editing) */}
-      {activePin && onAddComment && (
+      {activePin && !readOnly && (
         <div className="absolute bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-6 shadow-2xl">
           <div className="max-w-2xl mx-auto">
             <h4 className="font-medium text-slate-900 mb-3">
@@ -293,7 +294,7 @@ export default function ImageViewer({
       )}
 
       {/* Comments Sidebar */}
-      {fileComments.length > 0 && !activePin && onAddComment && (
+      {fileComments.length > 0 && !activePin && (
         <div className="absolute right-0 top-0 bottom-0 w-80 bg-white border-l border-slate-200 overflow-y-auto">
           <div className="p-4">
             <h4 className="font-semibold text-slate-900 mb-4">
@@ -311,7 +312,7 @@ export default function ImageViewer({
                       <p className="text-xs text-slate-500">
                         {format(new Date(comment.created_at), 'MMM d, h:mm a')}
                       </p>
-                      {visitorEmail === comment.author_email && onEditComment && onDeleteComment && (
+                      {!readOnly && visitorEmail === comment.author_email && onEditComment && onDeleteComment && (
                         <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                           <Button
                             variant="ghost"
