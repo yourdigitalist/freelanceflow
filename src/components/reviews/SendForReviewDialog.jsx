@@ -47,7 +47,7 @@ export default function SendForReviewDialog({ open, onOpenChange, project, clien
     enabled: !!user?.email,
   });
 
-  const existingFolders = [...new Set(allReviews.filter(r => r.folder && !r.is_folder_placeholder).map(r => r.folder))];
+  const existingFolders = [...new Set(allReviews.filter(r => r.folder).map(r => r.folder))];
 
   const { data: projects = [] } = useQuery({
     queryKey: ['projects', user?.email],
