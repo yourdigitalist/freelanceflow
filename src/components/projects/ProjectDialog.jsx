@@ -17,6 +17,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+import EmojiPicker from '../shared/EmojiPicker';
+
 const projectColors = [
   '#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'
 ];
@@ -34,6 +36,7 @@ export default function ProjectDialog({ open, onOpenChange, project, clients = [
     hourly_rate: '',
     billing_type: 'hourly',
     color: projectColors[0],
+    emoji: '📁',
   });
   const [saving, setSaving] = useState(false);
 
@@ -51,6 +54,7 @@ export default function ProjectDialog({ open, onOpenChange, project, clients = [
         hourly_rate: project.hourly_rate || '',
         billing_type: project.billing_type || 'hourly',
         color: project.color || projectColors[0],
+        emoji: project.emoji || '📁',
       });
     } else {
       setFormData({
@@ -65,6 +69,7 @@ export default function ProjectDialog({ open, onOpenChange, project, clients = [
         hourly_rate: '',
         billing_type: 'hourly',
         color: projectColors[Math.floor(Math.random() * projectColors.length)],
+        emoji: '📁',
       });
     }
   }, [project, open]);
@@ -235,17 +240,24 @@ export default function ProjectDialog({ open, onOpenChange, project, clients = [
           </div>
 
           <div>
-            <Label>Project Color</Label>
-            <div className="flex gap-2 mt-2">
-              {projectColors.map(color => (
-                <button
-                  key={color}
-                  type="button"
-                  className={`w-8 h-8 rounded-full transition-transform ${formData.color === color ? 'ring-2 ring-offset-2 ring-slate-400 scale-110' : ''}`}
-                  style={{ backgroundColor: color }}
-                  onClick={() => setFormData({ ...formData, color })}
-                />
-              ))}
+            <Label>Project Icon & Color</Label>
+            <div className="flex items-center gap-3 mt-2">
+              <EmojiPicker 
+                value={formData.emoji}
+                onChange={(emoji) => setFormData({ ...formData, emoji })}
+                color={formData.color}
+              />
+              <div className="flex flex-wrap gap-2">
+                {projectColors.map(color => (
+                  <button
+                    key={color}
+                    type="button"
+                    className={`w-8 h-8 rounded-full transition-transform ${formData.color === color ? 'ring-2 ring-offset-2 ring-slate-400 scale-110' : ''}`}
+                    style={{ backgroundColor: color }}
+                    onClick={() => setFormData({ ...formData, color })}
+                  />
+                ))}
+              </div>
             </div>
           </div>
 

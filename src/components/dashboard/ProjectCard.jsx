@@ -29,10 +29,10 @@ export default function ProjectCard({ project, client, totalHours = 0, taskCount
       <Link to={createPageUrl(`ProjectDetail?id=${project.id}`)} className="block">
         <div className="flex items-start justify-between mb-4">
           <div 
-            className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-semibold text-sm"
+            className="w-10 h-10 rounded-xl flex items-center justify-center text-2xl"
             style={{ backgroundColor: project.color || '#10b981' }}
           >
-            {project.name?.charAt(0)?.toUpperCase()}
+            {project.emoji || '📁'}
           </div>
           <Badge className={cn("font-medium", statusColors[project.status])}>
             {statusLabels[project.status]}
