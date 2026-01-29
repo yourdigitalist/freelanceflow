@@ -59,7 +59,7 @@ export default function InvoiceDialog({
   });
   const [saving, setSaving] = useState(false);
 
-  // Fetch invoice settings
+  // Fetch invoice settings and company profile for currency
   const { data: invoiceSettings } = useQuery({
     queryKey: ['invoiceSettings'],
     queryFn: async () => {
@@ -67,6 +67,31 @@ export default function InvoiceDialog({
       return list[0] || null;
     },
   });
+
+  const { data: user } = useQuery({
+    queryKey: ['currentUser'],
+    queryFn: () => base44.auth.me(),
+  });
+
+  const { data: companyProfile } = useQuery({
+    queryKey: ['companyProfile', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      const profiles = await base44.entities.CompanyProfile.filter({ user_id: user.id });
+      return profiles[0] || null;
+    },
+    enabled: !!user?.id,
+  });
+
+  const currency = companyProfile?.currency || 'USD';
+  const currencySymbols = {
+    USD: '$',
+    EUR: '€',
+    GBP: '£',
+    CAD: '$',
+    AUD: '$',
+  };
+  const currencySymbol = currencySymbols[currency] || '$';
 
   const { data: taxRates = [] } = useQuery({
     queryKey: ['taxRates'],
@@ -423,7 +448,7 @@ export default function InvoiceDialog({
                     />
                   </div>
                   <div className="w-24 flex items-center justify-end font-medium text-slate-700">
-                    ${item.amount.toFixed(2)}
+                    {currencySymbol}{item.amount.toFixed(2)}
                   </div>
                   <Button
                     type="button"
@@ -447,8 +472,12 @@ export default function InvoiceDialog({
           {/* Totals */}
           <div className="flex flex-col items-end gap-2 p-4 bg-slate-50 rounded-lg">
             <div className="flex justify-between w-full max-w-xs">
+              <span className="text-slate-600">Currency</span>
+              <span className="font-medium text-slate-900">{currency}</span>
+            </div>
+            <div className="flex justify-between w-full max-w-xs">
               <span className="text-slate-600">Subtotal</span>
-              <span className="font-medium">${subtotal.toFixed(2)}</span>
+              <span className="font-medium">{currencySymbol}{subtotal.toFixed(2)}</span>
             </div>
             <div className="flex justify-between w-full max-w-xs items-center gap-2">
               <span className="text-slate-600">Tax</span>
@@ -475,11 +504,11 @@ export default function InvoiceDialog({
                   ))}
                 </SelectContent>
               </Select>
-              <span className="font-medium w-24 text-right">${taxAmount.toFixed(2)}</span>
+              <span className="font-medium w-24 text-right">{currencySymbol}{taxAmount.toFixed(2)}</span>
             </div>
             <div className="flex justify-between w-full max-w-xs pt-2 border-t border-slate-200">
               <span className="font-semibold text-slate-900">Total</span>
-              <span className="font-bold text-lg text-[#9B63E9]">${total.toFixed(2)}</span>
+              <span className="font-bold text-lg text-[#9B63E9]">{currencySymbol}{total.toFixed(2)}</span>
             </div>
           </div>
 
