@@ -352,9 +352,6 @@ export default function ReviewRequestDetail() {
           initialIndex={selectedFileIndex}
           onClose={() => setViewerOpen(false)}
           comments={allFileComments}
-          onAddComment={() => {}}
-          onEditComment={() => {}}
-          onDeleteComment={() => {}}
           visitorName={user?.full_name}
           visitorEmail={user?.email}
         />

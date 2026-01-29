@@ -81,10 +81,10 @@ export default function SendForReviewDialog({ open, onOpenChange, project, clien
   const selectedClientObj = clients.find(c => c.id === selectedClient);
 
   useEffect(() => {
-    if (selectedClientObj && !recipients.includes(selectedClientObj.email)) {
+    if (selectedClientObj?.email && !recipients.includes(selectedClientObj.email)) {
       setRecipients([selectedClientObj.email]);
     }
-  }, [selectedClient]);
+  }, [selectedClient, selectedClientObj]);
 
   const generateShareToken = () => {
     return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
@@ -286,8 +286,10 @@ export default function SendForReviewDialog({ open, onOpenChange, project, clien
                     <button
                       type="button"
                       className="w-full text-left px-2 py-1.5 text-sm hover:bg-slate-100 rounded"
-                      onClick={() => {
-                        const newFolder = prompt('Enter folder name:');
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const newFolder = window.prompt('Enter folder name:');
                         if (newFolder?.trim()) {
                           setFolder(newFolder.trim());
                         }

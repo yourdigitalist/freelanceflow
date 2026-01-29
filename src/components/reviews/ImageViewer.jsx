@@ -30,6 +30,14 @@ export default function ImageViewer({
   // Get comments for current file
   const fileComments = comments.filter(c => c.file_index === currentIndex);
 
+  // Update pins when changing files or when comments change
+  React.useEffect(() => {
+    setPins([]);
+    setActivePin(null);
+    setCommentText('');
+    setEditingComment(null);
+  }, [currentIndex, comments]);
+
   const handleImageClick = (e) => {
     if (!isImage || activePin !== null) return;
 
@@ -182,31 +190,36 @@ export default function ImageViewer({
 
         {/* Image Display */}
         {isImage ? (
-          <div className="relative max-w-full max-h-full p-8">
+          <div className="relative max-w-full max-h-full p-8" style={{ pointerEvents: onAddComment ? 'auto' : 'none' }}>
             <img
               ref={imageRef}
               src={currentFile.url}
               alt={currentFile.filename}
-              onClick={handleImageClick}
-              style={{ transform: `scale(${zoom})`, cursor: activePin ? 'default' : 'crosshair' }}
+              onClick={onAddComment ? handleImageClick : undefined}
+              style={{ transform: `scale(${zoom})`, cursor: onAddComment ? (activePin ? 'default' : 'crosshair') : 'default' }}
               className="max-w-full max-h-[80vh] object-contain transition-transform"
             />
 
             {/* Existing Comment Pins */}
             {fileComments.map((comment) => (
-              <div
-                key={comment.id}
-                className="absolute w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-lg cursor-pointer hover:scale-110 transition-transform"
-                style={{
-                  left: `${comment.coordinates.percentX}%`,
-                  top: `${comment.coordinates.percentY}%`,
-                  transform: 'translate(-50%, -50%)',
-                }}
-                onClick={() => handleEditComment(comment)}
-                title={comment.text}
-              >
-                <MessageCircle className="w-4 h-4" />
-              </div>
+              comment.coordinates && (
+                <div
+                  key={comment.id}
+                  className="absolute w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-lg cursor-pointer hover:scale-110 transition-transform"
+                  style={{
+                    left: `${comment.coordinates.percentX}%`,
+                    top: `${comment.coordinates.percentY}%`,
+                    transform: 'translate(-50%, -50%)',
+                  }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleEditComment(comment);
+                  }}
+                  title={comment.text}
+                >
+                  <MessageCircle className="w-4 h-4" />
+                </div>
+              )
             ))}
 
             {/* New Pin Being Placed */}
@@ -240,7 +253,7 @@ export default function ImageViewer({
       </div>
 
       {/* Comment Input (shown when pin is active or editing) */}
-      {activePin && (
+      {activePin && onAddComment && (
         <div className="absolute bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-6 shadow-2xl">
           <div className="max-w-2xl mx-auto">
             <h4 className="font-medium text-slate-900 mb-3">
@@ -280,7 +293,7 @@ export default function ImageViewer({
       )}
 
       {/* Comments Sidebar */}
-      {fileComments.length > 0 && !activePin && (
+      {fileComments.length > 0 && !activePin && onAddComment && (
         <div className="absolute right-0 top-0 bottom-0 w-80 bg-white border-l border-slate-200 overflow-y-auto">
           <div className="p-4">
             <h4 className="font-semibold text-slate-900 mb-4">
@@ -298,7 +311,7 @@ export default function ImageViewer({
                       <p className="text-xs text-slate-500">
                         {format(new Date(comment.created_at), 'MMM d, h:mm a')}
                       </p>
-                      {visitorEmail === comment.author_email && (
+                      {visitorEmail === comment.author_email && onEditComment && onDeleteComment && (
                         <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                           <Button
                             variant="ghost"

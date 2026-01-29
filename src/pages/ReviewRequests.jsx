@@ -59,8 +59,7 @@ export default function ReviewRequests() {
       return;
     }
     setFolderDialogOpen(false);
-    setSelectedFolder(newFolderName.trim());
-    setDialogOpen(true);
+    toast.success(`Folder "${newFolderName.trim()}" created`);
     setNewFolderName('');
   };
 

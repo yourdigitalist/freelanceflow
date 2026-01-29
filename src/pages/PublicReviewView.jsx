@@ -231,7 +231,7 @@ export default function PublicReviewView() {
 
   const openViewer = (index) => {
     if (!visitorInfoSaved) {
-      toast.error('Please save your info before reviewing files');
+      toast.error('Please confirm your name and email first to start reviewing');
       return;
     }
     setSelectedFileIndex(index);
