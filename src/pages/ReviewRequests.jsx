@@ -23,7 +23,8 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import PageHeader from '../components/shared/PageHeader';
-import { Folder, FolderOpen, Plus, ChevronRight } from 'lucide-react';
+import { Folder, FolderOpen, Plus, ChevronRight, Settings } from 'lucide-react';
+import EmojiPicker from '../components/shared/EmojiPicker';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -34,9 +35,11 @@ export default function ReviewRequests() {
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [folderDialogOpen, setFolderDialogOpen] = useState(false);
+  const [editFolderDialogOpen, setEditFolderDialogOpen] = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
   const [newFolderEmoji, setNewFolderEmoji] = useState('📁');
   const [newFolderColor, setNewFolderColor] = useState('#3b82f6');
+  const [editingFolder, setEditingFolder] = useState(null);
   const [selectedFolder, setSelectedFolder] = useState(null);
   const [expandedFolders, setExpandedFolders] = useState({});
 
@@ -91,6 +94,42 @@ export default function ReviewRequests() {
       ...prev,
       [folder]: !prev[folder]
     }));
+  };
+
+  const handleEditFolder = (folderName, emoji, color) => {
+    setEditingFolder({ name: folderName, emoji, color });
+    setNewFolderName(folderName);
+    setNewFolderEmoji(emoji);
+    setNewFolderColor(color);
+    setEditFolderDialogOpen(true);
+  };
+
+  const handleUpdateFolder = async () => {
+    if (!newFolderName.trim() || !editingFolder) return;
+    
+    try {
+      // Update all reviews in this folder with new emoji/color/name
+      const folderReviews = reviews.filter(r => r.folder === editingFolder.name);
+      await Promise.all(
+        folderReviews.map(review =>
+          base44.entities.ReviewRequest.update(review.id, {
+            folder: newFolderName.trim(),
+            folder_emoji: newFolderEmoji,
+            folder_color: newFolderColor,
+          })
+        )
+      );
+      
+      queryClient.invalidateQueries({ queryKey: ['reviewRequests'] });
+      toast.success('Folder updated');
+      setEditFolderDialogOpen(false);
+      setEditingFolder(null);
+      setNewFolderName('');
+      setNewFolderEmoji('📁');
+      setNewFolderColor('#3b82f6');
+    } catch (error) {
+      toast.error('Failed to update folder');
+    }
   };
 
   const openReviewDetail = (reviewId) => {
@@ -163,6 +202,16 @@ export default function ReviewRequests() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleEditFolder(folder, emoji, color);
+                    }}
+                  >
+                    <Settings className="w-4 h-4" />
+                  </Button>
                   <Button
                     variant="ghost"
                     size="sm"
@@ -302,19 +351,13 @@ export default function ReviewRequests() {
             <div className="space-y-3">
               <label className="text-sm font-medium text-slate-700">Folder Icon</label>
               <div className="flex items-center gap-3">
-                <div 
-                  className="w-12 h-12 rounded-full flex items-center justify-center text-2xl"
-                  style={{ backgroundColor: newFolderColor }}
-                >
-                  {newFolderEmoji}
-                </div>
+                <EmojiPicker 
+                  value={newFolderEmoji}
+                  onChange={setNewFolderEmoji}
+                  color={newFolderColor}
+                />
                 <div className="flex-1 space-y-2">
-                  <Input
-                    placeholder="Emoji (e.g., 📁, 🎨, 💼)"
-                    value={newFolderEmoji}
-                    onChange={(e) => setNewFolderEmoji(e.target.value)}
-                    maxLength={2}
-                  />
+                  <label className="text-xs text-slate-500">Color</label>
                   <div className="flex gap-2">
                     {['#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#ef4444', '#06b6d4'].map(color => (
                       <button
@@ -337,6 +380,59 @@ export default function ReviewRequests() {
                 Cancel
               </Button>
               <Button onClick={handleCreateFolder}>Create Folder</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={editFolderDialogOpen} onOpenChange={setEditFolderDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Folder</DialogTitle>
+            <DialogDescription>
+              Update folder name, emoji, and color
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <Input
+              placeholder="Folder name"
+              value={newFolderName}
+              onChange={(e) => setNewFolderName(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && handleUpdateFolder()}
+            />
+            
+            <div className="space-y-3">
+              <label className="text-sm font-medium text-slate-700">Folder Icon</label>
+              <div className="flex items-center gap-3">
+                <EmojiPicker 
+                  value={newFolderEmoji}
+                  onChange={setNewFolderEmoji}
+                  color={newFolderColor}
+                />
+                <div className="flex-1 space-y-2">
+                  <label className="text-xs text-slate-500">Color</label>
+                  <div className="flex gap-2">
+                    {['#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#ef4444', '#06b6d4'].map(color => (
+                      <button
+                        key={color}
+                        onClick={() => setNewFolderColor(color)}
+                        className="w-8 h-8 rounded-full border-2 transition-all hover:scale-110"
+                        style={{ 
+                          backgroundColor: color,
+                          borderColor: newFolderColor === color ? '#1e293b' : 'transparent'
+                        }}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setEditFolderDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleUpdateFolder}>Save Changes</Button>
             </div>
           </div>
         </DialogContent>
