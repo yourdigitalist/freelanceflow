@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { ArrowLeft, Copy, ExternalLink, Loader2, Trash2, Send, Download, Eye, MessageCircle, Check, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
@@ -30,6 +31,8 @@ export default function ReviewRequestDetail() {
   const [copiedLink, setCopiedLink] = useState(false);
   const [viewerOpen, setViewerOpen] = useState(false);
   const [selectedFileIndex, setSelectedFileIndex] = useState(0);
+  const [editingFolder, setEditingFolder] = useState(false);
+  const [newFolder, setNewFolder] = useState('');
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
@@ -72,6 +75,15 @@ export default function ReviewRequestDetail() {
     },
     onError: () => {
       toast.error('Failed to delete review request');
+    },
+  });
+
+  const updateFolderMutation = useMutation({
+    mutationFn: (folder) => base44.entities.ReviewRequest.update(reviewId, { folder }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['reviewRequest', reviewId] });
+      setEditingFolder(false);
+      toast.success('Folder updated');
     },
   });
 
@@ -163,9 +175,42 @@ export default function ReviewRequestDetail() {
                   {review.status === 'rejected' && <X className="w-4 h-4" />}
                   {review.status.charAt(0).toUpperCase() + review.status.slice(1)}
                 </span>
-                {review.folder && (
-                  <span className="text-xs text-slate-600 bg-slate-100 px-2 py-1 rounded">
-                    📁 {review.folder}
+                {editingFolder ? (
+                  <div className="flex items-center gap-2">
+                    <Input
+                      value={newFolder}
+                      onChange={(e) => setNewFolder(e.target.value)}
+                      placeholder="Folder name"
+                      className="h-8 w-40"
+                      autoFocus
+                    />
+                    <Button
+                      size="sm"
+                      onClick={() => updateFolderMutation.mutate(newFolder)}
+                      disabled={updateFolderMutation.isPending}
+                    >
+                      Save
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => {
+                        setEditingFolder(false);
+                        setNewFolder('');
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                ) : (
+                  <span 
+                    className="text-xs text-slate-600 bg-slate-100 px-2 py-1 rounded cursor-pointer hover:bg-slate-200"
+                    onClick={() => {
+                      setNewFolder(review.folder || '');
+                      setEditingFolder(true);
+                    }}
+                  >
+                    📁 {review.folder || 'No folder'} ✏️
                   </span>
                 )}
                 <span className="text-xs text-slate-500">v{review.version || 1}</span>

@@ -73,6 +73,10 @@ export default function SendEmailDialog({
       const buttonColor = emailSettings?.button_color || '#9B63E9';
       const footerText = emailSettings?.footer_text || '';
       
+      // Get currency symbol
+      const currencySymbol = companyProfile?.currency === 'EUR' ? '€' : 
+                             companyProfile?.currency === 'GBP' ? '£' : '$';
+      
       // Format phone number
       const formattedPhone = companyProfile?.phone_country_code && companyProfile?.phone 
         ? `${companyProfile.phone_country_code} ${companyProfile.phone}` 
@@ -83,7 +87,7 @@ export default function SendEmailDialog({
         .replace(/\{\{client_first_name\}\}/g, client.first_name || '')
         .replace(/\{\{client_last_name\}\}/g, client.last_name || '')
         .replace(/\{\{invoice_number\}\}/g, invoice.invoice_number || '')
-        .replace(/\{\{invoice_total\}\}/g, `$${(invoice.total || 0).toFixed(2)}`)
+        .replace(/\{\{invoice_total\}\}/g, `${currencySymbol}${(invoice.total || 0).toFixed(2)}`)
         .replace(/\{\{due_date\}\}/g, invoice.due_date || '');
       
       const htmlBody = `
@@ -115,7 +119,7 @@ export default function SendEmailDialog({
                       
                       <div style="background-color: #f9fafb; border-radius: 8px; padding: 20px; margin-bottom: 30px;">
                         <p style="margin: 0 0 5px; color: #6b7280; font-size: 12px; text-transform: uppercase;">Total Amount</p>
-                        <p style="margin: 0; color: #111827; font-size: 36px; font-weight: bold;">$${invoice.total.toFixed(2)}</p>
+                        <p style="margin: 0; color: #111827; font-size: 36px; font-weight: bold;">${currencySymbol}${invoice.total.toFixed(2)}</p>
                       </div>
                       
                       <div style="margin: 0 0 30px; color: #374151; font-size: 16px; line-height: 1.6;">
