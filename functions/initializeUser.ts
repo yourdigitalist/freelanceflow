@@ -10,36 +10,44 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized or invalid user data' }, { status: 401 });
     }
 
-    // Check if user already has a subscription - use list() and filter in JS
+    console.log('Initializing user:', user.email);
+
+    // Check if user already has a subscription
     let existingSubscription = [];
     let globalStatuses = [];
     
     try {
+      console.log('Fetching subscriptions...');
       const allSubscriptions = await base44.asServiceRole.entities.Subscription.list();
+      console.log('Subscriptions result type:', typeof allSubscriptions);
       existingSubscription = Array.isArray(allSubscriptions) 
         ? allSubscriptions.filter(s => s.user_id === user.id)
         : [];
+      console.log('Found subscriptions:', existingSubscription.length);
     } catch (e) {
-      console.log('Error fetching subscriptions:', e.message);
+      console.error('Error fetching subscriptions:', e.message);
       existingSubscription = [];
     }
 
-    // Check if user already has DEFAULT statuses (no project_id)
+    // Check if user already has DEFAULT statuses
     try {
+      console.log('Fetching statuses...');
       const allStatuses = await base44.asServiceRole.entities.TaskStatus.list();
+      console.log('Statuses result type:', typeof allStatuses);
       const existingStatuses = Array.isArray(allStatuses)
         ? allStatuses.filter(s => s.created_by === user.email)
         : [];
       
-      // Filter to only global statuses (no project_id)
       globalStatuses = existingStatuses.filter(s => !s.project_id);
+      console.log('Found global statuses:', globalStatuses.length);
     } catch (e) {
-      console.log('Error fetching statuses:', e.message);
+      console.error('Error fetching statuses:', e.message);
       globalStatuses = [];
     }
 
-    // Early return ONLY if BOTH exist
+    // Early return if both exist
     if (existingSubscription.length > 0 && globalStatuses.length >= 4) {
+      console.log('User already initialized');
       return Response.json({
         success: true,
         message: 'User already initialized',
@@ -48,9 +56,10 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Create subscription if it doesn't exist
+    // Create subscription if needed
     let subscription = existingSubscription[0];
     if (!subscription) {
+      console.log('Creating subscription...');
       subscription = await base44.asServiceRole.entities.Subscription.create({
         user_id: user.id,
         plan: 'free',
@@ -61,10 +70,12 @@ Deno.serve(async (req) => {
           .toISOString()
           .split('T')[0],
       });
+      console.log('Subscription created');
     }
 
-    // Create default GLOBAL task statuses if they don't exist
+    // Create default statuses if needed
     if (globalStatuses.length === 0) {
+      console.log('Creating default statuses...');
       const defaultStatuses = [
         { name: 'To Do', key: 'todo', color: '#94a3b8', order: 0, is_done: false },
         { name: 'In Progress', key: 'in_progress', color: '#3b82f6', order: 1, is_done: false },
@@ -82,17 +93,19 @@ Deno.serve(async (req) => {
         )
       );
 
-      console.log('✅ Created default global statuses:', createdStatuses.length);
+      console.log('Created default statuses:', createdStatuses.length);
     }
 
-    // Update user with onboarding step if not completed
+    // Update onboarding if needed
     if (!user.onboarding_completed) {
+      console.log('Updating onboarding...');
       await base44.auth.updateMe({
         onboarding_step: 'company_info',
         onboarding_completed: false,
       });
     }
 
+    console.log('User initialized successfully');
     return Response.json({
       success: true,
       subscription,
@@ -102,6 +115,7 @@ Deno.serve(async (req) => {
     });
   } catch (error) {
     console.error('initializeUser error:', error);
-    return Response.json({ error: error.message }, { status: 500 });
+    console.error('Error stack:', error.stack);
+    return Response.json({ error: error.message, stack: error.stack }, { status: 500 });
   }
 });
