@@ -67,7 +67,8 @@ export default function Layout({ children, currentPageName }) {
 
   // Don't show layout for landing, onboarding, and public pages
   const isPublicPage = currentPageName === 'Landing' || currentPageName === 'OnboardingWizard' || 
-      currentPageName === 'PublicInvoice' || currentPageName === 'PublicReviewView';
+      currentPageName === 'PublicInvoice' || currentPageName === 'PublicReviewView' || 
+      currentPageName === 'PublicInvoiceSimple';
   
   if (isPublicPage) {
     return children;
