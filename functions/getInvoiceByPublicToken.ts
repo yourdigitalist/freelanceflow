@@ -12,7 +12,16 @@ Deno.serve(async (req) => {
     }
 
     // Use service role to fetch invoice by public token
-    const invoices = await base44.asServiceRole.entities.Invoice.filter({ public_token: token });
+    let invoices = await base44.asServiceRole.entities.Invoice.filter({ public_token: token });
+    
+    // Fallback: if token was truncated in DB (old format was uuid-timestamp, ~50 chars),
+    // try matching by prefix - find invoice where stored token is start of requested token
+    if ((!invoices || invoices.length === 0) && token.includes('-')) {
+      const allInvoices = await base44.asServiceRole.entities.Invoice.list();
+      invoices = allInvoices.filter(
+        (inv) => inv.public_token && token.startsWith(inv.public_token)
+      );
+    }
     
     if (!invoices || invoices.length === 0) {
       return Response.json({ error: 'Invoice not found' }, { status: 404 });
