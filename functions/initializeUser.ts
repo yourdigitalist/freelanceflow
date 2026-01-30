@@ -5,8 +5,9 @@ Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
 
-    if (!user) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!user || !user.id || !user.email) {
+      console.error('initializeUser error: User or user ID/email not found', user);
+      return Response.json({ error: 'Unauthorized or invalid user data' }, { status: 401 });
     }
 
     // Check if user already has a subscription
