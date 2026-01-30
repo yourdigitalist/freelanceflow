@@ -69,6 +69,7 @@ import ReviewRequestDetail from './pages/ReviewRequestDetail';
 import ReviewRequests from './pages/ReviewRequests';
 import TaskStatuses from './pages/TaskStatuses';
 import TimeTracking from './pages/TimeTracking';
+import PublicInvoiceSimple from './pages/PublicInvoiceSimple';
 import __Layout from './Layout.jsx';
 
 
@@ -95,6 +96,7 @@ export const PAGES = {
     "ReviewRequests": ReviewRequests,
     "TaskStatuses": TaskStatuses,
     "TimeTracking": TimeTracking,
+    "PublicInvoiceSimple": PublicInvoiceSimple,
 }
 
 export const pagesConfig = {

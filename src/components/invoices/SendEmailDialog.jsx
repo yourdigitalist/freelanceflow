@@ -60,8 +60,15 @@ export default function SendEmailDialog({
 
     setSending(true);
     try {
-      // Generate styled HTML email with invoice link
-      const invoiceViewUrl = invoice.public_url || `${window.location.origin}/PublicInvoice?token=${invoice.public_token}`;
+      // Generate PNG if not already generated
+      if (!invoice.public_image_url) {
+        toast.error('Invoice image is being generated. Please try again in a moment.');
+        setSending(false);
+        return;
+      }
+
+      // Use the new simplified public invoice URL
+      const invoiceViewUrl = `${window.location.origin}/PublicInvoiceSimple?token=${invoice.public_token}`;
       
       const settings = await base44.entities.InvoiceSettings.list().then(list => list[0]);
       const companyProfile = await base44.entities.CompanyProfile.list().then(list => list[0]);
