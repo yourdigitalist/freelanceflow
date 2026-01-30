@@ -11,17 +11,19 @@ Deno.serve(async (req) => {
     }
 
     // Check if user already has a subscription
-    const existingSubscription = await base44.asServiceRole.entities.Subscription.filter({
+    const existingSubscriptionResult = await base44.asServiceRole.entities.Subscription.filter({
       user_id: user.id,
     });
+    const existingSubscription = Array.isArray(existingSubscriptionResult) ? existingSubscriptionResult : [];
 
     // Check if user already has DEFAULT statuses (no project_id)
-    const existingStatuses = await base44.asServiceRole.entities.TaskStatus.filter({
+    const existingStatusesResult = await base44.asServiceRole.entities.TaskStatus.filter({
       created_by: user.email,
     });
+    const existingStatuses = Array.isArray(existingStatusesResult) ? existingStatusesResult : [];
     
     // Filter to only global statuses (no project_id)
-    const globalStatuses = existingStatuses.filter(s => !s.project_id);
+    const globalStatuses = existingStatuses.filter(s => s.project_id === null || s.project_id === undefined);
 
     // Early return ONLY if BOTH exist
     if (existingSubscription.length > 0 && globalStatuses.length >= 4) {
