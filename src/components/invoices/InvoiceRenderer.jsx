@@ -13,7 +13,7 @@ const statusColors = {
 
 export default function InvoiceRenderer({ invoice, client, project, businessInfo, invoiceSettings, currencySymbol }) {
   return (
-    <div className="p-8 bg-white" style={{ width: '794px', minHeight: '1123px' }}>
+    <div className="p-8 bg-white" style={{ width: '794px' }}>
       {/* Header */}
       <div className="flex justify-between items-start mb-8">
         <div>

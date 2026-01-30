@@ -169,7 +169,7 @@ export default function InvoicePreview({ open, onOpenChange, invoice, client, pr
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <div className="flex items-center justify-between">
             <DialogTitle>Invoice Preview</DialogTitle>
@@ -212,8 +212,8 @@ export default function InvoicePreview({ open, onOpenChange, invoice, client, pr
           </div>
         </DialogHeader>
 
-        <div className="mt-4 border border-slate-200 rounded-xl overflow-hidden">
-          <div ref={invoiceRendererRef}>
+        <div className="mt-4 bg-gradient-to-br from-slate-50 to-slate-100 p-6 rounded-xl">
+          <div ref={invoiceRendererRef} className="mx-auto shadow-lg rounded-lg overflow-hidden" style={{ maxWidth: '794px' }}>
             <InvoiceRenderer
               invoice={invoice}
               client={client}
