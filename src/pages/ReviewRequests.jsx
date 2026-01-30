@@ -143,7 +143,26 @@ export default function ReviewRequests() {
     rejected: 'bg-red-50 text-red-700 border-red-200',
   };
 
-  if (isLoading) return <div className="p-6 text-center">Loading reviews...</div>;
+  if (isLoading) {
+    return (
+      <div className="p-6 lg:p-8 max-w-6xl mx-auto">
+        <div className="animate-pulse space-y-4">
+          <div className="h-8 w-48 bg-slate-200 rounded mb-6" />
+          {[1, 2, 3].map(i => (
+            <div key={i} className="bg-white rounded-2xl border border-slate-200 p-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-slate-200" />
+                <div className="flex-1">
+                  <div className="h-5 w-32 bg-slate-200 rounded mb-2" />
+                  <div className="h-4 w-20 bg-slate-100 rounded" />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 lg:p-8 max-w-6xl mx-auto">
