@@ -64,12 +64,12 @@ import PersonalPreferences from './pages/PersonalPreferences';
 import ProjectDetail from './pages/ProjectDetail';
 import Projects from './pages/Projects';
 import PublicInvoice from './pages/PublicInvoice';
+import PublicInvoiceSimple from './pages/PublicInvoiceSimple';
 import PublicReviewView from './pages/PublicReviewView';
 import ReviewRequestDetail from './pages/ReviewRequestDetail';
 import ReviewRequests from './pages/ReviewRequests';
 import TaskStatuses from './pages/TaskStatuses';
 import TimeTracking from './pages/TimeTracking';
-import PublicInvoiceSimple from './pages/PublicInvoiceSimple';
 import __Layout from './Layout.jsx';
 
 
@@ -91,12 +91,12 @@ export const PAGES = {
     "ProjectDetail": ProjectDetail,
     "Projects": Projects,
     "PublicInvoice": PublicInvoice,
+    "PublicInvoiceSimple": PublicInvoiceSimple,
     "PublicReviewView": PublicReviewView,
     "ReviewRequestDetail": ReviewRequestDetail,
     "ReviewRequests": ReviewRequests,
     "TaskStatuses": TaskStatuses,
     "TimeTracking": TimeTracking,
-    "PublicInvoiceSimple": PublicInvoiceSimple,
 }
 
 export const pagesConfig = {

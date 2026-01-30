@@ -15,8 +15,8 @@ import { TIMEZONE_OPTIONS } from '../components/shared/timezones';
 import { toast } from 'sonner';
 
 const steps = [
-  { id: 1, title: 'Company Info', icon: Building2 },
-  { id: 2, title: 'Your Profile', icon: Bell },
+  { id: 1, title: 'Your Profile', icon: Bell },
+  { id: 2, title: 'Company Info', icon: Building2 },
   { id: 3, title: 'Ready!', icon: CheckCircle2 },
 ];
 
@@ -68,6 +68,11 @@ export default function OnboardingWizard() {
     timezone: 'UTC',
   });
 
+  const [personalData, setPersonalData] = useState({
+    first_name: '',
+    last_name: '',
+  });
+
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me(),
@@ -102,6 +107,22 @@ export default function OnboardingWizard() {
 
   const handleNext = async () => {
     if (currentStep === 1) {
+      // Validate name fields
+      if (!personalData.first_name || !personalData.last_name) {
+        toast.error('Please enter your first and last name');
+        return;
+      }
+      try {
+        // Update user's name
+        await base44.auth.updateMe({
+          full_name: `${personalData.first_name} ${personalData.last_name}`,
+        });
+        queryClient.invalidateQueries(['currentUser']);
+        setCurrentStep(2);
+      } catch (error) {
+        toast.error('Failed to save your name');
+      }
+    } else if (currentStep === 2) {
       // Validate mandatory fields
       if (!companyData.company_name || !companyData.street || !companyData.city || 
           !companyData.zip || !companyData.country || !companyData.phone || !companyData.email) {
@@ -110,12 +131,10 @@ export default function OnboardingWizard() {
       }
       try {
         await createProfileMutation.mutateAsync(companyData);
-        setCurrentStep(2);
+        setCurrentStep(3);
       } catch (error) {
         toast.error('Failed to save company info');
       }
-    } else if (currentStep === 2) {
-      setCurrentStep(3);
     } else if (currentStep === 3) {
       await completeOnboardingMutation.mutateAsync();
     }
@@ -173,6 +192,39 @@ export default function OnboardingWizard() {
         {/* Content Card */}
         <div className="bg-white rounded-2xl shadow-xl p-8">
           {currentStep === 1 && (
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-2xl font-bold text-slate-900 mb-2">What's your name?</h2>
+                <p className="text-slate-600">This will be used to greet you and identify you in the system</p>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="first_name">First Name *</Label>
+                  <Input
+                    id="first_name"
+                    value={personalData.first_name}
+                    onChange={(e) => setPersonalData({ ...personalData, first_name: e.target.value })}
+                    placeholder="John"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="last_name">Last Name *</Label>
+                  <Input
+                    id="last_name"
+                    value={personalData.last_name}
+                    onChange={(e) => setPersonalData({ ...personalData, last_name: e.target.value })}
+                    placeholder="Doe"
+                    required
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {currentStep === 2 && (
             <div className="space-y-6">
               <div>
                 <h2 className="text-2xl font-bold text-slate-900 mb-2">Tell us about your business</h2>
@@ -318,22 +370,7 @@ export default function OnboardingWizard() {
             </div>
           )}
 
-          {currentStep === 2 && (
-            <div className="space-y-6">
-              <div>
-                <h2 className="text-2xl font-bold text-slate-900 mb-2">Set up your profile</h2>
-                <p className="text-slate-600">Add a profile photo to personalize your account</p>
-              </div>
 
-              <div className="py-8 flex justify-center">
-                <AvatarUpload
-                  currentAvatarUrl={user?.avatar_url}
-                  userName={user?.full_name}
-                  onUploadSuccess={() => queryClient.invalidateQueries(['currentUser'])}
-                />
-              </div>
-            </div>
-          )}
 
           {currentStep === 3 && (
             <div className="text-center py-8">

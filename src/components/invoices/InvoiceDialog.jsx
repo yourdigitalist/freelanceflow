@@ -242,24 +242,30 @@ export default function InvoiceDialog({
     e.preventDefault();
     setSaving(true);
     
-    // Generate public token if creating new invoice
-    const dataToSave = {
-      ...formData,
-      subtotal,
-      tax_amount: taxAmount,
-      total,
-    };
+    try {
+      // Generate public token if creating new invoice
+      const dataToSave = {
+        ...formData,
+        subtotal,
+        tax_amount: taxAmount,
+        total,
+      };
 
-    if (!invoice) {
-      // Use UUID only (36 chars) to avoid truncation from field length limits
-      const publicToken = crypto.randomUUID();
-      const appUrl = window.location.origin;
-      dataToSave.public_token = publicToken;
-      dataToSave.public_url = `${appUrl}/PublicInvoiceSimple?token=${publicToken}`;
+      if (!invoice) {
+        // Use UUID only (36 chars) to avoid truncation from field length limits
+        const publicToken = crypto.randomUUID();
+        const appUrl = window.location.origin;
+        dataToSave.public_token = publicToken;
+        dataToSave.public_url = `${appUrl}/PublicInvoiceSimple?token=${publicToken}`;
+      }
+
+      await onSave(dataToSave);
+      onOpenChange(false);
+    } catch (error) {
+      console.error('Error saving invoice:', error);
+    } finally {
+      setSaving(false);
     }
-
-    await onSave(dataToSave);
-    setSaving(false);
   };
 
   const clientProjects = projects.filter(p => p.client_id === formData.client_id);
