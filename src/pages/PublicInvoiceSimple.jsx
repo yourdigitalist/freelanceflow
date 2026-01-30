@@ -29,10 +29,10 @@ export default function PublicInvoiceSimple() {
           setError(response.data?.error || 'Invoice not found');
         }
       } catch (err) {
-        // Debug: 404 body = our "Invoice not found" vs API route not found
         console.error('Invoice fetch error:', err.response?.status, err.response?.data, err);
         const msg = err.response?.data?.error || err.message || 'Failed to load invoice';
-        setError(msg);
+        const debug = err.response?.data?.debug;
+        setError(debug ? `${msg} (${JSON.stringify(debug)})` : msg);
       } finally {
         setLoading(false);
       }
