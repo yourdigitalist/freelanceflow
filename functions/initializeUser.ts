@@ -10,17 +10,17 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized or invalid user data' }, { status: 401 });
     }
 
-    // Check if user already has a subscription
-    const existingSubscriptionResult = await base44.asServiceRole.entities.Subscription.filter({
-      user_id: user.id,
-    });
-    const existingSubscription = Array.isArray(existingSubscriptionResult) ? existingSubscriptionResult : [];
+    // Check if user already has a subscription - use list() and filter in JS
+    const allSubscriptions = await base44.asServiceRole.entities.Subscription.list();
+    const existingSubscription = Array.isArray(allSubscriptions) 
+      ? allSubscriptions.filter(s => s.user_id === user.id)
+      : [];
 
     // Check if user already has DEFAULT statuses (no project_id)
-    const existingStatusesResult = await base44.asServiceRole.entities.TaskStatus.filter({
-      created_by: user.email,
-    });
-    const existingStatuses = Array.isArray(existingStatusesResult) ? existingStatusesResult : [];
+    const allStatuses = await base44.asServiceRole.entities.TaskStatus.list();
+    const existingStatuses = Array.isArray(allStatuses)
+      ? allStatuses.filter(s => s.created_by === user.email)
+      : [];
     
     // Filter to only global statuses (no project_id)
     const globalStatuses = existingStatuses.filter(s => s.project_id === null || s.project_id === undefined);
