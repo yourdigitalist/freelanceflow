@@ -13,7 +13,7 @@ const mainPageKey = mainPage ?? Object.keys(Pages)[0];
 const MainPage = mainPageKey ? Pages[mainPageKey] : <></>;
 
 // Pages that should be publicly accessible without authentication
-const PUBLIC_PAGES = ['Landing', 'PublicInvoice', 'PublicReviewView', 'OnboardingWizard'];
+const PUBLIC_PAGES = ['Landing', 'PublicInvoice', 'PublicInvoiceSimple', 'PublicReviewView', 'OnboardingWizard'];
 
 const LayoutWrapper = ({ children, currentPageName }) => Layout ?
   <Layout currentPageName={currentPageName}>{children}</Layout>
