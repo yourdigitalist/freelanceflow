@@ -18,8 +18,13 @@ export default function AuthGuard({ children }) {
           return;
         }
 
-        // Initialize user and ensure default statuses are created
-        await base44.functions.invoke('initializeUser');
+        // Try to initialize user
+        try {
+          await base44.functions.invoke('initializeUser');
+        } catch (initError) {
+          console.error('initializeUser error:', initError);
+          // Continue even if initialization fails
+        }
         
         // Check if onboarding is needed
         const user = await base44.auth.me();
@@ -43,7 +48,7 @@ export default function AuthGuard({ children }) {
   if (isAuthenticated === null) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-emerald-500 border-t-transparent"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-[#9B63E9] border-t-transparent"></div>
       </div>
     );
   }

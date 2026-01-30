@@ -15,26 +15,52 @@ import { createPageUrl } from '../utils';
 
 export default function Landing() {
   const navigate = useNavigate();
+  const [checking, setChecking] = React.useState(true);
 
   useEffect(() => {
     const checkAuth = async () => {
-      const isAuth = await base44.auth.isAuthenticated();
-      if (isAuth) {
-        const user = await base44.auth.me();
-        
-        // Check if user has completed onboarding by checking CompanyProfile
-        const profiles = await base44.entities.CompanyProfile.filter({ user_id: user.id });
-        const hasCompletedSetup = profiles.length > 0 && profiles[0].is_setup_complete;
-        
-        if (!hasCompletedSetup && !user.onboarding_completed) {
-          navigate(createPageUrl('OnboardingWizard'));
-        } else {
-          navigate(createPageUrl('Dashboard'));
+      try {
+        const isAuth = await base44.auth.isAuthenticated();
+        if (isAuth) {
+          const user = await base44.auth.me();
+          
+          // Try to fetch company profile with error handling
+          try {
+            const profiles = await base44.entities.CompanyProfile.filter({ user_id: user.id });
+            const hasCompletedSetup = profiles.length > 0 && profiles[0].is_setup_complete;
+            
+            if (!hasCompletedSetup && !user.onboarding_completed) {
+              navigate(createPageUrl('OnboardingWizard'));
+            } else {
+              navigate(createPageUrl('Dashboard'));
+            }
+          } catch (profileError) {
+            // If CompanyProfile query fails (RLS issue), check onboarding status
+            console.error('CompanyProfile fetch failed:', profileError);
+            if (!user.onboarding_completed) {
+              navigate(createPageUrl('OnboardingWizard'));
+            } else {
+              navigate(createPageUrl('Dashboard'));
+            }
+          }
         }
+      } catch (error) {
+        console.error('Auth check error:', error);
+      } finally {
+        setChecking(false);
       }
     };
     checkAuth();
   }, [navigate]);
+
+  // Show loading spinner while checking
+  if (checking) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-[#9B63E9] border-t-transparent"></div>
+      </div>
+    );
+  }
 
   const handleSignIn = () => {
     base44.auth.redirectToLogin(createPageUrl('Dashboard'));
