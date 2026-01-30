@@ -39,21 +39,27 @@ export default function Layout({ children, currentPageName }) {
   const [projectsExpanded, setProjectsExpanded] = useState(false);
   const navigate = useNavigate();
 
+  // Don't show layout for landing, onboarding, and public pages
+  const isPublicPage = currentPageName === 'Landing' || currentPageName === 'OnboardingWizard' || 
+      currentPageName === 'PublicInvoice' || currentPageName === 'PublicReviewView' || 
+      currentPageName === 'PublicInvoiceSimple';
+
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me(),
+    enabled: !isPublicPage,
   });
 
   const { data: projects = [] } = useQuery({
     queryKey: ['projects', user?.email],
     queryFn: () => base44.entities.Project.filter({ created_by: user.email }, '-updated_date', 5),
-    enabled: !!user?.email,
+    enabled: !isPublicPage && !!user?.email,
   });
 
   const { data: subscription } = useQuery({
     queryKey: ['subscription', user?.email],
     queryFn: () => base44.entities.Subscription.filter({ user_id: user?.email }),
-    enabled: !!user?.email,
+    enabled: !isPublicPage && !!user?.email,
     select: (data) => data?.[0],
   });
 
@@ -64,11 +70,6 @@ export default function Layout({ children, currentPageName }) {
     setSidebarCollapsed(newValue);
     localStorage.setItem('sidebarCollapsed', newValue.toString());
   };
-
-  // Don't show layout for landing, onboarding, and public pages
-  const isPublicPage = currentPageName === 'Landing' || currentPageName === 'OnboardingWizard' || 
-      currentPageName === 'PublicInvoice' || currentPageName === 'PublicReviewView' || 
-      currentPageName === 'PublicInvoiceSimple';
   
   if (isPublicPage) {
     return children;
