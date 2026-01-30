@@ -11,19 +11,32 @@ Deno.serve(async (req) => {
     }
 
     // Check if user already has a subscription - use list() and filter in JS
-    const allSubscriptions = await base44.asServiceRole.entities.Subscription.list();
-    const existingSubscription = Array.isArray(allSubscriptions) 
-      ? allSubscriptions.filter(s => s.user_id === user.id)
-      : [];
+    let existingSubscription = [];
+    let globalStatuses = [];
+    
+    try {
+      const allSubscriptions = await base44.asServiceRole.entities.Subscription.list();
+      existingSubscription = Array.isArray(allSubscriptions) 
+        ? allSubscriptions.filter(s => s.user_id === user.id)
+        : [];
+    } catch (e) {
+      console.log('Error fetching subscriptions:', e.message);
+      existingSubscription = [];
+    }
 
     // Check if user already has DEFAULT statuses (no project_id)
-    const allStatuses = await base44.asServiceRole.entities.TaskStatus.list();
-    const existingStatuses = Array.isArray(allStatuses)
-      ? allStatuses.filter(s => s.created_by === user.email)
-      : [];
-    
-    // Filter to only global statuses (no project_id)
-    const globalStatuses = existingStatuses.filter(s => s.project_id === null || s.project_id === undefined);
+    try {
+      const allStatuses = await base44.asServiceRole.entities.TaskStatus.list();
+      const existingStatuses = Array.isArray(allStatuses)
+        ? allStatuses.filter(s => s.created_by === user.email)
+        : [];
+      
+      // Filter to only global statuses (no project_id)
+      globalStatuses = existingStatuses.filter(s => !s.project_id);
+    } catch (e) {
+      console.log('Error fetching statuses:', e.message);
+      globalStatuses = [];
+    }
 
     // Early return ONLY if BOTH exist
     if (existingSubscription.length > 0 && globalStatuses.length >= 4) {
@@ -64,7 +77,7 @@ Deno.serve(async (req) => {
           base44.asServiceRole.entities.TaskStatus.create({
             ...status,
             created_by: user.email,
-            project_id: null, // ✅ EXPLICITLY SET TO NULL FOR GLOBAL STATUSES
+            project_id: null,
           })
         )
       );
@@ -83,7 +96,7 @@ Deno.serve(async (req) => {
     return Response.json({
       success: true,
       subscription,
-      statusesCreated: globalStatuses.length === 0, // Will be true if we just created them
+      statusesCreated: globalStatuses.length === 0,
       statusesCount: globalStatuses.length === 0 ? 4 : globalStatuses.length,
       message: 'User initialized successfully',
     });
