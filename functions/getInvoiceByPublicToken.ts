@@ -9,36 +9,53 @@ Deno.serve(async (req) => {
     const token = body?.token ?? body?.args?.token ?? body?.body?.token;
 
     if (!token || typeof token !== 'string') {
-      return Response.json({ error: 'Token is required' }, { status: 400 });
+      return Response.json({
+        error: 'Token is required',
+        debug: { bodyKeys: Object.keys(body || {}), rawBody: JSON.stringify(body).slice(0, 200) },
+      }, { status: 400 });
     }
-
-    // Exact match first
-    let invoices = await base44.asServiceRole.entities.Invoice.filter({ public_token: token });
 
     // Normalize - filter() might return array or { data/items }
     const toArray = (r) => Array.isArray(r) ? r : (r?.data ?? r?.items ?? r?.records ?? []);
 
-    // Fallbacks for truncated tokens (old format uuid-timestamp was ~50 chars, DB may limit to 40)
+    // Exact match first
+    let invoices = await base44.asServiceRole.entities.Invoice.filter({ public_token: token });
     let invoiceList = toArray(invoices);
+
+    // Fallbacks for truncated tokens (old format uuid-timestamp was ~50 chars, DB may limit to 40)
+    let listCount = 0;
+    let listError = null;
     if (invoiceList.length === 0 && token.includes('-')) {
       try {
         const listResult = await base44.asServiceRole.entities.Invoice.list();
         const allInvoices = toArray(listResult);
+        listCount = allInvoices.length;
         // Match: stored token is prefix of requested token, OR stored token matches UUID part
         const uuidPart = token.split('-').slice(0, 5).join('-'); // standard UUID format
         invoiceList = allInvoices.filter((inv) => {
           const st = String(inv?.public_token || '');
           return st && (token.startsWith(st) || st.startsWith(uuidPart) || st === uuidPart);
         });
-      } catch (_e) {
-        // list() may not exist or fail - keep invoiceList empty
+      } catch (e) {
+        listError = e?.message || String(e);
       }
     }
-    invoices = invoiceList;
 
-    if (!invoices || invoices.length === 0) {
-      return Response.json({ error: 'Invoice not found' }, { status: 404 });
+    if (!invoiceList || invoiceList.length === 0) {
+      // Debug info to diagnose why invoice isn't found
+      return Response.json({
+        error: 'Invoice not found',
+        debug: {
+          tokenReceived: token,
+          filterCount: toArray(invoices).length,
+          listCount,
+          listError,
+          bodyKeys: Object.keys(body || {}),
+        },
+      }, { status: 404 });
     }
+
+    invoices = invoiceList;
 
     const invoice = invoices[0];
 
