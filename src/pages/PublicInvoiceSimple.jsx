@@ -26,11 +26,13 @@ export default function PublicInvoiceSimple() {
           setInvoice(response.data.invoice);
           setBusinessInfo(response.data.businessInfo || null);
         } else {
-          setError('Invoice not found');
+          setError(response.data?.error || 'Invoice not found');
         }
       } catch (err) {
-        console.error('Error fetching invoice:', err);
-        setError('Failed to load invoice');
+        // Debug: 404 body = our "Invoice not found" vs API route not found
+        console.error('Invoice fetch error:', err.response?.status, err.response?.data, err);
+        const msg = err.response?.data?.error || err.message || 'Failed to load invoice';
+        setError(msg);
       } finally {
         setLoading(false);
       }
