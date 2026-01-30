@@ -2,27 +2,40 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 Deno.serve(async (req) => {
   try {
-    // Public endpoint - createClientFromRequest works for unauthenticated requests;
-    // service role is automatically available in Base44-hosted functions
     const base44 = createClientFromRequest(req);
-    const { token } = await req.json();
 
-    if (!token) {
+    // Parse request body - Base44 may wrap payload in different ways
+    const body = await req.json().catch(() => ({}));
+    const token = body?.token ?? body?.args?.token ?? body?.body?.token;
+
+    if (!token || typeof token !== 'string') {
       return Response.json({ error: 'Token is required' }, { status: 400 });
     }
 
-    // Use service role to fetch invoice by public token
+    // Exact match first
     let invoices = await base44.asServiceRole.entities.Invoice.filter({ public_token: token });
-    
-    // Fallback: if token was truncated in DB (old format was uuid-timestamp, ~50 chars),
-    // try matching by prefix - find invoice where stored token is start of requested token
-    if ((!invoices || invoices.length === 0) && token.includes('-')) {
-      const allInvoices = await base44.asServiceRole.entities.Invoice.list();
-      invoices = allInvoices.filter(
-        (inv) => inv.public_token && token.startsWith(inv.public_token)
-      );
+
+    // Normalize - filter() might return array or { data/items }
+    const toArray = (r) => Array.isArray(r) ? r : (r?.data ?? r?.items ?? r?.records ?? []);
+
+    // Fallbacks for truncated tokens (old format uuid-timestamp was ~50 chars, DB may limit to 40)
+    let invoiceList = toArray(invoices);
+    if (invoiceList.length === 0 && token.includes('-')) {
+      try {
+        const listResult = await base44.asServiceRole.entities.Invoice.list();
+        const allInvoices = toArray(listResult);
+        // Match: stored token is prefix of requested token, OR stored token matches UUID part
+        const uuidPart = token.split('-').slice(0, 5).join('-'); // standard UUID format
+        invoiceList = allInvoices.filter((inv) => {
+          const st = String(inv?.public_token || '');
+          return st && (token.startsWith(st) || st.startsWith(uuidPart) || st === uuidPart);
+        });
+      } catch (_e) {
+        // list() may not exist or fail - keep invoiceList empty
+      }
     }
-    
+    invoices = invoiceList;
+
     if (!invoices || invoices.length === 0) {
       return Response.json({ error: 'Invoice not found' }, { status: 404 });
     }
@@ -35,11 +48,13 @@ Deno.serve(async (req) => {
     }
 
     // Fetch company profile and invoice settings for business info
-    const [companyProfiles, invoiceSettingsList] = await Promise.all([
+    const [companyProfilesRaw, invoiceSettingsRaw] = await Promise.all([
       base44.asServiceRole.entities.CompanyProfile.filter({ created_by: invoice.created_by }),
       base44.asServiceRole.entities.InvoiceSettings.filter({ created_by: invoice.created_by }),
     ]);
 
+    const companyProfiles = toArray(companyProfilesRaw);
+    const invoiceSettingsList = toArray(invoiceSettingsRaw);
     const companyProfile = companyProfiles[0] || null;
     const invoiceSettings = invoiceSettingsList[0] || null;
 
