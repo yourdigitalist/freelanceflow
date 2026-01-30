@@ -54,6 +54,8 @@ export default function OnboardingWizard() {
     initAndCheck();
   }, [navigate]);
   const [companyData, setCompanyData] = useState({
+    first_name: '',
+    last_name: '',
     company_name: '',
     street: '',
     street2: '',
@@ -66,11 +68,6 @@ export default function OnboardingWizard() {
     email: '',
     currency: 'USD',
     timezone: 'UTC',
-  });
-
-  const [personalData, setPersonalData] = useState({
-    first_name: '',
-    last_name: '',
   });
 
   const { data: user } = useQuery({
@@ -108,14 +105,14 @@ export default function OnboardingWizard() {
   const handleNext = async () => {
     if (currentStep === 1) {
       // Validate name fields
-      if (!personalData.first_name || !personalData.last_name) {
+      if (!companyData.first_name || !companyData.last_name) {
         toast.error('Please enter your first and last name');
         return;
       }
       try {
         // Update user's name
         await base44.auth.updateMe({
-          full_name: `${personalData.first_name} ${personalData.last_name}`,
+          full_name: `${companyData.first_name} ${companyData.last_name}`,
         });
         queryClient.invalidateQueries(['currentUser']);
         setCurrentStep(2);
@@ -203,8 +200,8 @@ export default function OnboardingWizard() {
                   <Label htmlFor="first_name">First Name *</Label>
                   <Input
                     id="first_name"
-                    value={personalData.first_name}
-                    onChange={(e) => setPersonalData({ ...personalData, first_name: e.target.value })}
+                    value={companyData.first_name}
+                    onChange={(e) => setCompanyData({ ...companyData, first_name: e.target.value })}
                     placeholder="John"
                     required
                   />
@@ -214,8 +211,8 @@ export default function OnboardingWizard() {
                   <Label htmlFor="last_name">Last Name *</Label>
                   <Input
                     id="last_name"
-                    value={personalData.last_name}
-                    onChange={(e) => setPersonalData({ ...personalData, last_name: e.target.value })}
+                    value={companyData.last_name}
+                    onChange={(e) => setCompanyData({ ...companyData, last_name: e.target.value })}
                     placeholder="Doe"
                     required
                   />

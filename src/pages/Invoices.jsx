@@ -36,6 +36,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { toast } from 'sonner';
 
 const statusColors = {
   draft: "bg-slate-100 text-slate-700",
@@ -70,7 +71,7 @@ export default function Invoices() {
 
   const { data: invoices = [], isLoading } = useQuery({
     queryKey: ['invoices', user?.email],
-    queryFn: () => base44.entities.Invoice.filter({ created_by: user.email }, '-created_date'),
+    queryFn: () => base44.entities.Invoice.list('-created_date'),
     enabled: !!user?.email,
   });
 
@@ -97,6 +98,11 @@ export default function Invoices() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['invoices'] });
       setDialogOpen(false);
+      toast.success('Invoice created successfully!');
+    },
+    onError: (error) => {
+      console.error('Error creating invoice:', error);
+      toast.error(`Failed to create invoice: ${error.message || 'Unknown error'}`);
     },
   });
 
@@ -106,6 +112,11 @@ export default function Invoices() {
       queryClient.invalidateQueries({ queryKey: ['invoices'] });
       setDialogOpen(false);
       setEditingInvoice(null);
+      toast.success('Invoice updated successfully!');
+    },
+    onError: (error) => {
+      console.error('Error updating invoice:', error);
+      toast.error(`Failed to update invoice: ${error.message || 'Unknown error'}`);
     },
   });
 
