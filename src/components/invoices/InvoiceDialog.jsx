@@ -251,10 +251,11 @@ export default function InvoiceDialog({
     };
 
     if (!invoice) {
-      const publicToken = crypto.randomUUID() + '-' + Date.now();
+      // Use UUID only (36 chars) to avoid truncation from field length limits
+      const publicToken = crypto.randomUUID();
       const appUrl = window.location.origin;
       dataToSave.public_token = publicToken;
-      dataToSave.public_url = `${appUrl}/PublicInvoice?token=${publicToken}`;
+      dataToSave.public_url = `${appUrl}/PublicInvoiceSimple?token=${publicToken}`;
     }
 
     await onSave(dataToSave);
