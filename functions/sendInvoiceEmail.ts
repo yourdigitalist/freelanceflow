@@ -76,7 +76,7 @@ Deno.serve(async (req) => {
                       ${body.split('\n').map(line => `<p style="margin: 0 0 10px;">${line}</p>`).join('')}
                     </div>
                     
-                    <a href="${pdfUrl}" style="display: inline-block; background: ${buttonColor}; color: #ffffff; text-decoration: none; padding: 16px 32px; border-radius: 8px; font-weight: 600; font-size: 16px; box-shadow: 0 2px 4px rgba(155, 99, 233, 0.3); margin-bottom: 20px;">
+                    <a href="${pdfUrl}" target="_blank" rel="noopener noreferrer" style="display: inline-block; background: ${buttonColor}; color: #ffffff; text-decoration: none; padding: 16px 32px; border-radius: 8px; font-weight: 600; font-size: 16px; box-shadow: 0 2px 4px rgba(155, 99, 233, 0.3); margin-bottom: 20px;">
                       Download Invoice PDF
                     </a>
                   </td>
