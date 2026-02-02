@@ -41,10 +41,16 @@ Deno.serve(async (req) => {
       project = projects[0] || null;
     }
 
+    // Fetch user details first to get email for InvoiceSettings
+    const users = await base44.asServiceRole.entities.User.filter({ id: invoice.user_id });
+    const invoiceUser = users[0] || null;
+
     // Fetch company profile and invoice settings for business info
-    // Use created_by from invoice to find the creator's profile
-    const companyProfiles = await base44.asServiceRole.entities.CompanyProfile.filter({ created_by: invoice.created_by });
-    const invoiceSettings = await base44.asServiceRole.entities.InvoiceSettings.filter({ created_by: invoice.created_by });
+    // CompanyProfile uses user_id, InvoiceSettings uses created_by (email)
+    const companyProfiles = await base44.asServiceRole.entities.CompanyProfile.filter({ user_id: invoice.user_id });
+    const invoiceSettings = invoiceUser 
+      ? await base44.asServiceRole.entities.InvoiceSettings.filter({ created_by: invoiceUser.email })
+      : [];
     
     const companyProfile = companyProfiles[0] || null;
     const invoiceSetting = invoiceSettings[0] || null;
