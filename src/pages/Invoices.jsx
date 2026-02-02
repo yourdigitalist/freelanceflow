@@ -71,7 +71,7 @@ export default function Invoices() {
 
   const { data: invoices = [], isLoading } = useQuery({
     queryKey: ['invoices', user?.email],
-    queryFn: () => base44.entities.Invoice.list('-created_date'),
+    queryFn: () => base44.entities.Invoice.filter({ created_by: user.email }, '-created_date'),
     enabled: !!user?.email,
   });
 
@@ -94,7 +94,17 @@ export default function Invoices() {
   });
 
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.Invoice.create(data),
+    mutationFn: (data) => {
+      // Generate token at save time
+      const publicToken = crypto.randomUUID();
+      const appUrl = window.location.origin;
+      const invoiceData = {
+        ...data,
+        public_token: publicToken,
+        public_url: `${appUrl}/PublicInvoiceSimple?token=${publicToken}`
+      };
+      return base44.entities.Invoice.create(invoiceData);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['invoices'] });
       setDialogOpen(false);
@@ -125,6 +135,11 @@ export default function Invoices() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['invoices'] });
       setDeleteInvoice(null);
+      toast.success('Invoice deleted successfully!');
+    },
+    onError: (error) => {
+      console.error('Error deleting invoice:', error);
+      toast.error(`Failed to delete invoice: ${error.message || 'Unknown error'}`);
     },
   });
 
@@ -248,17 +263,17 @@ export default function Invoices() {
         </div>
         <div className="bg-white rounded-xl p-4 border border-slate-200/60">
           <div className="flex items-center gap-2 text-sm text-slate-500 mb-1">
-            <Clock className="w-4 h-4" />
+            <DollarSign className="w-4 h-4" />
             Pending
           </div>
-          <p className="text-2xl font-bold text-amber-600">${totalPending.toLocaleString()}</p>
+          <p className="text-2xl font-bold text-blue-600">${totalPending.toFixed(2)}</p>
         </div>
         <div className="bg-white rounded-xl p-4 border border-slate-200/60">
           <div className="flex items-center gap-2 text-sm text-slate-500 mb-1">
             <CheckCircle className="w-4 h-4" />
-            Collected
+            Paid
           </div>
-          <p className="text-2xl font-bold text-[#9B63E9]">${totalPaid.toLocaleString()}</p>
+          <p className="text-2xl font-bold text-emerald-600">${totalPaid.toFixed(2)}</p>
         </div>
         <div className="bg-white rounded-xl p-4 border border-slate-200/60">
           <div className="flex items-center gap-2 text-sm text-slate-500 mb-1">
@@ -323,20 +338,27 @@ export default function Invoices() {
         </Button>
       </div>
 
-      {/* Invoices Table */}
+      {/* Table or Empty State */}
       {isLoading ? (
-        <div className="bg-white rounded-2xl border border-slate-200/60 overflow-hidden">
-          <div className="animate-pulse divide-y divide-slate-100">
-            {[1, 2, 3, 4, 5, 6].map(i => (
-              <div key={i} className="p-4 flex items-center gap-4">
-                <div className="h-5 w-24 bg-slate-200 rounded" />
-                <div className="h-4 w-32 bg-slate-100 rounded" />
-                <div className="h-4 w-20 bg-slate-100 rounded" />
-                <div className="ml-auto h-6 w-20 bg-slate-200 rounded" />
-                <div className="h-6 w-16 bg-slate-100 rounded-full" />
-              </div>
+        <div className="bg-white rounded-2xl border border-slate-200/60 p-8">
+          <div className="animate-pulse space-y-4">
+            {[1, 2, 3].map(i => (
+              <div key={i} className="h-16 bg-slate-100 rounded" />
             ))}
           </div>
+        </div>
+      ) : filteredInvoices.length === 0 && invoices.length === 0 ? (
+        <div className="bg-white rounded-2xl border border-slate-200/60 p-8">
+          <EmptyState
+            icon={FileText}
+            title="No invoices yet"
+            description="Create your first invoice to start billing clients"
+            actionLabel="Create Invoice"
+            onAction={() => {
+              setEditingInvoice(null);
+              setDialogOpen(true);
+            }}
+          />
         </div>
       ) : filteredInvoices.length > 0 ? (
         <div className="bg-white rounded-2xl border border-slate-200/60 overflow-hidden">
@@ -360,24 +382,22 @@ export default function Invoices() {
                   <TableRow key={invoice.id} className="hover:bg-slate-50">
                     <TableCell className="font-medium">{invoice.invoice_number}</TableCell>
                     <TableCell>{getClientName(invoice.client_id)}</TableCell>
-                    <TableCell>{getProjectName(invoice.project_id) || '—'}</TableCell>
-                    <TableCell>
+                    <TableCell className="text-slate-600">{getProjectName(invoice.project_id) || '—'}</TableCell>
+                    <TableCell className="text-slate-600">
                       {invoice.issue_date ? format(parseISO(invoice.issue_date), 'MMM d, yyyy') : '—'}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="text-slate-600">
                       {invoice.due_date ? format(parseISO(invoice.due_date), 'MMM d, yyyy') : '—'}
                     </TableCell>
-                    <TableCell className="text-right font-semibold">
-                      ${invoice.total?.toLocaleString() || 0}
-                    </TableCell>
+                    <TableCell className="text-right font-semibold">${invoice.total?.toFixed(2) || '0.00'}</TableCell>
                     <TableCell>
                       <Badge className={cn("flex items-center gap-1 w-fit", statusColors[invoice.status])}>
                         <StatusIcon className="w-3 h-3" />
-                        {invoice.status?.charAt(0).toUpperCase() + invoice.status?.slice(1)}
+                        {invoice.status}
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <div className="flex gap-1">
+                      <div className="flex items-center gap-2">
                         <Button
                           variant="ghost"
                           size="icon"
@@ -411,56 +431,45 @@ export default function Invoices() {
           </Table>
         </div>
       ) : (
-        <EmptyState
-          icon={FileText}
-          title="No invoices yet"
-          description="Create your first invoice to start billing clients."
-          actionLabel="New Invoice"
-          onAction={() => {
-            setEditingInvoice(null);
-            setDialogOpen(true);
-          }}
-        />
+        <div className="bg-white rounded-2xl border border-slate-200/60 p-8 text-center">
+          <p className="text-slate-500">No invoices match your filters</p>
+        </div>
       )}
 
-      {/* Invoice Dialog */}
+      {/* Dialogs */}
       <InvoiceDialog
         open={dialogOpen}
-        onOpenChange={(open) => {
-          setDialogOpen(open);
-          if (!open) setEditingInvoice(null);
-        }}
+        onOpenChange={setDialogOpen}
         invoice={editingInvoice}
         clients={clients}
         projects={projects}
         unbilledTime={unbilledTime}
-        initialData={null}
         onSave={handleSave}
       />
 
-      {/* Invoice Preview */}
-      <InvoicePreview
-        open={!!previewInvoice}
-        onOpenChange={() => setPreviewInvoice(null)}
-        invoice={previewInvoice}
-        client={clients.find(c => c.id === previewInvoice?.client_id)}
-        project={projects.find(p => p.id === previewInvoice?.project_id)}
-      />
+      {previewInvoice && (
+        <InvoicePreview
+          open={!!previewInvoice}
+          onOpenChange={(open) => !open && setPreviewInvoice(null)}
+          invoice={previewInvoice}
+          client={clients.find(c => c.id === previewInvoice.client_id)}
+          project={projects.find(p => p.id === previewInvoice.project_id)}
+        />
+      )}
 
-      {/* Delete Confirmation */}
-      <AlertDialog open={!!deleteInvoice} onOpenChange={() => setDeleteInvoice(null)}>
+      <AlertDialog open={!!deleteInvoice} onOpenChange={(open) => !open && setDeleteInvoice(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete invoice?</AlertDialogTitle>
+            <AlertDialogTitle>Delete Invoice</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete invoice {deleteInvoice?.invoice_number}. This action cannot be undone.
+              Are you sure you want to delete invoice {deleteInvoice?.invoice_number}? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
+              onClick={() => deleteInvoice && deleteMutation.mutate(deleteInvoice.id)}
               className="bg-red-600 hover:bg-red-700"
-              onClick={() => deleteMutation.mutate(deleteInvoice.id)}
             >
               Delete
             </AlertDialogAction>
