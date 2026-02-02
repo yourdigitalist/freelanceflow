@@ -42,6 +42,7 @@ Deno.serve(async (req) => {
     }
 
     // Fetch company profile and invoice settings for business info
+    // Use created_by from invoice to find the creator's profile
     const companyProfiles = await base44.asServiceRole.entities.CompanyProfile.filter({ created_by: invoice.created_by });
     const invoiceSettings = await base44.asServiceRole.entities.InvoiceSettings.filter({ created_by: invoice.created_by });
     
