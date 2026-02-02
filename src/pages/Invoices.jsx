@@ -95,15 +95,14 @@ export default function Invoices() {
 
   const createMutation = useMutation({
     mutationFn: (data) => {
-      // Generate token at save time
       const publicToken = crypto.randomUUID();
       const appUrl = window.location.origin;
-      const invoiceData = {
+      return base44.entities.Invoice.create({
         ...data,
+        user_id: user.id,
         public_token: publicToken,
         public_url: `${appUrl}/PublicInvoiceSimple?token=${publicToken}`
-      };
-      return base44.entities.Invoice.create(invoiceData);
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['invoices'] });
