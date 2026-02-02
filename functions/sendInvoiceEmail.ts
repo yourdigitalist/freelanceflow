@@ -40,7 +40,7 @@ Deno.serve(async (req) => {
       return_url: true
     });
 
-    // Build HTML email
+    // Build HTML email with download button
     const htmlBody = `
       <!DOCTYPE html>
       <html>
@@ -75,7 +75,9 @@ Deno.serve(async (req) => {
                       ${body.split('\n').map(line => `<p style="margin: 0 0 10px;">${line}</p>`).join('')}
                     </div>
                     
-                    <p style="margin: 0 0 20px; color: #6b7280; font-size: 14px;">Please find your invoice attached as a PDF.</p>
+                    <a href="${pdfUrl}" style="display: inline-block; background: ${buttonColor}; color: #ffffff; text-decoration: none; padding: 16px 32px; border-radius: 8px; font-weight: 600; font-size: 16px; box-shadow: 0 2px 4px rgba(155, 99, 233, 0.3); margin-bottom: 20px;">
+                      Download Invoice PDF
+                    </a>
                   </td>
                 </tr>
                 
@@ -96,13 +98,12 @@ Deno.serve(async (req) => {
       </html>
     `;
 
-    // Send to primary recipient with PDF attachment
+    // Send to primary recipient with PDF download link
     await base44.integrations.Core.SendEmail({
       from_name: businessName,
       to: client_email,
       subject: subject,
-      body: htmlBody,
-      attachments: [pdfUrl]
+      body: htmlBody
     });
 
     // Send to CC recipients
@@ -111,8 +112,7 @@ Deno.serve(async (req) => {
         from_name: businessName,
         to: ccEmail,
         subject: subject,
-        body: htmlBody,
-        attachments: [pdfUrl]
+        body: htmlBody
       });
     }
 
