@@ -10,7 +10,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { invoice_id } = await req.json();
+    const { invoice_id, return_url = false } = await req.json();
 
     // Fetch invoice data
     const invoice = await base44.entities.Invoice.get(invoice_id);
@@ -187,6 +187,17 @@ Deno.serve(async (req) => {
 
     const pdfBytes = doc.output('arraybuffer');
 
+    // If return_url is true, save to storage and return URL
+    if (return_url) {
+      const pdfBlob = new Blob([pdfBytes], { type: 'application/pdf' });
+      const pdfFile = new File([pdfBlob], `invoice-${invoice.invoice_number}.pdf`, { type: 'application/pdf' });
+      
+      const { file_url } = await base44.integrations.Core.UploadFile({ file: pdfFile });
+      
+      return Response.json({ file_url });
+    }
+
+    // Otherwise return PDF as download
     return new Response(pdfBytes, {
       status: 200,
       headers: {
