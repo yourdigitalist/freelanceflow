@@ -30,6 +30,9 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'This invoice is no longer available' }, { status: 403 });
     }
 
+    // Get user_id with fallback to created_by_id for old invoices
+    const userId = invoice.user_id || invoice.created_by_id;
+
     // Fetch client data
     const clients = await base44.asServiceRole.entities.Client.filter({ id: invoice.client_id });
     const client = clients[0] || null;
@@ -42,12 +45,12 @@ Deno.serve(async (req) => {
     }
 
     // Fetch user details first to get email for InvoiceSettings
-    const users = await base44.asServiceRole.entities.User.filter({ id: invoice.user_id });
+    const users = await base44.asServiceRole.entities.User.filter({ id: userId });
     const invoiceUser = users[0] || null;
 
     // Fetch company profile and invoice settings for business info
     // CompanyProfile uses user_id, InvoiceSettings uses created_by (email)
-    const companyProfiles = await base44.asServiceRole.entities.CompanyProfile.filter({ user_id: invoice.user_id });
+    const companyProfiles = await base44.asServiceRole.entities.CompanyProfile.filter({ user_id: userId });
     const invoiceSettings = invoiceUser 
       ? await base44.asServiceRole.entities.InvoiceSettings.filter({ created_by: invoiceUser.email })
       : [];
