@@ -16,9 +16,17 @@ Deno.serve(async (req) => {
     const invoice = await base44.entities.Invoice.get(invoice_id);
     const client = await base44.entities.Client.get(invoice.client_id);
     
-    // Fetch company profile for business info
+    // Fetch company profile and settings for business info
     const companyProfiles = await base44.asServiceRole.entities.CompanyProfile.filter({ user_id: user.id });
     const company = companyProfiles[0] || {};
+    
+    const settings = await base44.asServiceRole.entities.InvoiceSettings.list().then(list => list[0]);
+    
+    // Get currency symbol
+    const currencySymbol = company.currency === 'EUR' ? '€' : 
+                           company.currency === 'GBP' ? '£' : 
+                           company.currency === 'CAD' ? 'CA$' : 
+                           company.currency === 'AUD' ? 'A$' : '$';
 
     // Create PDF
     const doc = new jsPDF();
@@ -108,14 +116,34 @@ Deno.serve(async (req) => {
       yPos += 5;
     }
 
-    // Line items table
+    // Line items table with column visibility
     yPos = Math.max(yPos, 120);
     doc.setFontSize(10);
     doc.setFont(undefined, 'bold');
-    doc.text('Description', 20, yPos);
-    doc.text('Qty', 120, yPos);
-    doc.text('Rate', 145, yPos);
-    doc.text('Amount', 175, yPos, { align: 'right' });
+    
+    // Determine column positions based on visibility
+    let colPositions = { desc: 20 };
+    let currentX = 20;
+    
+    if (invoice.show_item_column !== false) {
+      doc.text('Description', colPositions.desc, yPos);
+      currentX = 100;
+    }
+    
+    if (invoice.show_quantity_column !== false) {
+      colPositions.qty = currentX;
+      doc.text('Qty', colPositions.qty, yPos);
+      currentX += 25;
+    }
+    
+    if (invoice.show_rate_column !== false) {
+      colPositions.rate = currentX;
+      doc.text('Rate', colPositions.rate, yPos);
+      currentX += 30;
+    }
+    
+    colPositions.amount = 175;
+    doc.text('Amount', colPositions.amount, yPos, { align: 'right' });
     
     yPos += 7;
     doc.setFont(undefined, 'normal');
@@ -125,11 +153,21 @@ Deno.serve(async (req) => {
         doc.addPage();
         yPos = 20;
       }
-      const desc = item.description.length > 45 ? item.description.substring(0, 42) + '...' : item.description;
-      doc.text(desc, 20, yPos);
-      doc.text(String(item.quantity), 120, yPos);
-      doc.text(`$${item.rate.toFixed(2)}`, 145, yPos);
-      doc.text(`$${item.amount.toFixed(2)}`, 175, yPos, { align: 'right' });
+      
+      if (invoice.show_item_column !== false) {
+        const desc = item.description.length > 45 ? item.description.substring(0, 42) + '...' : item.description;
+        doc.text(desc, colPositions.desc, yPos);
+      }
+      
+      if (invoice.show_quantity_column !== false && colPositions.qty) {
+        doc.text(String(item.quantity), colPositions.qty, yPos);
+      }
+      
+      if (invoice.show_rate_column !== false && colPositions.rate) {
+        doc.text(`${currencySymbol}${item.rate.toFixed(2)}`, colPositions.rate, yPos);
+      }
+      
+      doc.text(`${currencySymbol}${item.amount.toFixed(2)}`, colPositions.amount, yPos, { align: 'right' });
       yPos += 7;
     });
 
@@ -137,17 +175,20 @@ Deno.serve(async (req) => {
     yPos += 5;
     doc.setFont(undefined, 'normal');
     doc.text('Subtotal:', 145, yPos);
-    doc.text(`$${invoice.subtotal.toFixed(2)}`, 175, yPos, { align: 'right' });
+    doc.text(`${currencySymbol}${invoice.subtotal.toFixed(2)}`, 175, yPos, { align: 'right' });
     
-    yPos += 7;
-    doc.text(`Tax (${invoice.tax_rate}%):`, 145, yPos);
-    doc.text(`$${invoice.tax_amount.toFixed(2)}`, 175, yPos, { align: 'right' });
+    if (invoice.tax_rate > 0) {
+      yPos += 7;
+      const taxLabel = invoice.tax_name ? `${invoice.tax_name} (${invoice.tax_rate}%):` : `Tax (${invoice.tax_rate}%):`;
+      doc.text(taxLabel, 145, yPos);
+      doc.text(`${currencySymbol}${invoice.tax_amount.toFixed(2)}`, 175, yPos, { align: 'right' });
+    }
     
     yPos += 7;
     doc.setFont(undefined, 'bold');
     doc.setFontSize(12);
     doc.text('Total:', 145, yPos);
-    doc.text(`$${invoice.total.toFixed(2)}`, 175, yPos, { align: 'right' });
+    doc.text(`${currencySymbol}${invoice.total.toFixed(2)}`, 175, yPos, { align: 'right' });
 
     // Notes & Payment Terms
     if (invoice.notes || invoice.payment_terms) {
@@ -197,12 +238,12 @@ Deno.serve(async (req) => {
       return Response.json({ file_url });
     }
 
-    // Otherwise return PDF as download
+    // Otherwise return PDF to open in browser
     return new Response(pdfBytes, {
       status: 200,
       headers: {
         'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename=invoice-${invoice.invoice_number}.pdf`
+        'Content-Disposition': `inline; filename=invoice-${invoice.invoice_number}.pdf`
       }
     });
   } catch (error) {
