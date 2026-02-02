@@ -7,15 +7,13 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Printer, Download, Mail, Loader2 } from 'lucide-react';
+import { Printer, Mail } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { cn } from "@/lib/utils";
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import SendEmailDialog from './SendEmailDialog';
 import InvoiceRenderer from './InvoiceRenderer';
-import html2canvas from 'html2canvas';
-import { toast } from 'sonner';
 
 const statusColors = {
   draft: "bg-slate-100 text-slate-700",
@@ -28,8 +26,6 @@ const statusColors = {
 export default function InvoicePreview({ open, onOpenChange, invoice, client, project }) {
   const [sendEmailDialogOpen, setSendEmailDialogOpen] = useState(false);
   const [emailType, setEmailType] = useState('invoice');
-  const [generatingImage, setGeneratingImage] = useState(false);
-  const invoiceRendererRef = useRef(null);
   
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
@@ -91,55 +87,12 @@ export default function InvoicePreview({ open, onOpenChange, invoice, client, pr
     return text;
   };
 
-  const generateInvoiceImage = async () => {
-    if (!invoiceRendererRef.current) return null;
-    
-    setGeneratingImage(true);
-    try {
-      const canvas = await html2canvas(invoiceRendererRef.current, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: '#ffffff',
-        logging: false,
-      });
-
-      const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
-      const file = new File([blob], `invoice-${invoice.invoice_number}.png`, { type: 'image/png' });
-      
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      
-      await base44.entities.Invoice.update(invoice.id, {
-        public_image_url: file_url
-      });
-
-      return file_url;
-    } catch (error) {
-      console.error('Error generating invoice image:', error);
-      toast.error('Failed to generate invoice image');
-      return null;
-    } finally {
-      setGeneratingImage(false);
-    }
-  };
-
-  const handleSendInvoice = async () => {
-    if (!invoice.public_image_url) {
-      toast.info('Generating invoice image...');
-      const imageUrl = await generateInvoiceImage();
-      if (!imageUrl) return;
-      invoice.public_image_url = imageUrl;
-    }
+  const handleSendInvoice = () => {
     setEmailType('invoice');
     setSendEmailDialogOpen(true);
   };
 
-  const handleSendReminder = async () => {
-    if (!invoice.public_image_url) {
-      toast.info('Generating invoice image...');
-      const imageUrl = await generateInvoiceImage();
-      if (!imageUrl) return;
-      invoice.public_image_url = imageUrl;
-    }
+  const handleSendReminder = () => {
     setEmailType('reminder');
     setSendEmailDialogOpen(true);
   };
@@ -180,22 +133,14 @@ export default function InvoicePreview({ open, onOpenChange, invoice, client, pr
               </Button>
               {client?.email && (
                 <>
-                  <Button variant="outline" size="sm" onClick={handleSendInvoice} disabled={generatingImage}>
-                    {generatingImage ? (
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    ) : (
-                      <Mail className="w-4 h-4 mr-2" />
-                    )}
+                  <Button variant="outline" size="sm" onClick={handleSendInvoice}>
+                    <Mail className="w-4 h-4 mr-2" />
                     Send Invoice
                   </Button>
                   {(invoice.status === 'sent' || invoice.status === 'overdue') && (
                     <div className="relative group">
-                      <Button variant="outline" size="sm" onClick={handleSendReminder} disabled={generatingImage}>
-                        {generatingImage ? (
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        ) : (
-                          <Mail className="w-4 h-4 mr-2" />
-                        )}
+                      <Button variant="outline" size="sm" onClick={handleSendReminder}>
+                        <Mail className="w-4 h-4 mr-2" />
                         Send Reminder
                       </Button>
                       {invoice.last_reminder_sent && (
@@ -213,7 +158,7 @@ export default function InvoicePreview({ open, onOpenChange, invoice, client, pr
         </DialogHeader>
 
         <div className="mt-4 bg-gradient-to-br from-slate-50 to-slate-100 p-6 rounded-xl">
-          <div ref={invoiceRendererRef} className="mx-auto shadow-lg rounded-lg overflow-hidden" style={{ maxWidth: '794px' }}>
+          <div className="mx-auto shadow-lg rounded-lg overflow-hidden" style={{ maxWidth: '794px' }}>
             <InvoiceRenderer
               invoice={invoice}
               client={client}
