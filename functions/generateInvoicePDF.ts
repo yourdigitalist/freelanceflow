@@ -15,12 +15,30 @@ Deno.serve(async (req) => {
     // Fetch invoice data
     const invoice = await base44.entities.Invoice.get(invoice_id);
     const client = await base44.entities.Client.get(invoice.client_id);
+    let project = null;
+    if (invoice.project_id) {
+      project = await base44.entities.Project.get(invoice.project_id);
+    }
     
     // Fetch company profile and settings for business info
-    const companyProfiles = await base44.asServiceRole.entities.CompanyProfile.filter({ user_id: user.id });
+    const companyProfiles = await base44.asServiceRole.entities.CompanyProfile.filter({ user_id: invoice.user_id });
     const company = companyProfiles[0] || {};
     
-    const settings = await base44.asServiceRole.entities.InvoiceSettings.list().then(list => list[0]);
+    const invoiceSettings = await base44.asServiceRole.entities.InvoiceSettings.filter({ created_by: user.email }).then(list => list[0]);
+    
+    // Build business info
+    const businessInfo = {
+      business_name: company.company_name || invoiceSettings?.business_name || '',
+      business_logo: company.logo_url || invoiceSettings?.business_logo || '',
+      business_address: company.street || company.city ? [
+        company.street,
+        company.street2,
+        [company.city, company.state, company.zip].filter(Boolean).join(', '),
+        company.country
+      ].filter(Boolean).join('\n') : (invoiceSettings?.business_address || ''),
+      business_email: company.email || invoiceSettings?.business_email || '',
+      business_phone: company.phone ? (company.phone_country_code ? `${company.phone_country_code} ${company.phone}` : company.phone) : (invoiceSettings?.business_phone || ''),
+    };
     
     // Get currency symbol
     const currencySymbol = company.currency === 'EUR' ? '€' : 
@@ -31,88 +49,94 @@ Deno.serve(async (req) => {
     // Create PDF
     const doc = new jsPDF();
 
-    // Business Logo/Name
-    doc.setFontSize(24);
+    // Header - Business Name/Logo
+    let yPos = 20;
+    doc.setFontSize(18);
     doc.setFont(undefined, 'bold');
-    doc.text(company.company_name || 'Your Business', 20, 25);
+    if (businessInfo.business_name) {
+      doc.text(businessInfo.business_name, 20, yPos);
+    }
+    yPos += 8;
+    
+    // Business address and contact
+    doc.setFontSize(9);
+    doc.setFont(undefined, 'normal');
+    if (businessInfo.business_address) {
+      const addressLines = businessInfo.business_address.split('\n');
+      addressLines.forEach(line => {
+        doc.text(line, 20, yPos);
+        yPos += 5;
+      });
+    }
+    if (businessInfo.business_email || businessInfo.business_phone) {
+      const contact = [businessInfo.business_email, businessInfo.business_phone].filter(Boolean).join(' | ');
+      doc.text(contact, 20, yPos);
+      yPos += 5;
+    }
 
-    // Invoice title
+    // Invoice title and info (right side)
+    doc.setFontSize(20);
+    doc.setFont(undefined, 'bold');
+    doc.text('INVOICE', 200, 20, { align: 'right' });
+    
     doc.setFontSize(10);
     doc.setFont(undefined, 'normal');
-    doc.text(`Invoice: ${invoice.invoice_number}`, 20, 35);
-    doc.text(`Issue Date: ${invoice.issue_date}`, 20, 42);
-    doc.text(`Due Date: ${invoice.due_date}`, 20, 49);
+    doc.text(invoice.invoice_number, 200, 28, { align: 'right' });
+    doc.text(invoice.status.toUpperCase(), 200, 35, { align: 'right' });
 
-    // Business info
-    let yPos = 60;
-    doc.setFontSize(10);
-    doc.text('From:', 20, yPos);
-    yPos += 7;
-    if (company.company_name) {
-      doc.text(company.company_name, 20, yPos);
-      yPos += 5;
-    }
-    if (company.street) {
-      doc.text(company.street, 20, yPos);
-      yPos += 5;
-    }
-    if (company.street2) {
-      doc.text(company.street2, 20, yPos);
-      yPos += 5;
-    }
-    const companyCity = [company.city, company.state, company.zip].filter(Boolean).join(', ');
-    if (companyCity) {
-      doc.text(companyCity, 20, yPos);
-      yPos += 5;
-    }
-    if (company.country) {
-      doc.text(company.country, 20, yPos);
-      yPos += 5;
-    }
-    if (company.email) {
-      doc.text(company.email, 20, yPos);
-      yPos += 5;
-    }
-    if (company.phone) {
-      const phone = company.phone_country_code ? `${company.phone_country_code} ${company.phone}` : company.phone;
-      doc.text(phone, 20, yPos);
-      yPos += 5;
-    }
-    if (company.tax_id) {
-      doc.text(`Tax ID: ${company.tax_id}`, 20, yPos);
-      yPos += 5;
-    }
-
+    // Bill To section
+    yPos = Math.max(yPos, 50);
+    doc.setFontSize(9);
+    doc.setFont(undefined, 'bold');
+    doc.text('Bill To', 20, yPos);
+    doc.text('Issue Date', 120, yPos);
+    
+    yPos += 6;
+    doc.setFont(undefined, 'normal');
+    
     // Client info
-    yPos = 60;
-    doc.text('To:', 120, yPos);
-    yPos += 7;
     const clientName = [client.first_name, client.last_name].filter(Boolean).join(' ') || client.company;
-    doc.text(clientName, 120, yPos);
+    doc.setFont(undefined, 'bold');
+    doc.text(clientName, 20, yPos);
+    doc.setFont(undefined, 'normal');
+    doc.text(invoice.issue_date || '', 120, yPos);
     yPos += 5;
+
     if (client.company && client.first_name) {
-      doc.text(client.company, 120, yPos);
+      doc.text(client.company, 20, yPos);
       yPos += 5;
     }
-    if (client.street) {
-      doc.text(client.street, 120, yPos);
+    if (client.email) {
+      doc.text(client.email, 20, yPos);
       yPos += 5;
     }
-    if (client.street2) {
-      doc.text(client.street2, 120, yPos);
-      yPos += 5;
+    
+    // Client address
+    const addressParts = [
+      client.street,
+      client.street2,
+      [client.city, client.state, client.zip].filter(Boolean).join(', '),
+      client.country
+    ].filter(Boolean);
+    
+    if (addressParts.length > 0) {
+      doc.text(addressParts.join(', '), 20, yPos, { maxWidth: 90 });
+      yPos += 5 * Math.ceil(addressParts.join(', ').length / 50);
     }
-    const cityLine = [client.city, client.state, client.zip].filter(Boolean).join(', ');
-    if (cityLine) {
-      doc.text(cityLine, 120, yPos);
+    
+    // Due Date
+    doc.text('Due Date', 120, 50 + 6);
+    doc.text(invoice.due_date || '', 120, 50 + 11);
+    
+    // Project info if exists
+    if (project) {
       yPos += 5;
-    }
-    if (client.country) {
-      doc.text(client.country, 120, yPos);
+      doc.setFontSize(9);
+      doc.setFont(undefined, 'bold');
+      doc.text('Project', 20, yPos);
       yPos += 5;
-    }
-    if (client.tax_id) {
-      doc.text(`Tax ID: ${client.tax_id}`, 120, yPos);
+      doc.setFont(undefined, 'normal');
+      doc.text(project.name, 20, yPos);
       yPos += 5;
     }
 
@@ -191,14 +215,16 @@ Deno.serve(async (req) => {
     doc.text(`${currencySymbol}${invoice.total.toFixed(2)}`, 175, yPos, { align: 'right' });
 
     // Notes & Payment Terms
-    if (invoice.notes || invoice.payment_terms) {
+    if (invoice.notes || invoice.payment_terms || invoiceSettings?.invoice_footer) {
       yPos += 15;
-      doc.setFontSize(10);
+      doc.setFontSize(9);
       doc.setFont(undefined, 'normal');
       
       if (invoice.notes) {
-        doc.text('Notes:', 20, yPos);
-        yPos += 7;
+        doc.setFont(undefined, 'bold');
+        doc.text('Notes', 20, yPos);
+        yPos += 5;
+        doc.setFont(undefined, 'normal');
         const noteLines = doc.splitTextToSize(invoice.notes, 170);
         noteLines.forEach(line => {
           if (yPos > 270) {
@@ -212,8 +238,10 @@ Deno.serve(async (req) => {
       }
       
       if (invoice.payment_terms) {
-        doc.text('Payment Terms:', 20, yPos);
-        yPos += 7;
+        doc.setFont(undefined, 'bold');
+        doc.text('Payment Terms', 20, yPos);
+        yPos += 5;
+        doc.setFont(undefined, 'normal');
         const termsLines = doc.splitTextToSize(invoice.payment_terms, 170);
         termsLines.forEach(line => {
           if (yPos > 270) {
@@ -222,6 +250,21 @@ Deno.serve(async (req) => {
           }
           doc.text(line, 20, yPos);
           yPos += 5;
+        });
+        yPos += 5;
+      }
+      
+      if (invoiceSettings?.invoice_footer) {
+        yPos += 5;
+        doc.setFontSize(8);
+        const footerLines = doc.splitTextToSize(invoiceSettings.invoice_footer, 170);
+        footerLines.forEach(line => {
+          if (yPos > 270) {
+            doc.addPage();
+            yPos = 20;
+          }
+          doc.text(line, 105, yPos, { align: 'center' });
+          yPos += 4;
         });
       }
     }
