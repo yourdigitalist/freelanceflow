@@ -70,9 +70,9 @@ export default function Invoices() {
   });
 
   const { data: invoices = [], isLoading } = useQuery({
-    queryKey: ['invoices', user?.email],
-    queryFn: () => base44.entities.Invoice.filter({ created_by: user.email }, '-created_date'),
-    enabled: !!user?.email,
+    queryKey: ['invoices', user?.id],
+    queryFn: () => base44.entities.Invoice.filter({ user_id: user.id }, '-created_date'),
+    enabled: !!user?.id,
   });
 
   const { data: clients = [] } = useQuery({
