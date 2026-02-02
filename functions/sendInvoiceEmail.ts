@@ -35,10 +35,11 @@ Deno.serve(async (req) => {
       : companyProfile?.phone || settings?.business_phone || '';
 
     // Generate PDF and get file URL
-    const { file_url: pdfUrl } = await base44.functions.invoke('generateInvoicePDF', {
+    const response = await base44.functions.invoke('generateInvoicePDF', {
       invoice_id,
       return_url: true
     });
+    const pdfUrl = response.data.file_url;
 
     // Build HTML email with download button
     const htmlBody = `
