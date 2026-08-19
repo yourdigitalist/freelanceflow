@@ -1,0 +1,80 @@
+{
+  "name": "InvoiceSettings",
+  "type": "object",
+  "properties": {
+    "business_name": {
+      "type": "string",
+      "description": "Business name for invoices"
+    },
+    "business_logo": {
+      "type": "string",
+      "description": "URL to business logo"
+    },
+    "business_address": {
+      "type": "string",
+      "description": "Business address for invoices"
+    },
+    "business_email": {
+      "type": "string",
+      "description": "Business contact email"
+    },
+    "business_phone": {
+      "type": "string",
+      "description": "Business contact phone"
+    },
+    "invoice_footer": {
+      "type": "string",
+      "description": "Footer text for all invoices"
+    },
+    "default_payment_terms": {
+      "type": "string",
+      "description": "Default payment terms"
+    },
+    "default_tax_rate": {
+      "type": "number",
+      "default": 0,
+      "description": "Default tax rate percentage"
+    },
+    "default_invoice_email_subject": {
+      "type": "string",
+      "description": "Default subject for new invoice emails"
+    },
+    "default_invoice_email_body": {
+      "type": "string",
+      "description": "Default body for new invoice emails"
+    },
+    "default_reminder_email_subject": {
+      "type": "string",
+      "description": "Default subject for reminder emails"
+    },
+    "default_reminder_email_body": {
+      "type": "string",
+      "description": "Default body for reminder emails"
+    },
+    "enable_reminders": {
+      "type": "boolean",
+      "default": false,
+      "description": "Enable automatic invoice reminders"
+    },
+    "reminder_days_before_due": {
+      "type": "number",
+      "default": 7,
+      "description": "Number of days before due date to send a reminder"
+    }
+  },
+  "required": [],
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "read": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

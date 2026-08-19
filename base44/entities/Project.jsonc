@@ -1,0 +1,105 @@
+{
+  "name": "Project",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Project name"
+    },
+    "client_id": {
+      "type": "string",
+      "description": "Reference to client (optional)"
+    },
+    "team_id": {
+      "type": "string",
+      "description": "Reference to team for multi-user support"
+    },
+    "description": {
+      "type": "string",
+      "description": "Project description and scope"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "planning",
+        "in_progress",
+        "review",
+        "completed",
+        "on_hold"
+      ],
+      "default": "planning"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "default": "medium"
+    },
+    "folder": {
+      "type": "string",
+      "description": "Project folder/category"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "due_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "budget": {
+      "type": "number",
+      "description": "Project budget in dollars"
+    },
+    "hourly_rate": {
+      "type": "number",
+      "description": "Hourly rate for this project"
+    },
+    "billing_type": {
+      "type": "string",
+      "enum": [
+        "hourly",
+        "fixed",
+        "retainer"
+      ],
+      "default": "hourly"
+    },
+    "color": {
+      "type": "string",
+      "description": "Project color for UI"
+    },
+    "emoji": {
+      "type": "string",
+      "description": "Project emoji icon"
+    },
+    "portal_enabled": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether client portal is enabled"
+    },
+    "portal_token": {
+      "type": "string",
+      "description": "Unique token for client portal access"
+    }
+  },
+  "required": [
+    "name"
+  ],
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "read": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

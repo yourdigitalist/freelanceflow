@@ -1,0 +1,54 @@
+{
+  "name": "TaskStatus",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Status name (e.g., 'To Do', 'In Progress')"
+    },
+    "key": {
+      "type": "string",
+      "description": "Unique identifier key (e.g., 'todo', 'in_progress')"
+    },
+    "color": {
+      "type": "string",
+      "description": "Hex color code (e.g., '#3B82F6')"
+    },
+    "order": {
+      "type": "number",
+      "description": "Display order on the board"
+    },
+    "project_id": {
+      "type": "string",
+      "description": "Reference to project (null for global statuses)"
+    },
+    "is_done": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this status represents completed/done tasks"
+    },
+    "created_by": {
+      "type": "string",
+      "description": "Email address of the user who created this status"
+    }
+  },
+  "required": [
+    "name",
+    "key",
+    "order"
+  ],
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "read": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

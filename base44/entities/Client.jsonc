@@ -1,0 +1,103 @@
+{
+  "name": "Client",
+  "type": "object",
+  "properties": {
+    "first_name": {
+      "type": "string",
+      "description": "Client first name"
+    },
+    "last_name": {
+      "type": "string",
+      "description": "Client last name"
+    },
+    "email": {
+      "type": "string",
+      "description": "Primary email address"
+    },
+    "phone": {
+      "type": "string",
+      "description": "Phone number (formatted with country code)"
+    },
+    "phone_country_code": {
+      "type": "string",
+      "description": "Phone country code (e.g., +1, +44, +33)"
+    },
+    "company": {
+      "type": "string",
+      "description": "Company name"
+    },
+    "street": {
+      "type": "string",
+      "description": "Street address"
+    },
+    "street2": {
+      "type": "string",
+      "description": "Street address line 2"
+    },
+    "city": {
+      "type": "string",
+      "description": "City"
+    },
+    "state": {
+      "type": "string",
+      "description": "State/Province"
+    },
+    "zip": {
+      "type": "string",
+      "description": "ZIP/Postal code"
+    },
+    "country": {
+      "type": "string",
+      "description": "Country"
+    },
+    "tax_id": {
+      "type": "string",
+      "description": "Tax identification number"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Internal notes about the client"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "inactive",
+        "lead"
+      ],
+      "default": "active"
+    },
+    "avatar_color": {
+      "type": "string",
+      "description": "Color for avatar display"
+    },
+    "total_revenue": {
+      "type": "number",
+      "default": 0,
+      "description": "Total revenue from this client"
+    },
+    "team_id": {
+      "type": "string",
+      "description": "Reference to team for multi-user support"
+    }
+  },
+  "required": [
+    "first_name",
+    "last_name",
+    "email"
+  ],
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "read": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

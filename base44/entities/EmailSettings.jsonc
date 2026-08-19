@@ -1,0 +1,39 @@
+{
+  "name": "EmailSettings",
+  "type": "object",
+  "properties": {
+    "header_color": {
+      "type": "string",
+      "default": "#9B63E9",
+      "description": "Email header background color"
+    },
+    "button_color": {
+      "type": "string",
+      "default": "#9B63E9",
+      "description": "Email button color"
+    },
+    "logo_url": {
+      "type": "string",
+      "description": "URL to logo for emails (defaults to company logo)"
+    },
+    "footer_text": {
+      "type": "string",
+      "description": "Custom footer text for emails"
+    }
+  },
+  "required": [],
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "read": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

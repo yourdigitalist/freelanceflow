@@ -1,0 +1,77 @@
+{
+  "name": "User",
+  "type": "object",
+  "properties": {
+    "onboarding_completed": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether user has completed onboarding"
+    },
+    "is_initialized": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether user has been initialized with default statuses"
+    },
+    "onboarding_step": {
+      "type": "string",
+      "description": "Current onboarding step"
+    },
+    "preferred_date_format": {
+      "type": "string",
+      "enum": [
+        "DD-MM-YYYY",
+        "MM-DD-YYYY",
+        "YYYY-MM-DD"
+      ],
+      "default": "DD-MM-YYYY",
+      "description": "User's preferred date format"
+    },
+    "preferred_time_format": {
+      "type": "string",
+      "enum": [
+        "12h",
+        "24h"
+      ],
+      "default": "24h",
+      "description": "User's preferred time format"
+    },
+    "preferred_currency": {
+      "type": "string",
+      "enum": [
+        "USD",
+        "EUR",
+        "GBP",
+        "CAD",
+        "AUD"
+      ],
+      "default": "USD",
+      "description": "User's preferred currency"
+    },
+    "subscription_plan": {
+      "type": "string",
+      "enum": [
+        "free",
+        "pro",
+        "business"
+      ],
+      "default": "free",
+      "description": "User's subscription plan"
+    },
+    "notification_review_comments": {
+      "type": "boolean",
+      "default": true,
+      "description": "Notify on review comments"
+    },
+    "notification_review_status": {
+      "type": "boolean",
+      "default": true,
+      "description": "Notify on review status changes"
+    },
+    "notification_invoice_reminders": {
+      "type": "boolean",
+      "default": true,
+      "description": "Notify on invoice reminders"
+    }
+  },
+  "required": []
+}

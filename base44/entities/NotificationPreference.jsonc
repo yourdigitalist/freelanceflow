@@ -1,0 +1,42 @@
+{
+  "name": "NotificationPreference",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "User email"
+    },
+    "review_comments": {
+      "type": "boolean",
+      "default": true,
+      "description": "Notify on review comments"
+    },
+    "review_status_changes": {
+      "type": "boolean",
+      "default": true,
+      "description": "Notify on review approval/rejection"
+    },
+    "invoice_reminders": {
+      "type": "boolean",
+      "default": true,
+      "description": "Notify on invoice due dates"
+    }
+  },
+  "required": [
+    "user_email"
+  ],
+  "rls": {
+    "create": {
+      "data.user_email": "{{user.email}}"
+    },
+    "read": {
+      "data.user_email": "{{user.email}}"
+    },
+    "update": {
+      "data.user_email": "{{user.email}}"
+    },
+    "delete": {
+      "data.user_email": "{{user.email}}"
+    }
+  }
+}

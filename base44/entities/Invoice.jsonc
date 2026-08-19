@@ -1,0 +1,156 @@
+{
+  "name": "Invoice",
+  "type": "object",
+  "properties": {
+    "invoice_number": {
+      "type": "string",
+      "description": "Invoice number (e.g., INV-001)"
+    },
+    "client_id": {
+      "type": "string",
+      "description": "Reference to client"
+    },
+    "project_id": {
+      "type": "string",
+      "description": "Reference to project"
+    },
+    "team_id": {
+      "type": "string",
+      "description": "Reference to team for multi-user support"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "ID of the user who owns this invoice"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "sent",
+        "paid",
+        "overdue",
+        "cancelled"
+      ],
+      "default": "draft"
+    },
+    "issue_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "due_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "line_items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number"
+          },
+          "rate": {
+            "type": "number"
+          },
+          "amount": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "subtotal": {
+      "type": "number"
+    },
+    "tax_rate": {
+      "type": "number",
+      "default": 0
+    },
+    "tax_name": {
+      "type": "string",
+      "description": "Name of the applied tax"
+    },
+    "tax_amount": {
+      "type": "number",
+      "default": 0
+    },
+    "total": {
+      "type": "number"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Notes to appear on invoice"
+    },
+    "payment_terms": {
+      "type": "string",
+      "description": "Payment terms and instructions"
+    },
+    "last_reminder_sent": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the last reminder was sent"
+    },
+    "reminder_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of reminders sent"
+    },
+    "show_item_column": {
+      "type": "boolean",
+      "default": true,
+      "description": "Show Item/Description column in public view"
+    },
+    "show_quantity_column": {
+      "type": "boolean",
+      "default": true,
+      "description": "Show Quantity column in public view"
+    },
+    "show_rate_column": {
+      "type": "boolean",
+      "default": true,
+      "description": "Show Rate column in public view"
+    }
+  },
+  "required": [
+    "client_id",
+    "invoice_number",
+    "user_id"
+  ],
+  "rls": {
+    "create": {
+      "data.user_id": "{{user.id}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "created_by": "{{user.email}}"
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "created_by": "{{user.email}}"
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "created_by": "{{user.email}}"
+        }
+      ]
+    }
+  }
+}

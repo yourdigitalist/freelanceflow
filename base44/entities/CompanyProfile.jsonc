@@ -1,0 +1,134 @@
+{
+  "name": "CompanyProfile",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "Reference to the user who owns this company profile"
+    },
+    "team_id": {
+      "type": "string",
+      "description": "Reference to team (for future team support)"
+    },
+    "first_name": {
+      "type": "string",
+      "description": "User's first name"
+    },
+    "last_name": {
+      "type": "string",
+      "description": "User's last name"
+    },
+    "company_name": {
+      "type": "string",
+      "description": "Legal business name"
+    },
+    "logo_url": {
+      "type": "string",
+      "description": "URL to company logo for invoices and branding"
+    },
+    "website": {
+      "type": "string",
+      "description": "Company website"
+    },
+    "street": {
+      "type": "string",
+      "description": "Street address"
+    },
+    "street2": {
+      "type": "string",
+      "description": "Street address line 2"
+    },
+    "city": {
+      "type": "string",
+      "description": "City"
+    },
+    "state": {
+      "type": "string",
+      "description": "State/Province"
+    },
+    "zip": {
+      "type": "string",
+      "description": "ZIP/Postal code"
+    },
+    "country": {
+      "type": "string",
+      "description": "Country"
+    },
+    "phone": {
+      "type": "string",
+      "description": "Business phone number (formatted with country code)"
+    },
+    "phone_country_code": {
+      "type": "string",
+      "description": "Phone country code (e.g., +1, +44, +33)"
+    },
+    "email": {
+      "type": "string",
+      "description": "Business email"
+    },
+    "tax_id": {
+      "type": "string",
+      "description": "Tax identification number (VAT, EIN, etc.)"
+    },
+    "currency": {
+      "type": "string",
+      "enum": [
+        "USD",
+        "EUR",
+        "GBP",
+        "CAD",
+        "AUD"
+      ],
+      "default": "USD",
+      "description": "Default currency for invoices"
+    },
+    "timezone": {
+      "type": "string",
+      "default": "UTC",
+      "description": "Company timezone (e.g., America/New_York)"
+    },
+    "bank_account_holder": {
+      "type": "string",
+      "description": "Name on bank account"
+    },
+    "bank_account_number": {
+      "type": "string",
+      "description": "Bank account number (encrypted)"
+    },
+    "bank_routing_number": {
+      "type": "string",
+      "description": "Bank routing number (for US)"
+    },
+    "iban": {
+      "type": "string",
+      "description": "IBAN (for international)"
+    },
+    "swift_code": {
+      "type": "string",
+      "description": "SWIFT code for international transfers"
+    },
+    "is_setup_complete": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether onboarding is complete"
+    }
+  },
+  "required": [
+    "user_id",
+    "company_name"
+  ],
+  "rls": {
+    "create": {
+      "data.user_id": "{{user.id}}"
+    },
+    "read": {
+      "data.user_id": "{{user.id}}"
+    },
+    "update": {
+      "data.user_id": "{{user.id}}"
+    },
+    "delete": {
+      "data.user_id": "{{user.id}}"
+    }
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "name": "TaxRate",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Tax name (e.g., VAT, GST, Sales Tax)"
+    },
+    "rate": {
+      "type": "number",
+      "description": "Tax rate as percentage (e.g., 12 for 12%)"
+    },
+    "is_default": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this is the default tax rate"
+    }
+  },
+  "required": [
+    "name",
+    "rate"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "created_by": "auth.user.email"
+      }
+    },
+    "create": {
+      "user_condition": true
+    },
+    "update": {
+      "user_condition": {
+        "created_by": "auth.user.email"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "created_by": "auth.user.email"
+      }
+    }
+  }
+}

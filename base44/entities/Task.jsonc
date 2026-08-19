@@ -1,0 +1,89 @@
+{
+  "name": "Task",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Task title"
+    },
+    "project_id": {
+      "type": "string",
+      "description": "Reference to project"
+    },
+    "team_id": {
+      "type": "string",
+      "description": "Reference to team for multi-user support"
+    },
+    "parent_task_id": {
+      "type": "string",
+      "description": "Reference to parent task for subtasks"
+    },
+    "description": {
+      "type": "string",
+      "description": "Task details"
+    },
+    "status_id": {
+      "type": "string",
+      "description": "Reference to TaskStatus"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "default": "medium"
+    },
+    "due_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "estimated_hours": {
+      "type": "number",
+      "description": "Estimated hours to complete"
+    },
+    "order": {
+      "type": "number",
+      "default": 0,
+      "description": "Sort order within status"
+    },
+    "comments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string"
+          },
+          "author": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string"
+          }
+        }
+      },
+      "default": [],
+      "description": "Task comments"
+    }
+  },
+  "required": [
+    "title",
+    "project_id"
+  ],
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "read": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

@@ -1,0 +1,67 @@
+{
+  "name": "Notification",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "User who receives this notification"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "review_comment",
+        "review_approved",
+        "review_rejected",
+        "invoice_due"
+      ],
+      "description": "Type of notification"
+    },
+    "title": {
+      "type": "string",
+      "description": "Notification title"
+    },
+    "message": {
+      "type": "string",
+      "description": "Notification message"
+    },
+    "link": {
+      "type": "string",
+      "description": "Link to related item"
+    },
+    "read": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether notification has been read"
+    },
+    "related_id": {
+      "type": "string",
+      "description": "ID of related entity (review, invoice, etc)"
+    }
+  },
+  "required": [
+    "user_email",
+    "type",
+    "title",
+    "message"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "user_email": "auth.user.email"
+      }
+    },
+    "create": {
+      "user_condition": true
+    },
+    "update": {
+      "user_condition": {
+        "user_email": "auth.user.email"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "user_email": "auth.user.email"
+      }
+    }
+  }
+}

@@ -1,0 +1,97 @@
+{
+  "name": "Subscription",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "Reference to the user"
+    },
+    "team_id": {
+      "type": "string",
+      "description": "Reference to team (for future team support)"
+    },
+    "plan": {
+      "type": "string",
+      "enum": [
+        "free",
+        "pro",
+        "business"
+      ],
+      "default": "free",
+      "description": "Current subscription plan"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "cancelled",
+        "expired",
+        "pending"
+      ],
+      "default": "active",
+      "description": "Subscription status"
+    },
+    "stripe_customer_id": {
+      "type": "string",
+      "description": "Stripe customer ID for billing integration"
+    },
+    "stripe_subscription_id": {
+      "type": "string",
+      "description": "Stripe subscription ID"
+    },
+    "billing_email": {
+      "type": "string",
+      "description": "Email for billing notifications"
+    },
+    "billing_cycle_start": {
+      "type": "string",
+      "format": "date",
+      "description": "When the current billing cycle started"
+    },
+    "billing_cycle_end": {
+      "type": "string",
+      "format": "date",
+      "description": "When the current billing cycle ends"
+    },
+    "next_billing_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of next charge"
+    },
+    "payment_method": {
+      "type": "string",
+      "description": "Last 4 digits of payment method or payment method type"
+    },
+    "auto_renew": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether subscription auto-renews"
+    },
+    "trial_ends_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When trial period ends (if applicable)"
+    },
+    "cancellation_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When subscription was cancelled"
+    }
+  },
+  "required": [
+    "user_id",
+    "plan"
+  ],
+  "rls": {
+    "read": {
+      "data.user_id": "{{user.id}}"
+    },
+    "create": true,
+    "update": {
+      "data.user_id": "{{user.id}}"
+    },
+    "delete": {
+      "data.user_id": "{{user.id}}"
+    }
+  }
+}

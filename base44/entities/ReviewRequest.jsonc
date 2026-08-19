@@ -1,0 +1,194 @@
+{
+  "name": "ReviewRequest",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "type": "string",
+      "description": "Reference to project (optional)"
+    },
+    "client_id": {
+      "type": "string",
+      "description": "Reference to client"
+    },
+    "task_id": {
+      "type": "string",
+      "description": "Optional reference to specific task"
+    },
+    "team_id": {
+      "type": "string",
+      "description": "Reference to team for multi-user support"
+    },
+    "folder": {
+      "type": "string",
+      "description": "Folder/category for organizing review requests"
+    },
+    "folder_emoji": {
+      "type": "string",
+      "description": "Emoji icon for the folder"
+    },
+    "folder_color": {
+      "type": "string",
+      "description": "Color for the folder icon background"
+    },
+    "title": {
+      "type": "string",
+      "description": "Title of the review request"
+    },
+    "description": {
+      "type": "string",
+      "description": "Description of what is being reviewed"
+    },
+    "file_urls": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          },
+          "filename": {
+            "type": "string"
+          },
+          "uploaded_date": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "description": "Array of files for review"
+    },
+    "version": {
+      "type": "number",
+      "description": "Version number for tracking revisions"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "approved",
+        "rejected",
+        "commented"
+      ],
+      "default": "pending",
+      "description": "Current review status"
+    },
+    "share_token": {
+      "type": "string",
+      "description": "Unique token for generating shareable link"
+    },
+    "password": {
+      "type": "string",
+      "description": "Optional password for client access"
+    },
+    "comments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "author": {
+            "type": "string"
+          },
+          "author_email": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "default": [],
+      "description": "Array of general review comments"
+    },
+    "file_comments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "author": {
+            "type": "string"
+          },
+          "author_email": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          },
+          "file_index": {
+            "type": "number"
+          },
+          "coordinates": {
+            "type": "object",
+            "properties": {
+              "x": {
+                "type": "number"
+              },
+              "y": {
+                "type": "number"
+              },
+              "percentX": {
+                "type": "number"
+              },
+              "percentY": {
+                "type": "number"
+              }
+            }
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "resolved": {
+            "type": "boolean"
+          }
+        }
+      },
+      "default": [],
+      "description": "Array of location-specific comments on files"
+    },
+    "is_folder_placeholder": {
+      "type": "boolean",
+      "default": false,
+      "description": "Internal flag for folder placeholders"
+    },
+    "due_date": {
+      "type": "string",
+      "format": "date",
+      "description": "When the review is due"
+    }
+  },
+  "required": [
+    "client_id",
+    "title",
+    "file_urls"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "created_by": "auth.user.email"
+      }
+    },
+    "create": {
+      "user_condition": true
+    },
+    "update": {
+      "user_condition": {
+        "created_by": "auth.user.email"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "created_by": "auth.user.email"
+      }
+    }
+  }
+}
